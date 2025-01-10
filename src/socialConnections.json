@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "name": "Doğukan Ayhan",
+        "position": "TechCorp'ta Kıdemli Yazılım Mühendisi",
+        "profileImage": "https://media.licdn.com/dms/image/v2/D4D35AQGvngArAC5HJA/profile-framedphoto-shrink_400_400/profile-framedphoto-shrink_400_400/0/1708612836178?e=1734382800&v=beta&t=Hb5WHapgKTKHdg18Imkdc40jiceD0EbLc2yOnKyXg-A",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Yapay Zeka Destekli Müşteri Hizmetleri Platformu", 
+                "description": "Destek yanıt sürelerini %40 azaltan gelişmiş bir yapay zeka chatbot sistemi geliştirdi"
+            },
+            { 
+                "id": 2, 
+                "title": "Blok Zinciri Ödeme Geçidi", 
+                "description": "E-ticaret platformları için güvenli bir kripto para işlem sistemi uyguladı"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Ahmet Serdar Şahin",
+        "position": "Design Innovations'ta UX Tasarımcısı",
+        "profileImage": "https://media.licdn.com/dms/image/v2/D4E03AQF63rVmrZL1Yg/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1720035989916?e=1739404800&v=beta&t=9kN83LpBTuM_fRnUDZjd0jQ2OY2xsD83XOxfLlHcKgE",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Mobil Uygulama Yeniden Tasarımı", 
+                "description": "Önde gelen bir fintech uygulaması için kullanıcı arayüzünü tamamen yeniledi"
+            },
+            { 
+                "id": 2, 
+                "title": "Erişilebilirlik Tasarım Sistemi", 
+                "description": "Kapsayıcı tasarım ilkelerine odaklanan kapsamlı bir tasarım sistemi oluşturdu"
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Mustafa Onur Aydın",
+        "position": "DataIntelligence'ta Makine Öğrenimi Araştırmacısı",
+        "profileImage": "https://media.licdn.com/dms/image/v2/D5635AQGJE4lXbS4TCg/profile-framedphoto-shrink_400_400/profile-framedphoto-shrink_400_400/0/1730060887424?e=1734382800&v=beta&t=ZP9brAVky1nDArqJiZDf6UDlE0e2MSY8-BOio2VIyGo",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Tahmine Dayalı Sağlık Analitiği", 
+                "description": "Erken hastalık tespiti için makine öğrenimi modelleri geliştirdi"
+            },
+            { 
+                "id": 2, 
+                "title": "Doğal Dil İşleme Aracı", 
+                "description": "Duygu analizi için gelişmiş bir NLP sistemi oluşturdu"
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "name": "Alper Taş",
+        "position": "CloudTech'te Bulut Çözümleri Mimarı",
+        "profileImage": "https://media.licdn.com/dms/image/v2/D4D35AQHrMfn4KTQCTQ/profile-framedphoto-shrink_100_100/profile-framedphoto-shrink_100_100/0/1729936285320?e=1734382800&v=beta&t=_eC0R-ziCPL0Na5ceGqrMZtBS2jRuIqrhhY5fBa4hlU",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Kurumsal Bulut Geçişi", 
+                "description": "Bir Fortune 500 şirketi için karmaşık bulut altyapısı geçişine liderlik etti"
+            },
+            { 
+                "id": 2, 
+                "title": "Sunucusuz Mikro Hizmetler Mimarisi", 
+                "description": "AWS Lambda ile ölçeklenebilir mikro hizmetler çözümü tasarladı"
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "name": "Zeynep Korkmaz",
+        "position": "Innovative Solutions'ta Veri Bilimcisi",
+        "profileImage": "https://via.placeholder.com/150",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Satış Tahmin Analitiği", 
+                "description": "Makine öğrenimi modelleriyle satış tahmin doğruluğunu %30 artırdı"
+            },
+            { 
+                "id": 2, 
+                "title": "Müşteri Segmentasyonu", 
+                "description": "Veri analizi ile müşterileri daha iyi hedeflemek için segmentasyon stratejileri geliştirdi"
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "name": "Emre Güneş",
+        "position": "Creative Minds'ta Grafik Tasarımcı",
+        "profileImage": "https://via.placeholder.com/150",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Marka Görsel Kimliği", 
+                "description": "Yeni bir teknoloji girişimi için marka görsel kimliği oluşturdu"
+            },
+            { 
+                "id": 2, 
+                "title": "Sosyal Medya Kampanyası", 
+                "description": "Yüksek etkileşim alan sosyal medya reklam kampanyaları tasarladı"
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "name": "Deniz Akın",
+        "position": "NextTech'te Yazılım Geliştirici",
+        "profileImage": "https://via.placeholder.com/150",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "E-Ticaret Platformu", 
+                "description": "Yeni özellikler ekleyerek bir e-ticaret platformunun kullanıcı tabanını %50 artırdı"
+            },
+            { 
+                "id": 2, 
+                "title": "API Optimizasyonu", 
+                "description": "API performansını %40 artıran optimizasyon çalışmaları yaptı"
+            }
+        ]
+    },
+    {
+        "id": 8,
+        "name": "Melis Arslan",
+        "position": "GreenTech'te Proje Yöneticisi",
+        "profileImage": "https://via.placeholder.com/150",
+        "projects": [
+            { 
+                "id": 1, 
+                "title": "Yenilenebilir Enerji Çözümleri", 
+                "description": "Güneş enerjisi sistemlerinin kurulumunu yönetti ve müşteri memnuniyetini artırdı"
+            },
+            { 
+                "id": 2, 
+                "title": "Sürdürülebilir İş Stratejileri", 
+                "description": "Şirketin sürdürülebilirlik stratejilerini geliştirdi ve uyguladı"
+            }
+        ]
+    }
+]

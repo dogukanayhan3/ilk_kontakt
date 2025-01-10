@@ -1,0 +1,140 @@
+/* General Styles */
+html, body {
+    font-family: 'Galano Classic Alt', sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+}
+
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    background: linear-gradient(135deg, #3245f1, #5fbcee);
+    animation: gradient 6s infinite alternate;
+    overflow: hidden;
+}
+
+@keyframes gradient {
+    from {
+        background: linear-gradient(135deg, #3245f1, #5fbcee);
+    }
+    to {
+        background: linear-gradient(135deg, #5fbcee, #3245f1);
+    }
+}
+
+/* Card Animation */
+.login-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    animation: fadeIn 1s ease-out;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.6s ease, box-shadow 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-mode .login-card {
+    transform: scale(1.02);
+}
+
+.signup-mode .login-card {
+    transform: scale(1.02);
+}
+
+/* Text and Input */
+.login-card h2 {
+    font-size: 2.2em;
+    color: #5fbcee;
+    margin-bottom: 20px;
+}
+
+.error-message {
+    font-size: 1.2em;
+    color: red;
+    margin-bottom: 15px;
+}
+
+.login-form label {
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    color: #3245f1;
+}
+
+.login-form input, .login-form select {
+    font-size: 1em;
+    padding: 12px;
+    border: 1px solid #5fbcee;
+    border-radius: 6px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+/* Buttons */
+.login-button {
+    position: relative; /* For positioning the pseudo-element */
+    font-size: 1.2em;
+    padding: 14px;
+    background-color: #5fbcee;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    overflow: hidden; /* Ensures the circle doesn't go outside the button */
+    z-index: 0;
+    transition: color 0.2s ease; /* Smooth text color transition */
+}
+
+.login-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background-color: #3245f1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1; /* Keeps the circle behind the text */
+    transition: width 0.2s ease, height 0.2s ease; /* Smooth growth effect */
+}
+
+.login-button:hover {
+    color: white; /* Ensures the text remains visible on hover */
+}
+
+.login-button:hover::before {
+    width: 300%; /* Expands the circle to cover the button */
+    height: 300%;
+}
+
+.toggle-link {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #5fbcee;
+    cursor: pointer;
+}
+
+.toggle-link:hover {
+    color: #3245f1;
+    text-decoration: underline;
+}

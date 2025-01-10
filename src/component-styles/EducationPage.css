@@ -1,0 +1,122 @@
+.education-listings-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.course-listing {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    display: flex;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.course-listing:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.course-image {
+    flex: 0 0 300px;
+    margin-right: 20px;
+    position: relative; /* For positioning the course icon */
+}
+
+.course-image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.course-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.course-details h3 {
+    color: #5fbcee;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+.course-details p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.course-meta {
+    display: flex;
+    flex-direction: column; /* Stacks the items vertically */
+    gap: 10px; /* Adds spacing between stacked items */
+    margin-bottom: 15px;
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.instructor-info,
+.course-duration,
+.course-level {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between icon and text */
+}
+
+.course-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.course-price {
+    font-size: 1.5em;
+    color: #5fbcee;
+    font-weight: bold;
+}
+
+.apply-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #5fbcee;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+    gap: 10px; /* Space between text and ChevronRight icon */
+}
+
+.apply-btn:hover {
+    background-color: #3245f1;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 768px) {
+    .course-listing {
+        flex-direction: column;
+    }
+
+    .course-image {
+        margin-right: 0;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+
+    .course-meta {
+        flex-direction: column; /* Stacked on smaller screens as well */
+    }
+}
