@@ -1,4 +1,4 @@
-import "../component-styles/NavigationBar.css";
+import "../../component-styles/NavigationBar.css";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, User, BriefcaseBusiness, Globe, Bell, Library } from 'lucide-react';
 

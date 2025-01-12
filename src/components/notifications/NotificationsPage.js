@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Bell, MessageCircle, UserPlus, Check } from 'lucide-react';
 import NotificationCard from './NotificationCard';
-import Layout from './Layout';
-import '../component-styles/NotificationsPage.css';
+import Layout from '../page_layout/Layout';
+import '../../component-styles/NotificationsPage.css';
 
 function NotificationsPage() {
     const [notifications, setNotifications] = useState([

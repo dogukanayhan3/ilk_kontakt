@@ -1,9 +1,9 @@
 import React from 'react';
 import { Users, Briefcase, Link2, ArrowUpRight } from 'lucide-react';
-import Layout from "./Layout";
+import Layout from "../page_layout/Layout";
 import SocialConnectionCard from "./SocialConnectionCard"
-import "../component-styles/SocialPage.css";
-import socialConnections from "../socialConnections.json";
+import "../../component-styles/SocialPage.css";
+import socialConnections from "../../socialConnections.json";
 
 
 function SocialPage() {

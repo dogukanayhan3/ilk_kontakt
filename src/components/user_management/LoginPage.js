@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Briefcase, GraduationCap, CheckCircle } from 'lucide-react';
-import "../component-styles/LoginPage.css";
+import "../../component-styles/LoginPage.css";
 
 function LoginPage() {
     const [isLoginMode, setIsLoginMode] = useState(true);

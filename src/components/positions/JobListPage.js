@@ -1,7 +1,7 @@
-import Layout from "./Layout";
+import Layout from "../page_layout/Layout";
 import Job from "./Job";
-import jobListings from "../jobdata.json";
-import "../component-styles/JobListings.css";
+import jobListings from "../../jobdata.json";
+import "../../component-styles/JobListings.css";
 
 function JobListPage() {
     return (

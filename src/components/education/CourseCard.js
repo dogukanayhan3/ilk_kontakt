@@ -1,5 +1,5 @@
 import { Book, Users, Clock, Award, ChevronRight } from 'lucide-react';
-import "../component-styles/EducationPage.css";
+import "../../component-styles/EducationPage.css";
 
 function CourseCard({ course }) {
     return (

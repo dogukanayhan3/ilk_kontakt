@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Heart, MessageCircle, Share2 } from 'lucide-react';
-import "../component-styles/Post.css";
+import "../../component-styles/Post.css";
 
 function Post({post_owner, post_content, post_likes, post_comments}){
     const [commentsVisible, setCommentsVisible] = useState(false);

@@ -1,4 +1,4 @@
-import "../component-styles/NotificationCard.css";
+import "../../component-styles/NotificationCard.css";
 import { Bell, MessageCircle, UserPlus, Check } from 'lucide-react';
 
 function NotificationCard({ notification, onMarkAsRead, onSubmitFeedback }) {

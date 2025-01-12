@@ -1,7 +1,7 @@
-import Layout from "./Layout";
+import Layout from "../page_layout/Layout";
 import Post from "./Post";
-import data from "../data.json";
-import "../component-styles/HomePage.css"
+import data from "../../data.json";
+import "../../component-styles/HomePage.css"
 
 function HomePage() {
     return(

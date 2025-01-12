@@ -1,5 +1,5 @@
-import Layout from "./Layout";
-import "../component-styles/ContactPage.css";
+import Layout from "../page_layout/Layout";
+import "../../component-styles/ContactPage.css";
 
 function ContactPage() {
     return (

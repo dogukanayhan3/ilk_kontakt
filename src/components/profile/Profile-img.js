@@ -1,4 +1,4 @@
-import "../component-styles/Profile-img.css";
+import "../../component-styles/Profile-img.css";
 
 function ProfileImage() {
     return (

@@ -1,8 +1,8 @@
 import React from 'react';
-import Layout from "./Layout";
+import Layout from "../page_layout/Layout";
 import CourseCard from './CourseCard';
-import "../component-styles/EducationPage.css";
-import courses from "../coursesdata.json";
+import "../../component-styles/EducationPage.css";
+import courses from "../../coursesdata.json";
 
 function EducationPage() {
     return (

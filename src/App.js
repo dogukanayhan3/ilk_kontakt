@@ -1,13 +1,14 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import HomePage from './components/HomePage';
-import LoginPage from './components/LoginPage';
-import JobListPage from './components/JobListPage';
-import ContactPage from './components/ContactPage';
-import EducationPage from "./components/EducationPage";
-import ProfilePage from "./components/ProfilePage";
-import SocialPage from "./components/SocialPage";
+import HomePage from './components/home_page/HomePage';
+import LoginPage from './components/user_management/LoginPage';
+import JobListPage from './components/positions/JobListPage';
+import ContactPage from './components/contact/ContactPage';
+import EducationPage from "./components/education/EducationPage";
+import ProfilePage from "./components/profile/ProfilePage";
+import SocialPage from "./components/social/SocialPage";
+import NotificationsPage from "./components/notifications/NotificationsPage";
 import "./component-styles/global.css";
-import NotificationsPage from "./components/NotificationsPage";
+
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';

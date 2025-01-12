@@ -1,6 +1,6 @@
 import React from 'react';
 import { Computer, MapPin, Briefcase, DollarSign, ChevronRight } from 'lucide-react';
-import "../component-styles/JobListings.css";
+import "../../component-styles/JobListings.css";
 
 function Job({ title, company, description, location, experience, salary, type }) {
     return (

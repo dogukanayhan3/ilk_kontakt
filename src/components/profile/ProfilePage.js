@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Edit, Camera, Users, Paperclip, Star, X, Save } from 'lucide-react';
-import Layout from "./Layout";
+import Layout from "../page_layout/Layout";
 import ProfileImage from "./Profile-img";
-import "../component-styles/ProfilePage.css";
+import "../../component-styles/ProfilePage.css";
 
 // Dummy post data - replace with actual data source
 const dummyPosts = [
