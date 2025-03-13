@@ -17,19 +17,31 @@ function LoginPage() {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-
+    
         if (isLoginMode) {
-            if (formData.username === 'admin' && formData.password === '1234') {
-                localStorage.setItem('isAuthenticated', 'true');
-                navigate("/homepage");
-                return;
+            try {
+                const response = await fetch("http://localhost:8080/api/users/1");
+                if (!response.ok) {
+                    throw new Error("Veri çekme başarısız oldu!");
+                }
+    
+                const data = await response.json();
+    
+                if (formData.username === data.username && formData.password === data.passwordHash) {
+                    localStorage.setItem("isAuthenticated", "true");
+                    navigate("/homepage");
+                    return;
+                } else {
+                    setError("Kullanıcı adı veya şifre yanlış");
+                }
+            } catch (error) {
+                setError("Veri çekilirken bir hata oluştu!");
             }
-            setError('Kullanıcı adı veya şifre yanlış');
         } else {
             if (formData.password !== formData.confirmPassword) {
-                setError('Şifreler eşleşmiyor!');
+                setError("Şifreler eşleşmiyor!");
                 return;
             }
             alert("Kayıt başarılı! Giriş yapabilirsiniz.");
