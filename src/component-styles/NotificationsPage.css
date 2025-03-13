@@ -1,0 +1,39 @@
+    .notifications-page {
+        max-width: 1400px;
+        margin: 50px auto;
+        padding: 20px;
+    }
+    
+    .notifications-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        color: #5fbcee;
+    }
+    
+    .notifications-header h2 {
+        font-size: 2.5em;
+        margin: 0;
+    }
+    
+    .notifications-container {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+    }
+    
+    @media screen and (max-width: 768px) {
+        .notifications-page {
+        padding: 10px;
+        }
+    
+        .notifications-header h2 {
+        font-size: 2em;
+        }
+    
+        .notifications-container {
+        padding: 15px;
+        }
+    }

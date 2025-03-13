@@ -1,0 +1,217 @@
+/* General styling for the ContactPage */
+
+/* General styling for the ContactPage */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#root { /* Add this selector */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1; /* Allow the main content to take up available space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically if there's little content */
+}
+
+.contact-page {
+    max-width: 600px; /* Reduced width for a shorter appearance */
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box; /* Include padding in width calculation */
+    flex-grow: 1; /* Allow this to expand and push footer down */
+}
+
+footer {
+    margin-top: auto; /* Push footer to the bottom */
+    width: 100%;
+    position: relative; /* Changed from sticky to relative */
+    bottom: 0;
+}
+
+.contact-page section {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 100%; /* Ensure it doesn't exceed the parent's width */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.section-title {
+    font-size: 1.8em;
+    color: #5fbcee;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.section-subtitle {
+    font-size: 1em;
+    margin-bottom: 20px;
+    color: #7f8c8d;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Contact form styling */
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 500px;
+    margin: 0 auto 30px; /* Increased bottom margin */
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    max-width: 450px; /* Reduced width */
+    margin: 0 auto; /* Center horizontally */
+    padding: 12px 15px;
+    font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.contact-form textarea {
+    resize: vertical; /* Allow resizing only vertically */
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    border-color: #5fbcee;
+    outline: none;
+    box-shadow: 0 0 5px rgba(95, 188, 238, 0.5);
+}
+
+.contact-form button {
+    background-color: #5fbcee;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    max-width: 200px; /* Smaller button width */
+    margin: 0 auto; /* Center the button horizontally */
+}
+
+.contact-form button:hover {
+    background-color: #3245f1;
+}
+
+/* Contact info styling */
+.contact-info {
+    background-color: #f0f0f0;
+    border-radius: 6px;
+    padding: 15px;
+    box-sizing: border-box;
+    max-width: 500px;
+    margin: 30px auto 0; /* Added top margin, removed bottom margin */
+    text-align: center;
+}
+
+.contact-info h3 {
+    font-size: 1.5em;
+    color: #5fbcee;
+    margin-bottom: 15px;
+}
+
+.contact-info p {
+    font-size: 1em;
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #333;
+    text-align: center; /* Ensure paragraphs are centered */
+}
+
+.contact-info strong {
+    color: #5fbcee;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 1024px) {
+    .contact-page {
+        padding: 20px;
+        width: calc(100% - 40px); /* Subtract padding */
+        margin: 0 auto;
+    }
+
+    .section-title {
+        font-size: 1.5em;
+    }
+
+    .section-subtitle {
+        font-size: 0.95em;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        font-size: 0.95em;
+        padding: 10px 12px;
+    }
+
+    .contact-form button {
+        font-size: 0.95em;
+    }
+
+    .contact-info p {
+        font-size: 0.9em;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .contact-page {
+        padding: 10px;
+        width: calc(100% - 20px); /* Subtract padding */
+    }
+
+    .section-title {
+        font-size: 1.3em;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        font-size: 0.9em;
+    }
+
+    .contact-info h3 {
+        font-size: 1.3em;
+    }
+
+    .contact-info p {
+        font-size: 0.85em;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .section-title {
+        font-size: 1.2em;
+    }
+
+    .section-subtitle {
+        font-size: 0.85em;
+    }
+
+    .contact-form button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+}

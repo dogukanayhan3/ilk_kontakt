@@ -1,0 +1,132 @@
+.post {
+    background: #ffffff;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.post:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-3px);
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.post-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+    border: 2px solid #5fbcee;
+}
+
+.post-header-info h3 {
+    color: #5fbcee;
+    font-size: 1.2em;
+    margin: 0 0 5px 0;
+}
+
+.post-header-info p {
+    color: #7f8c8d;
+    font-size: 0.9em;
+    margin: 0;
+}
+
+.post-content {
+    margin-bottom: 20px;
+}
+
+.post-content p {
+    color: #333;
+    line-height: 1.6;
+    font-size: 1.1em;
+}
+
+.post-interactions {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+}
+
+.post-interactions button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #5fbcee;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    gap: 8px;
+    font-size: 0.9em;
+}
+
+.post-interactions button:hover {
+    color: #3245f1;
+}
+
+.post-interactions button svg {
+    transition: transform 0.2s ease;
+}
+
+.post-interactions button:hover svg {
+    transform: scale(1.1);
+}
+
+.like-btn.liked {
+    color: #3245f1;
+}
+
+.comments-section {
+    margin-top: 20px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+}
+
+.comment {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.comment img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.comment-content h4 {
+    margin: 0 0 5px 0;
+    color: #5fbcee;
+    font-size: 1em;
+}
+
+.comment-content p {
+    margin: 0;
+    color: #333;
+    font-size: 0.9em;
+}
+
+/* Responsive Adjustments */
+@media screen and (max-width: 600px) {
+    .post-interactions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .post-interactions button {
+        justify-content: center;
+        padding: 10px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+}

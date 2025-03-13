@@ -1,0 +1,11 @@
+@import url('https://fonts.cdnfonts.com/css/galano-classic-alt');
+html, body {
+    font-family: 'Galano Classic Alt', sans-serif; /* Replace 'YourFontName' with the desired font */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+* {
+    box-sizing: inherit;
+}
