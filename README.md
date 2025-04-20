@@ -1,70 +1,112 @@
-# Getting Started with Create React App
+IlkKontakt App
+==============
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a full-stack web application built with:
 
-## Available Scripts
+- Backend: ABP Framework (.NET Core)
+- Frontend: React
+- Database: PostgreSQL (via Docker Compose)
 
-In the project directory, you can run:
+------------------------------------------------------------
 
-### `npm start`
+Project Structure
+-----------------
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+/
+├── IlkKontakt.Backend/      # ABP backend project
+├── src/                     # React frontend project
+├── docker-compose.yml       # Docker Compose for PostgreSQL
+└── ...
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+------------------------------------------------------------
 
-### `npm test`
+Prerequisites
+-------------
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- .NET 8 SDK (https://dotnet.microsoft.com/download)
+- Node.js (LTS) (https://nodejs.org/)
+- npm (https://www.npmjs.com/)
+- Docker and Docker Compose (https://www.docker.com/)
 
-### `npm run build`
+------------------------------------------------------------
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. Setting Up the Database (PostgreSQL with Docker Compose)
+-----------------------------------------------------------
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Start the PostgreSQL container using Docker Compose:
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+   docker-compose up -d
 
-### `npm run eject`
+   This will create and start a PostgreSQL container as defined in your docker-compose.yml.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. Verify the container is running:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+   docker ps
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+3. (Optional) Stop the container:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+   docker-compose down
 
-## Learn More
+------------------------------------------------------------
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+2. Backend Setup (ABP)
+----------------------
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. Navigate to the backend folder:
 
-### Code Splitting
+   cd Backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+2. Install ABP CLI dependencies:
 
-### Analyzing the Bundle Size
+   abp install-libs
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+3. Update your connection string in appsettings.json to match the settings in your docker-compose.yml (usually Host=localhost;Port=5432;Database=ilk_kontakt_db;Username=appuser;Password=apppassword).
 
-### Making a Progressive Web App
+4. Run database migrations (if needed):
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+   dotnet ef database update
 
-### Advanced Configuration
+5. Run the backend:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+   dotnet run --project IlkKontakt.Backend.HttpApi.Host
 
-### Deployment
+6. Swagger UI:
+   Visit http://localhost:44388/swagger (or your configured port) to view the API docs.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+------------------------------------------------------------
 
-### `npm run build` fails to minify
+3. Frontend Setup (React)
+-------------------------
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+1. Navigate to the frontend folder:
+
+   cd ../src
+
+2. Install dependencies:
+
+   npm install
+
+3. Start the React app:
+
+   HTTPS=true npm start
+
+   The app will run on https://localhost:3000 by default.
+
+------------------------------------------------------------
+
+4. Notes
+--------
+
+- The angular/ folder is ignored and not required for this setup.
+- Make sure your backend and frontend are configured to communicate (CORS, API URLs, etc.).
+- If you change database credentials or ports, update both your docker-compose.yml and backend config.
+
+------------------------------------------------------------
+
+5. Troubleshooting
+------------------
+
+- If you get connection errors, ensure Docker is running and the container is healthy.
+- Check that ports 5432 (Postgres), 5000 (backend), and 3000 (frontend) are not blocked or in use.
+- For ABP-specific issues, see the ABP documentation: https://docs.abp.io/
+
