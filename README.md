@@ -9,17 +9,6 @@ This is a full-stack web application built with:
 
 ------------------------------------------------------------
 
-Project Structure
------------------
-
-/
-├── IlkKontakt.Backend/      # ABP backend project
-├── src/                     # React frontend project
-├── docker-compose.yml       # Docker Compose for PostgreSQL
-└── ...
-
-------------------------------------------------------------
-
 Prerequisites
 -------------
 
