@@ -1,0 +1,101 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "4.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.Account": {
+      "version": "9.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "9.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.Identity": {
+      "version": "9.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "9.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "9.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "9.1.0",
+      "isInstalled": true
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "9.1.0",
+      "isInstalled": true
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "IlkKontakt.Backend.Application": {
+      "path": "src/IlkKontakt.Backend.Application/IlkKontakt.Backend.Application.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.Application.Tests": {
+      "path": "test/IlkKontakt.Backend.Application.Tests/IlkKontakt.Backend.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "IlkKontakt.Backend.Domain.Shared": {
+      "path": "src/IlkKontakt.Backend.Domain.Shared/IlkKontakt.Backend.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.Application.Contracts": {
+      "path": "src/IlkKontakt.Backend.Application.Contracts/IlkKontakt.Backend.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.HttpApi": {
+      "path": "src/IlkKontakt.Backend.HttpApi/IlkKontakt.Backend.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.HttpApi.Client": {
+      "path": "src/IlkKontakt.Backend.HttpApi.Client/IlkKontakt.Backend.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.EntityFrameworkCore.Tests": {
+      "path": "test/IlkKontakt.Backend.EntityFrameworkCore.Tests/IlkKontakt.Backend.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "IlkKontakt.Backend.EntityFrameworkCore": {
+      "path": "src/IlkKontakt.Backend.EntityFrameworkCore/IlkKontakt.Backend.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.TestBase": {
+      "path": "test/IlkKontakt.Backend.TestBase/IlkKontakt.Backend.TestBase.abppkg",
+      "folder": "test"
+    },
+    "IlkKontakt.Backend.Domain.Tests": {
+      "path": "test/IlkKontakt.Backend.Domain.Tests/IlkKontakt.Backend.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "IlkKontakt.Backend.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/IlkKontakt.Backend.HttpApi.Client.ConsoleTestApp/IlkKontakt.Backend.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "IlkKontakt.Backend.DbMigrator": {
+      "path": "src/IlkKontakt.Backend.DbMigrator/IlkKontakt.Backend.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.HttpApi.Host": {
+      "path": "src/IlkKontakt.Backend.HttpApi.Host/IlkKontakt.Backend.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "IlkKontakt.Backend.Domain": {
+      "path": "src/IlkKontakt.Backend.Domain/IlkKontakt.Backend.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}
