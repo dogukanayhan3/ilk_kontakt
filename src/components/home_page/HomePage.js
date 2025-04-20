@@ -1,9 +1,29 @@
+import { useState } from "react";
 import Layout from "../page_layout/Layout";
 import Post from "./Post";
+import { Send } from 'lucide-react';
 import data from "../../data.json";
 import "../../component-styles/HomePage.css"
 
 function HomePage() {
+    const [posts, setPosts] = useState(data);
+    const [newPostContent, setNewPostContent] = useState("");
+
+    const handlePostSubmit = (e) => {
+        e.preventDefault();
+        if (!newPostContent.trim()) return;
+
+        const newPost = {
+            post_owner: "Doğukan Ayhan", // Currently logged in user
+            post_content: newPostContent,
+            post_likes: 0,
+            post_comments: []
+        };
+
+        setPosts([newPost, ...posts]);
+        setNewPostContent("");
+    };
+
     return(
         <Layout>
             <section className="welcome">
@@ -20,7 +40,24 @@ function HomePage() {
                     </div>
                 </div>
                 <div className="feed-main">
-                    {data.map((post, index) => (
+                    <div className="post-creation">
+                        <form onSubmit={handlePostSubmit}>
+                            <textarea
+                                className="post-input"
+                                placeholder="Düşüncelerinizi paylaşın..."
+                                value={newPostContent}
+                                onChange={(e) => setNewPostContent(e.target.value)}
+                            />
+                            <div className="post-submit">
+                                <button type="submit" className="share-post-btn">
+                                    <Send size={18} />
+                                    Paylaş
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    {posts.map((post, index) => (
                         <Post key={index}
                             post_owner={post.post_owner} 
                             post_content={post.post_content} 
