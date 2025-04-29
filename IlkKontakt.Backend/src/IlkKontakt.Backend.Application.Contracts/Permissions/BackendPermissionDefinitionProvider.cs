@@ -15,8 +15,14 @@ public class BackendPermissionDefinitionProvider : PermissionDefinitionProvider
         booksPermission.AddChild(BackendPermissions.Books.Create, L("Permission:Books.Create"));
         booksPermission.AddChild(BackendPermissions.Books.Edit, L("Permission:Books.Edit"));
         booksPermission.AddChild(BackendPermissions.Books.Delete, L("Permission:Books.Delete"));
+        
         //Define your own permissions here. Example:
         //myGroup.AddPermission(BackendPermissions.MyPermission1, L("Permission:MyPermission1"));
+        
+        var postPermission = myGroup.AddPermission(BackendPermissions.Posts.Default, L("Permission:Posts"));
+        postPermission.AddChild(BackendPermissions.Posts.Create, L("Permission:Posts.Create"));
+        postPermission.AddChild(BackendPermissions.Posts.Edit, L("Permission:Posts.Edit"));
+        postPermission.AddChild(BackendPermissions.Posts.Delete, L("Permission:Posts.Delete"));
     }
 
     private static LocalizableString L(string name)
