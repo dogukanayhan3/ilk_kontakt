@@ -8,12 +8,11 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: someuser # This will be ignored because we create it in the script.
-      POSTGRES_PASSWORD: somepassword # This will be ignored because we create it in the script.
-      POSTGRES_DB: somedb # This will be ignored because we create it in the script.
+      POSTGRES_USER: dogukan
+      POSTGRES_PASSWORD: DgKn2003
+      POSTGRES_DB: ilk-kontakt-postgresdb
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   db_data:

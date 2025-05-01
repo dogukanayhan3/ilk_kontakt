@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
+using IlkKontakt.Backend.Posts;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -29,6 +30,7 @@ public class BackendDbContext :
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
     public DbSet<Book> Books { get; set; }
+    public DbSet<Post> Posts { get; set; }
 
     #region Entities from the modules
 
@@ -97,5 +99,13 @@ public class BackendDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+        
+        builder.Entity<Post>(b =>
+        {
+            b.ToTable("Posts"); 
+            b.ConfigureByConvention();
+            b.HasOne<IdentityUser>().WithMany().HasForeignKey(p => p.CreatorUserId).IsRequired();
+            b.Property(p => p.Content).HasMaxLength(512);
+        });
     }
 }
