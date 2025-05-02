@@ -55,7 +55,7 @@ public class BackendDataSeederContributor
             );
         }
 
-        if (await _postRepository.GetCountAsync() <= 0)
+        /*if (await _postRepository.GetCountAsync() <= 0)
         {
             var adminUser = await _userRepository.FirstOrDefaultAsync(u => u.UserName == "admin");
             var demoUser = await _userRepository.FirstOrDefaultAsync(u => u.UserName == "demo");
@@ -103,6 +103,6 @@ public class BackendDataSeederContributor
                 );
             }
 
-        }
+        }*/
     }
 }

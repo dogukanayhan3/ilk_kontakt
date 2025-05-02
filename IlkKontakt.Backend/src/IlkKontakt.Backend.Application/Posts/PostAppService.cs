@@ -1,117 +1,154 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using IlkKontakt.Backend.Permissions;
+using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
-using Volo.Abp.Identity;
-using Volo.Abp.Authorization;
+using Volo.Abp.Guids;
 using Volo.Abp.Users;
 
-namespace IlkKontakt.Backend.Posts;
-
-[Authorize(BackendPermissions.Posts.Default)]
-public class PostAppService : ApplicationService, IPostAppService
+namespace IlkKontakt.Backend.Posts
 {
-    private readonly IRepository<Post, Guid> _repository;
-    private readonly IRepository<IdentityUser, Guid> _userRepository;
-
-    public PostAppService(
-        IRepository<Post, Guid> repository,
-        IRepository<IdentityUser, Guid> userRepository)
+    // [Authorize(BackendPermissions.Posts.Default)]
+    public class PostAppService : ApplicationService, IPostAppService
     {
-        _repository = repository;
-        _userRepository = userRepository;
-    }
+        private readonly IRepository<Post, Guid> _repository;
+        private readonly IGuidGenerator _guidGenerator;
 
-    public async Task<PostDto> GetAsync(Guid id)
-    {
-        var post = await _repository.GetAsync(id);
-        return ObjectMapper.Map<Post, PostDto>(post);
-    }
-
-    public async Task<PagedResultDto<PostDto>> GetListAsync(PostPagedAndSortedResultRequestDto input)
-    {
-        IQueryable<Post> queryable = await _repository.GetQueryableAsync();
-
-        var query = from post in queryable
-                    select new { post };
-
-        if (input.CreatorUserId != null)
+        public PostAppService(
+            IRepository<Post, Guid> repository,
+            IGuidGenerator guidGenerator)
         {
-            query = query.Where(x => x.post.CreatorUserId == input.CreatorUserId);
-        }
-        
-        if (input.PublishDateStart.HasValue)
-        {
-            query = query.Where(x => x.post.PublishDate >= input.PublishDateStart.Value);
+            _repository = repository;
+            _guidGenerator = guidGenerator;
         }
 
-        if (input.PublishDateEnd.HasValue)
+        public async Task<PostDto> GetAsync(Guid id)
         {
-            query = query.Where(x => x.post.PublishDate <= input.PublishDateEnd.Value);
+            var post = await _repository.GetAsync(id);
+            return ObjectMapper.Map<Post, PostDto>(post);
         }
 
-        var totalCount = await AsyncExecuter.CountAsync(query);
-
-        if (!string.IsNullOrWhiteSpace(input.Sorting))
+        public async Task<PagedResultDto<PostDto>> GetListAsync(
+            PostPagedAndSortedResultRequestDto input)
         {
-            query = input.Sorting switch
+            var queryable = await _repository.GetQueryableAsync();
+
+            // Project
+            var query = from post in queryable
+                        select new { post };
+
+            // Filters
+            if (input.CreatorUserId.HasValue)
             {
-                "PublishDate DESC" => query.OrderByDescending(x => x.post.PublishDate),
-                "PublishDate" => query.OrderBy(x => x.post.PublishDate),
-                "NumberOfLikes DESC" => query.OrderByDescending(x => x.post.NumberOfLikes),
-                "NumberOfLikes" => query.OrderBy(x => x.post.NumberOfLikes),
-                _ => query.OrderByDescending(x => x.post.PublishDate),
-            };
+                query = query.Where(x => x.post.CreatorUserId == input.CreatorUserId.Value);
+            }
+
+            if (input.PublishDateStart.HasValue)
+            {
+                query = query.Where(x => x.post.PublishDate >= input.PublishDateStart.Value);
+            }
+
+            if (input.PublishDateEnd.HasValue)
+            {
+                query = query.Where(x => x.post.PublishDate <= input.PublishDateEnd.Value);
+            }
+
+            // Count
+            var totalCount = await AsyncExecuter.CountAsync(query);
+
+            // Sorting
+            if (!string.IsNullOrWhiteSpace(input.Sorting))
+            {
+                query = input.Sorting switch
+                {
+                    "PublishDate DESC"    => query.OrderByDescending(x => x.post.PublishDate),
+                    "PublishDate"         => query.OrderBy(x => x.post.PublishDate),
+                    "NumberOfLikes DESC"  => query.OrderByDescending(x => x.post.NumberOfLikes),
+                    "NumberOfLikes"       => query.OrderBy(x => x.post.NumberOfLikes),
+                    _                      => query.OrderByDescending(x => x.post.PublishDate),
+                };
+            }
+            else
+            {
+                query = query.OrderByDescending(x => x.post.PublishDate);
+            }
+
+            // Paging
+            query = query
+                .Skip(input.SkipCount)
+                .Take(input.MaxResultCount);
+
+            var queryResult = await AsyncExecuter.ToListAsync(query);
+
+            // Map to DTOs
+            var posts = queryResult
+                .Select(x => ObjectMapper.Map<Post, PostDto>(x.post))
+                .ToList();
+
+            return new PagedResultDto<PostDto>(totalCount, posts);
         }
-        else
+
+        // [Authorize(BackendPermissions.Posts.Create)]
+        public async Task<PostDto> CreateAsync(CreateUpdatePostDto input)
         {
-            query = query.OrderByDescending(x => x.post.PublishDate);
+            var post = ObjectMapper.Map<CreateUpdatePostDto, Post>(input);
+            post.CreatorUserId = CurrentUser.GetId();
+            post.PublishDate   = DateTime.UtcNow;
+
+            post = await _repository.InsertAsync(post, autoSave: true);
+
+            return ObjectMapper.Map<Post, PostDto>(post);
         }
 
-        query = query
-            .Skip(input.SkipCount)
-            .Take(input.MaxResultCount);
-
-        var queryResult = await AsyncExecuter.ToListAsync(query);
-
-        var posts = queryResult.Select(x =>
+        // [Authorize(BackendPermissions.Posts.Edit)]
+        public async Task<PostDto> UpdateAsync(Guid id, CreateUpdatePostDto input)
         {
-            var postDto = ObjectMapper.Map<Post, PostDto>(x.post);
-            return postDto;
-        }).ToList();
+            var post = await _repository.GetAsync(id);
+            ObjectMapper.Map(input, post);
+            post = await _repository.UpdateAsync(post, autoSave: true);
+            return ObjectMapper.Map<Post, PostDto>(post);
+        }
 
-        return new PagedResultDto<PostDto>(totalCount, posts);
-    }
+        // [Authorize(BackendPermissions.Posts.Delete)]
+        public async Task DeleteAsync(Guid id)
+        {
+            await _repository.DeleteAsync(id);
+        }
 
-    [Authorize(BackendPermissions.Posts.Create)]
-    public async Task<PostDto> CreateAsync(CreateUpdatePostDto input)
-    {
-        var entity = ObjectMapper.Map<CreateUpdatePostDto, Post>(input);
-        entity.CreatorUserId = CurrentUser.Id ?? throw new UserFriendlyException("User not authenticated");
-        entity.PublishDate = DateTime.UtcNow;
-        entity.NumberOfLikes = 0;
-        entity = await _repository.InsertAsync(entity, autoSave: true);
-        return ObjectMapper.Map<Post, PostDto>(entity);
-    }
+        // --- Dedicated Like / Unlike / AddComment methods ---
 
+        public async Task LikeAsync(Guid postId, LikePostDto input)
+        {
+            var post = await _repository.GetAsync(postId);
+            post.AddLike(CurrentUser.GetId());
+            await _repository.UpdateAsync(post, autoSave: true);
+        }
 
-    [Authorize(BackendPermissions.Posts.Edit)]
-    public async Task<PostDto> UpdateAsync(Guid id, CreateUpdatePostDto input)
-    {
-        var entity = await _repository.GetAsync(id);
-        ObjectMapper.Map(input, entity);
-        entity = await _repository.UpdateAsync(entity, autoSave: true);
-        return ObjectMapper.Map<Post, PostDto>(entity);
-    }
+        public async Task UnlikeAsync(Guid postId, LikePostDto input)
+        {
+            var post = await _repository.GetAsync(postId);
+            post.RemoveLike(CurrentUser.GetId());
+            await _repository.UpdateAsync(post, autoSave: true);
+        }
 
-    [Authorize(BackendPermissions.Posts.Delete)]
-    public async Task DeleteAsync(Guid id)
-    {
-        await _repository.DeleteAsync(id);
+        public async Task<CommentDto> AddCommentAsync(
+            Guid postId,
+            AddCommentDto input)
+        {
+            var post = await _repository.GetAsync(postId);
+
+            var comment = post.AddComment(
+                CurrentUser.GetId(),
+                input.Content,
+                _guidGenerator);
+
+            await _repository.UpdateAsync(post, autoSave: true);
+
+            return ObjectMapper.Map<Comment, CommentDto>(comment);
+        }
     }
 }
