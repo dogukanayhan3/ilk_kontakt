@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
@@ -102,10 +105,39 @@ public class BackendDbContext :
         
         builder.Entity<Post>(b =>
         {
-            b.ToTable("Posts"); 
+            b.ToTable("Posts");
             b.ConfigureByConvention();
-            b.HasOne<IdentityUser>().WithMany().HasForeignKey(p => p.CreatorUserId).IsRequired();
-            b.Property(p => p.Content).HasMaxLength(512);
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(p => p.CreatorUserId)
+                .IsRequired();
+
+            b.Property(p => p.Content)
+                .HasMaxLength(512);
+
+            // Map UserLikes as a JSONB array of GUIDs
+            b.Property(p => p.UserLikes)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null)!)
+                .HasColumnType("jsonb")
+                .HasColumnName("UserLikes")
+                .IsRequired()
+                .HasDefaultValueSql("'[]'::jsonb");
+
+            // Map UserComments as a single JSONB column of Comment objects
+            b.OwnsMany(
+                p => p.UserComments,
+                cb =>
+                {
+                    // Do not configure keys on JSON collections
+                    cb.Property(c => c.UserId);
+                    cb.Property(c => c.Content).HasColumnType("text");
+                    cb.Property(c => c.CreationTime);
+
+                    cb.ToJson("UserComments");
+                });
         });
     }
 }
