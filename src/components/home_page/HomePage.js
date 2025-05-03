@@ -13,7 +13,6 @@ function getCookie(name) {
 }
 
 const API_URL = "https://localhost:44388/api/app/post";
-
 function HomePage() {
     const [posts, setPosts] = useState([]);
     const [newPostContent, setNewPostContent] = useState("");
@@ -29,30 +28,32 @@ function HomePage() {
         }
     }, [currentUser, navigate]);
 
-    // Fetch posts on mount
-    useEffect(() => {
-        const fetchPosts = async () => {
-            setLoading(true);
-            setError("");
-            try {
-                const response = await fetch(`${API_URL}?SkipCount=0&MaxResultCount=20`, {
-                    credentials: "include"
-                });
-                if (response.status === 401 || response.redirected) {
-                    navigate("/login");
-                    return;
-                }
-                if (!response.ok) throw new Error("Gönderiler alınamadı");
-                const data = await response.json();
-                setPosts(data.items || []);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+    // Move fetchPosts outside useEffect and make it a component function
+    const fetchPosts = async () => {
+        setLoading(true);
+        setError("");
+        try {
+            const response = await fetch(`${API_URL}?SkipCount=0&MaxResultCount=20`, {
+                credentials: "include"
+            });
+            if (response.status === 401 || response.redirected) {
+                navigate("/login");
+                return;
             }
-        };
+            if (!response.ok) throw new Error("Gönderiler alınamadı");
+            const data = await response.json();
+            setPosts(data.items || []);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Update useEffect to use the moved fetchPosts function
+    useEffect(() => {
         fetchPosts();
-    }, [navigate]);
+    }, [navigate]); // Add fetchPosts to dependencies if needed
 
     const handlePostSubmit = async (e) => {
         e.preventDefault();
@@ -137,11 +138,13 @@ function HomePage() {
                         posts.map((post) => (
                             <Post
                                 key={post.id}
-                                post_owner={post.creatorUserId} // You may want to resolve username
+                                id={post.id}
+                                post_owner={post.creatorUserId}
                                 post_content={post.content}
-                                post_likes={post.numberOfLikes}
-                                post_comments={[]} // If you have comments, pass them here
+                                user_likes={post.userLikes}
+                                user_comments={post.userComments}
                                 publish_date={post.publishDate}
+                                onPostUpdate={fetchPosts}  // Make sure this is passed
                             />
                         ))
                     )}
