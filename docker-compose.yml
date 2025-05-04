@@ -8,8 +8,8 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: dogukan
-      POSTGRES_PASSWORD: DgKn2003
+      POSTGRES_USER: **
+      POSTGRES_PASSWORD: **
       POSTGRES_DB: ilk-kontakt-postgresdb
     volumes:
       - db_data:/var/lib/postgresql/data
