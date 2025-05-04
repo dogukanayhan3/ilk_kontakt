@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
 using IlkKontakt.Backend.Posts;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -116,15 +118,21 @@ public class BackendDbContext :
             b.Property(p => p.Content)
                 .HasMaxLength(512);
 
-            // Map UserLikes as a JSONB array of GUIDs
             b.Property(p => p.UserLikes)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null)!)
+                    v => JsonSerializer.Deserialize<List<Guid>>(v, (JsonSerializerOptions?)null) ?? new List<Guid>() // Handle potential null on deserialize
+                )
                 .HasColumnType("jsonb")
                 .HasColumnName("UserLikes")
                 .IsRequired()
-                .HasDefaultValueSql("'[]'::jsonb");
+                .HasDefaultValueSql("'[]'::jsonb")
+                // ****** ADD THIS VALUE COMPARER ******
+                .Metadata.SetValueComparer(new ValueComparer<IReadOnlyCollection<Guid>>(
+                    (c1, c2) => (c1 ?? new List<Guid>()).SequenceEqual(c2 ?? new List<Guid>()), // Compare sequences
+                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),      // Generate hash code
+                    c => c.ToList()));                                                          // Create snapshot
+            // ****** END OF ADDED LINE ******
 
             // Map UserComments as a single JSONB column of Comment objects
             b.OwnsMany(
