@@ -99,29 +99,29 @@
 /* --- Post Actions --- */
 .post-actions {
     display: flex;
-    justify-content: space-around; /* Distribute buttons evenly */
-    padding: 4px 0; /* Reduced padding */
-    margin-bottom: 12px; /* Space before comment form/section */
+    justify-content: space-around;
+    padding: 4px 0;
+    margin-bottom: 12px;
+    border-top: 1px solid #e1e4e8;
 }
 
-.action-button { /* Common style for like/comment buttons */
+.action-button {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    flex: 1; /* Make buttons take equal space */
+    flex: 1;
     padding: 8px 12px;
     border: none;
     background: none;
     cursor: pointer;
     border-radius: 6px;
     font-weight: 600;
-    color: #606770; /* Default button color */
-    transition: background-color 0.2s ease;
-}
+    color: #606770;
+    transition: background-color 0.2s ease, color 0.2s ease;}
 
-.action-button:hover {
-    background-color: #f0f2f5; /* Light grey background on hover */
+.action-button:hover:not(:disabled) {
+    background-color: #f0f2f5;
 }
 
 .action-button:disabled {
@@ -129,11 +129,23 @@
     cursor: not-allowed;
 }
 
+/* --- Styling for the LIKE button specifically --- */
 .action-button.like-button.liked {
-    color: #0a66c2; /* Specific color for liked state */
+    color: #0a66c2; /* Or your primary theme color */
+    font-weight: 700; /* Make text slightly bolder when liked */
 }
+
+/* Default state for the ThumbsUp icon */
+.action-button.like-button svg {
+    fill: none; /* Ensure it's not filled by default */
+    stroke: currentColor; /* Outline uses the button's text color */
+    stroke-width: 2; /* Default Lucide stroke */
+    transition: fill 0.2s ease, stroke 0.2s ease; /* Smooth transition */
+}
+/* Liked state for the ThumbsUp icon FILL */
 .action-button.like-button.liked svg {
-    fill: #0a66c2; /* Fill icon when liked */
+    fill: currentColor; /* Fill the icon with the button's current text color (#0a66c2) */
+    stroke: currentColor; /* Keep the stroke the same color as the fill */
 }
 
 /* --- Comment Input Section --- */

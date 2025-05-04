@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { ThumbsUp, MessageCircle, Send, Heart, MessageSquare } from 'lucide-react'; // Added Heart, MessageSquare for stats
+import React, { useState, useEffect } from 'react';
+import { ThumbsUp, MessageCircle, Send, Heart, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import '../../component-styles/Post.css'; // We will update this CSS file
+import '../../component-styles/Post.css';
 import PropTypes from 'prop-types';
 
+// Helper function to get cookies
 function getCookie(name) {
   const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
   return match ? match[2] : null;
@@ -19,105 +20,104 @@ function Post({
   publishDate,
   onPostUpdate,
 }) {
+  // --- Component State ---
   const [isCommenting, setIsCommenting] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [error, setError] = useState('');
   const { currentUser } = useAuth();
 
-  const hasLiked = currentUser?.id && userLikes?.includes(currentUser.id);
+  // --- LOCAL STATE for Optimistic UI ---
+  const [localHasLiked, setLocalHasLiked] = useState(() =>
+    currentUser?.id && userLikes ? userLikes.includes(currentUser.id) : false
+  );
+  const [localLikeCount, setLocalLikeCount] = useState(numberOfLikes || 0);
 
-  // --- API Call Logic (handleLike, handleComment) ---
-  // No changes needed in the logic itself
+  // Effect to sync local state if props change from outside
+  useEffect(() => {
+    const currentPropHasLiked = currentUser?.id && userLikes ? userLikes.includes(currentUser.id) : false;
+    setLocalHasLiked(currentPropHasLiked);
+    setLocalLikeCount(numberOfLikes || 0);
+  }, [userLikes, numberOfLikes, currentUser?.id]);
+
+  // --- API Call Logic ---
   const handleLike = async (e) => {
     e.preventDefault();
-    if (!currentUser) {
-      setError('Please log in to like posts.');
-      return;
-    }
+    if (!currentUser) { setError('Please log in to like posts.'); return; }
     setError('');
 
+    const originalHasLiked = localHasLiked;
+    const originalLikeCount = localLikeCount;
+
+    setLocalHasLiked(!originalHasLiked);
+    setLocalLikeCount(originalHasLiked ? originalLikeCount - 1 : originalLikeCount + 1);
+
     try {
-      await fetch(
-        'https://localhost:44388/api/abp/application-configuration',
-        { credentials: 'include' },
-      );
+      await fetch('https://localhost:44388/api/abp/application-configuration', { credentials: 'include' });
       const xsrfToken = getCookie('XSRF-TOKEN');
-      if (!xsrfToken) {
-        setError('Could not verify request (XSRF token missing).');
-        return;
-      }
-      const endpoint = `https://localhost:44388/api/app/post/${
-        hasLiked ? 'unlike' : 'like'
-      }/${id}`;
+      if (!xsrfToken) { throw new Error('Could not verify request (XSRF token missing).'); }
+
+      const endpoint = `https://localhost:44388/api/app/post/${originalHasLiked ? 'unlike' : 'like'}/${id}`;
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          RequestVerificationToken: xsrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
+        headers: { 'Content-Type': 'application/json', RequestVerificationToken: xsrfToken, 'X-Requested-With': 'XMLHttpRequest' },
         credentials: 'include',
         body: JSON.stringify({}),
       });
+
       if (!response.ok) {
         let errorMsg = 'Like/Unlike operation failed.';
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData?.error?.message || errorMsg;
-        } catch (parseError) { /* Ignore */ }
+        try { if (response.status !== 204) { const errorData = await response.json(); errorMsg = errorData?.error?.message || errorMsg; } } catch (parseError) { /* Ignore */ }
         throw new Error(errorMsg + ` (Status: ${response.status})`);
       }
-      onPostUpdate();
+      // Optional: onPostUpdate(); // Keep commented out if optimistic is enough
+
     } catch (err) {
       setError(err.message);
-      console.error('Like/Unlike error:', err);
+      console.error('Like/Unlike error, reverting UI:', err);
+      setLocalHasLiked(originalHasLiked);
+      setLocalLikeCount(originalLikeCount);
     }
   };
 
+  // --- CORRECTED handleComment ---
   const handleComment = async (e) => {
     e.preventDefault();
-    if (!currentUser) {
-      setError('Please log in to comment.');
-      return;
-    }
-    if (!commentText.trim()) {
-      setError('Comment cannot be empty.');
-      return;
-    }
+    if (!currentUser) { setError('Please log in to comment.'); return; }
+    if (!commentText.trim()) { setError('Comment cannot be empty.'); return; }
     setError('');
 
     try {
-      await fetch(
-        'https://localhost:44388/api/abp/application-configuration',
-        { credentials: 'include' },
-      );
+      // Fetch XSRF token
+      await fetch('https://localhost:44388/api/abp/application-configuration', { credentials: 'include' });
       const xsrfToken = getCookie('XSRF-TOKEN');
-      if (!xsrfToken) {
-        setError('Could not verify request (XSRF token missing).');
-        return;
-      }
+      if (!xsrfToken) { setError('Could not verify request (XSRF token missing).'); return; }
+
       const endpoint = `https://localhost:44388/api/app/post/comment/${id}`;
+
+      // Restore fetch options
       const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
+        method: 'POST', // <<< WAS MISSING
+        headers: { // <<< WAS MISSING
           'Content-Type': 'application/json',
           RequestVerificationToken: xsrfToken,
           'X-Requested-With': 'XMLHttpRequest',
         },
         credentials: 'include',
-        body: JSON.stringify({ content: commentText }),
+        body: JSON.stringify({ content: commentText }), // <<< WAS MISSING
       });
+
       if (!response.ok) {
         let errorMsg = 'Failed to post comment.';
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData?.error?.message || errorMsg;
-        } catch (parseError) { /* Ignore */ }
+        try { const errorData = await response.json(); errorMsg = errorData?.error?.message || errorMsg; } catch (parseError) { /* Ignore */ }
         throw new Error(errorMsg + ` (Status: ${response.status})`);
       }
+
+      // Clear input and hide form on success
       setCommentText('');
       setIsCommenting(false);
-      onPostUpdate();
+      // Refresh the post data to show the new comment
+      onPostUpdate(); // <<< Keep this for comments
+
     } catch (err) {
       setError(err.message);
       console.error('Comment error:', err);
@@ -129,132 +129,38 @@ function Post({
     <div className="post">
       {/* === Post Header === */}
       <div className="post-header">
-        <img
-          src={`https://i.pravatar.cc/50?u=${id}`} // Placeholder avatar based on post ID
-          alt="Profile"
-          className="post-avatar"
-        />
-        <div className="post-header-info">
-          <h4 className="post-username">{userName || '<Unknown User>'}</h4>
-          <span className="post-timestamp">
-            {publishDate
-              ? new Date(publishDate).toLocaleString()
-              : 'Date unavailable'}
-          </span>
-        </div>
-      </div>
-
+         <img src={`https://i.pravatar.cc/50?u=${id}`} alt="Profile" className="post-avatar"/>
+         <div className="post-header-info">
+           <h4 className="post-username">{userName || '<Unknown User>'}</h4>
+           <span className="post-timestamp">{publishDate ? new Date(publishDate).toLocaleString() : 'Date unavailable'}</span>
+         </div>
+       </div>
       {/* === Post Content === */}
-      <div className="post-content">
-        <p>{content}</p>
-      </div>
-
-      {/* === Post Stats (Likes/Comments Count) === */}
-      <div className="post-stats">
-         {numberOfLikes > 0 && (
-             <span className="stat-item">
-                 <Heart size={14} className="stat-icon liked-icon" />
-                 {numberOfLikes} {numberOfLikes === 1 ? 'like' : 'likes'}
-             </span>
-         )}
-         {userComments && userComments.length > 0 && (
-             <span className="stat-item comment-stat" onClick={() => setIsCommenting(!isCommenting)} title="View Comments">
-                 <MessageSquare size={14} className="stat-icon" />
-                 {userComments.length} {userComments.length === 1 ? 'comment' : 'comments'}
-             </span>
-         )}
-      </div>
-
-
-      {/* === Post Actions (Like/Comment Buttons) === */}
+       <div className="post-content"><p>{content}</p></div>
+      {/* === Post Stats === */}
+       <div className="post-stats">
+         {localLikeCount > 0 && (<span className="stat-item"><Heart size={14} className="stat-icon liked-icon" />{localLikeCount} {localLikeCount === 1 ? 'like' : 'likes'}</span>)}
+         {/* Comment count uses props, updated via onPostUpdate */}
+         {userComments && userComments.length > 0 && (<span className="stat-item comment-stat" onClick={() => setIsCommenting(!isCommenting)} title="View Comments"><MessageSquare size={14} className="stat-icon" />{userComments.length} {userComments.length === 1 ? 'comment' : 'comments'}</span>)}
+       </div>
+      {/* === Post Actions === */}
       <div className="post-actions">
-        <button
-          type="button"
-          className={`action-button like-button ${hasLiked ? 'liked' : ''}`}
-          onClick={handleLike}
-          disabled={!currentUser}
-          title={!currentUser ? 'Log in to like' : hasLiked ? 'Unlike' : 'Like'}
-        >
+        <button type="button" className={`action-button like-button ${localHasLiked ? 'liked' : ''}`} onClick={handleLike} disabled={!currentUser} title={!currentUser ? 'Log in to like' : localHasLiked ? 'Unlike' : 'Like'}>
+          {/* Use CSS for fill */}
           <ThumbsUp size={18} />
-          <span>Like</span>
+          <span>{localHasLiked ? 'Liked' : 'Like'}</span>
         </button>
-
-        <button
-          type="button"
-          className="action-button comment-button"
-          onClick={() => setIsCommenting(!isCommenting)}
-          disabled={!currentUser}
-          title={!currentUser ? 'Log in to comment' : 'Comment'}
-        >
+        <button type="button" className="action-button comment-button" onClick={() => setIsCommenting(!isCommenting)} disabled={!currentUser} title={!currentUser ? 'Log in to comment' : 'Comment'}>
           <MessageCircle size={18} />
+          {/* Display static text, count is in stats */}
           <span>Comment</span>
         </button>
       </div>
-
-      {/* === Comment Input Form === */}
-      {isCommenting && currentUser && (
-        <div className="comment-input-section">
-          <img
-            src={`https://i.pravatar.cc/40?u=${currentUser.id}`} // Current user avatar
-            alt="Your avatar"
-            className="comment-input-avatar"
-          />
-          <form onSubmit={handleComment} className="comment-form">
-            <textarea
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write your comment..."
-              rows={2}
-              required
-              className="comment-textarea"
-            />
-            <button
-              type="submit"
-              disabled={!commentText.trim()}
-              title="Send Comment"
-              className="comment-send-button"
-            >
-              <Send size={18} />
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* === Comments Section === */}
-      {isCommenting && ( // Show comments only when comment section is open
-        <div className="comments-section">
-          {userComments?.length > 0 ? (
-            userComments.map((comment) => (
-              <div key={comment.id} className="comment">
-                <img
-                  src={`https://i.pravatar.cc/40?u=${comment.userId}`} // Commenter avatar
-                  alt="Commenter avatar"
-                  className="comment-avatar"
-                />
-                <div className="comment-body">
-                  <div className="comment-header">
-                    <strong className="comment-username">
-                      {comment.userName || '<Unknown User>'}
-                    </strong>
-                  </div>
-                  <p className="comment-text">{comment.content}</p>
-                   <span className="comment-timestamp">
-                    {comment.creationTime
-                      ? new Date(comment.creationTime).toLocaleString()
-                      : ''}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="no-comments-yet">No comments yet.</p>
-          )}
-        </div>
-      )}
-
-
+      {/* === Comment Input & Section === */}
+       {isCommenting && currentUser && ( <div className="comment-input-section"> <img src={`https://i.pravatar.cc/40?u=${currentUser.id}`} alt="Your avatar" className="comment-input-avatar"/> <form onSubmit={handleComment} className="comment-form"> <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write your comment..." rows={2} required className="comment-textarea"/> <button type="submit" disabled={!commentText.trim()} title="Send Comment" className="comment-send-button"> <Send size={18} /> </button> </form> </div> )}
+       {isCommenting && ( <div className="comments-section"> {userComments?.length > 0 ? ( userComments.map((comment) => ( <div key={comment.id} className="comment"> <img src={`https://i.pravatar.cc/40?u=${comment.userId}`} alt="Commenter avatar" className="comment-avatar"/> <div className="comment-body"> <div className="comment-header"><strong className="comment-username">{comment.userName || '<Unknown User>'}</strong></div> <p className="comment-text">{comment.content}</p> <span className="comment-timestamp">{comment.creationTime ? new Date(comment.creationTime).toLocaleString() : ''}</span> </div> </div> )) ) : ( <p className="no-comments-yet">No comments yet.</p> )} </div> )}
       {/* === Error Display === */}
-      {error && <div className="error-message post-error">{error}</div>}
+       {error && <div className="error-message post-error">{error}</div>}
     </div>
   );
 }
@@ -286,6 +192,5 @@ Post.defaultProps = {
     numberOfLikes: 0,
     userComments: [],
 };
-
 
 export default Post;
