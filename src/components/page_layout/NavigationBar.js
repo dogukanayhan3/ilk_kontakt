@@ -1,9 +1,11 @@
 import "../../component-styles/NavigationBar.css";
+import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, User, BriefcaseBusiness, Globe, Bell, Library } from 'lucide-react';
 
 function NavigationBar() {
     const navigate = useNavigate();
+    const { logout } = useAuth();
     const location = useLocation();
 
     const navItems = [
@@ -51,9 +53,8 @@ function NavigationBar() {
         }
     ];
 
-    const handleLogout = (e) => {
-        e.preventDefault();
-        localStorage.removeItem('isAuthenticated');
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
     };
 
