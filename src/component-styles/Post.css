@@ -1,132 +1,295 @@
+/* --- General Post Styling --- */
 .post {
     background: #ffffff;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    padding: 25px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    border: 1px solid #f0f0f0;
-    transition: all 0.3s ease;
+    border-radius: 8px; /* Slightly less rounded */
+    margin-bottom: 20px;
+    padding: 16px 20px; /* Adjust padding */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Softer shadow */
+    border: 1px solid #e1e4e8; /* Subtle border */
+    transition: box-shadow 0.2s ease-in-out;
 }
 
 .post:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-    transform: translateY(-3px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* --- Post Header --- */
 .post-header {
     display: flex;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 12px; /* Reduced margin */
 }
 
-.post-header img {
-    width: 50px;
-    height: 50px;
+.post-avatar { /* Renamed from post-header img */
+    width: 45px; /* Slightly smaller */
+    height: 45px;
     border-radius: 50%;
-    margin-right: 15px;
+    margin-right: 12px;
     object-fit: cover;
-    border: 2px solid #5fbcee;
+    /* border: 1px solid #ddd; Optional border */
 }
 
-.post-header-info h3 {
-    color: #5fbcee;
-    font-size: 1.2em;
-    margin: 0 0 5px 0;
+.post-header-info {
+    display: flex;
+    flex-direction: column; /* Stack username and timestamp */
 }
 
-.post-header-info p {
-    color: #7f8c8d;
-    font-size: 0.9em;
+.post-username { /* Renamed from post-header-info h3 */
+    font-weight: 600; /* Bold */
+    font-size: 1rem; /* Adjust size */
+    color: #1c1e21; /* Darker color */
     margin: 0;
+    line-height: 1.2;
 }
 
+.post-timestamp { /* Renamed from post-header-info p */
+    color: #606770; /* Lighter grey */
+    font-size: 0.8rem; /* Smaller */
+    margin-top: 2px; /* Space from username */
+}
+
+/* --- Post Content --- */
 .post-content {
-    margin-bottom: 20px;
+    margin-bottom: 12px; /* Space before stats/actions */
 }
 
 .post-content p {
-    color: #333;
-    line-height: 1.6;
-    font-size: 1.1em;
+    color: #1c1e21; /* Match username color */
+    line-height: 1.5;
+    font-size: 0.95rem; /* Adjust size */
+    margin: 0; /* Remove default p margin */
+    white-space: pre-wrap; /* Preserve line breaks */
 }
 
-.post-interactions {
-    display: flex;
-    justify-content: space-between;
-    border-top: 1px solid #f0f0f0;
-    padding-top: 15px;
-}
-
-.post-interactions button {
+/* --- Post Stats --- */
+.post-stats {
     display: flex;
     align-items: center;
+    gap: 16px; /* Space between stats */
+    padding: 8px 0; /* Vertical padding */
+    margin-bottom: 8px; /* Space before actions */
+    border-bottom: 1px solid #e1e4e8; /* Separator line */
+    font-size: 0.85rem;
+    color: #606770;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Space between icon and text */
+}
+
+.stat-item.comment-stat {
+    cursor: pointer; /* Indicate clickable to view comments */
+}
+.stat-item.comment-stat:hover {
+    text-decoration: underline;
+}
+
+.stat-icon {
+    /* Icon size is set in JSX */
+    position: relative;
+    top: -1px; /* Minor alignment adjustment */
+}
+.liked-icon {
+    color: #0a66c2; /* Color for the like icon in stats */
+}
+
+
+/* --- Post Actions --- */
+.post-actions {
+    display: flex;
+    justify-content: space-around;
+    padding: 4px 0;
+    margin-bottom: 12px;
+    border-top: 1px solid #e1e4e8;
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #606770;
+    transition: background-color 0.2s ease, color 0.2s ease;}
+
+.action-button:hover:not(:disabled) {
+    background-color: #f0f2f5;
+}
+
+.action-button:disabled {
+    color: #bcc0c4;
+    cursor: not-allowed;
+}
+
+/* --- Styling for the LIKE button specifically --- */
+.action-button.like-button.liked {
+    color: #0a66c2; /* Or your primary theme color */
+    font-weight: 700; /* Make text slightly bolder when liked */
+}
+
+/* Default state for the ThumbsUp icon */
+.action-button.like-button svg {
+    fill: none; /* Ensure it's not filled by default */
+    stroke: currentColor; /* Outline uses the button's text color */
+    stroke-width: 2; /* Default Lucide stroke */
+    transition: fill 0.2s ease, stroke 0.2s ease; /* Smooth transition */
+}
+/* Liked state for the ThumbsUp icon FILL */
+.action-button.like-button.liked svg {
+    fill: currentColor; /* Fill the icon with the button's current text color (#0a66c2) */
+    stroke: currentColor; /* Keep the stroke the same color as the fill */
+}
+
+/* --- Comment Input Section --- */
+.comment-input-section {
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    gap: 10px;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 1px solid #e1e4e8; /* Separator */
+}
+
+.comment-input-avatar {
+    width: 32px; /* Smaller avatar for input */
+    height: 32px;
+    border-radius: 50%;
+    margin-top: 5px; /* Align with textarea */
+}
+
+.comment-form {
+    flex: 1; /* Take remaining space */
+    display: flex;
+    align-items: center; /* Align textarea and button */
+    background-color: #f0f2f5; /* Background for the input area */
+    border-radius: 18px; /* Pill shape */
+    padding: 4px 8px;
+}
+
+.comment-textarea {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 6px 8px;
+    resize: none; /* Disable resize */
+    font-size: 0.9rem;
+    line-height: 1.4;
+    max-height: 80px; /* Limit height */
+    overflow-y: auto; /* Allow scrolling if needed */
+    outline: none; /* Remove focus outline */
+}
+
+.comment-send-button {
     background: none;
     border: none;
-    color: #5fbcee;
+    padding: 6px;
     cursor: pointer;
-    transition: color 0.3s ease;
-    gap: 8px;
-    font-size: 0.9em;
+    color: #0a66c2; /* Use theme color */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.comment-send-button:disabled {
+    color: #bcc0c4;
+    cursor: not-allowed;
+}
+.comment-send-button:hover:not(:disabled) {
+    background-color: #e4e6eb;
 }
 
-.post-interactions button:hover {
-    color: #3245f1;
-}
 
-.post-interactions button svg {
-    transition: transform 0.2s ease;
-}
-
-.post-interactions button:hover svg {
-    transform: scale(1.1);
-}
-
-.like-btn.liked {
-    color: #3245f1;
-}
-
+/* --- Comments Section --- */
 .comments-section {
-    margin-top: 20px;
-    border-top: 1px solid #f0f0f0;
-    padding-top: 15px;
+    margin-top: 12px;
+    padding-top: 12px;
+    /* border-top: 1px solid #e1e4e8; Removed, input section has border */
 }
 
 .comment {
     display: flex;
-    align-items: center;
-    margin-bottom: 15px;
+    align-items: flex-start; /* Align avatar top */
+    gap: 10px;
+    margin-bottom: 12px; /* Space between comments */
 }
 
-.comment img {
-    width: 40px;
-    height: 40px;
+.comment-avatar {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    margin-right: 12px;
-    object-fit: cover;
+    flex-shrink: 0; /* Prevent avatar from shrinking */
 }
 
-.comment-content h4 {
-    margin: 0 0 5px 0;
-    color: #5fbcee;
-    font-size: 1em;
+.comment-body {
+    background-color: #f0f2f5; /* Light background for comment bubble */
+    border-radius: 12px; /* Rounded bubble */
+    padding: 8px 12px;
+    flex: 1; /* Take available space */
 }
 
-.comment-content p {
+.comment-header {
+    /* Optional: if you need specific styling for header elements */
+    margin-bottom: 2px;
+}
+
+.comment-username {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #1c1e21;
+    margin-right: 6px; /* Space after username */
+}
+
+.comment-text {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #1c1e21;
     margin: 0;
-    color: #333;
+    white-space: pre-wrap; /* Preserve line breaks */
+}
+
+.comment-timestamp {
+    font-size: 0.75rem;
+    color: #606770;
+    margin-top: 4px; /* Space above timestamp */
+    display: block; /* Put timestamp on its own line */
+}
+
+.no-comments-yet {
+    font-size: 0.9rem;
+    color: #606770;
+    text-align: center;
+    padding: 10px 0;
+}
+
+/* --- Error Message Specific to Post --- */
+.post-error {
+    margin-top: 15px;
+    padding: 10px;
+    font-size: 0.9rem;
+}
+
+/* --- Inherited/General Styles (Ensure these exist or add them) --- */
+.error-message {
+    color: #dc3545; /* Red color for errors */
+    background-color: #f8d7da; /* Light red background */
+    border: 1px solid #f5c6cb; /* Red border */
+    padding: 0.75rem 1.25rem;
+    margin-top: 1rem;
+    border-radius: 0.25rem;
     font-size: 0.9em;
 }
 
-/* Responsive Adjustments */
-@media screen and (max-width: 600px) {
-    .post-interactions {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .post-interactions button {
-        justify-content: center;
-        padding: 10px;
-        border-bottom: 1px solid #f0f0f0;
-    }
+.loading-message, .no-posts-message {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-size: 1.1em;
 }

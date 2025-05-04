@@ -109,6 +109,69 @@
     height: 20px;
 }
 
+/* Add these styles */
+.post-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin: 1rem 0;
+}
+
+.like-button, .comment-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.like-button:hover, .comment-button:hover {
+    background-color: #f0f2f5;
+}
+
+.like-button.liked {
+    color: #0a66c2;
+}
+
+.comment-form {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.comment-form textarea {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.comments-section {
+    margin-top: 1rem;
+}
+
+.comment {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.comment strong {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.comment span {
+    color: #666;
+    font-size: 0.8rem;
+}
+
 /* Responsive Adjustments */
 @media screen and (max-width: 1200px) {
     .feed {

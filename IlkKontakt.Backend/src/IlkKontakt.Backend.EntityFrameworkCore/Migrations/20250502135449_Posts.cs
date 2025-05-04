@@ -775,14 +775,15 @@ namespace IlkKontakt.Backend.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatorUserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
-                    NumberOfLikes = table.Column<int>(type: "integer", nullable: false),
                     PublishDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UserLikes = table.Column<string>(type: "jsonb", nullable: false, defaultValueSql: "'[]'::jsonb"),
                     ExtraProperties = table.Column<string>(type: "text", nullable: false),
                     ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
                     LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true),
+                    UserComments = table.Column<string>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {

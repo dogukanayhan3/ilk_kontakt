@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250422213614_Posts")]
+    [Migration("20250502135449_Posts")]
     partial class Posts
     {
         /// <inheritdoc />
@@ -120,11 +120,15 @@ namespace IlkKontakt.Backend.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("LastModifierId");
 
-                    b.Property<int>("NumberOfLikes")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("PublishDate")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("UserLikes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("UserLikes")
+                        .HasDefaultValueSql("'[]'::jsonb");
 
                     b.HasKey("Id");
 
@@ -1961,6 +1965,40 @@ namespace IlkKontakt.Backend.Migrations
                         .HasForeignKey("CreatorUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsMany("IlkKontakt.Backend.Posts.Comment", "UserComments", b1 =>
+                        {
+                            b1.Property<Guid>("PostId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Content")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<DateTime>("CreationTime")
+                                .HasColumnType("timestamp without time zone");
+
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid");
+
+                            b1.Property<Guid>("UserId")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("PostId", "__synthesizedOrdinal");
+
+                            b1.ToTable("Posts");
+
+                            b1.ToJson("UserComments");
+
+                            b1.WithOwner()
+                                .HasForeignKey("PostId");
+                        });
+
+                    b.Navigation("UserComments");
                 });
 
             modelBuilder.Entity("Volo.Abp.AuditLogging.AuditLogAction", b =>

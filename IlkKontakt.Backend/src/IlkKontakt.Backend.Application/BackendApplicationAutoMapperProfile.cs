@@ -14,7 +14,20 @@ public class BackendApplicationAutoMapperProfile : Profile
          * Alternatively, you can split your mapping configurations
          * into multiple profile classes for a better organization. */
         
-        CreateMap<Post, PostDto>();
-        CreateMap<CreateUpdatePostDto, Post>();
+        CreateMap<Post, PostDto>()
+            .ForMember(d => d.UserLikes,
+                opt => opt.MapFrom(s => s.UserLikes))
+            .ForMember(d => d.NumberOfLikes,
+                opt => opt.MapFrom(s => s.NumberOfLikes))
+            .ForMember(d => d.UserComments,
+                opt => opt.MapFrom(s => s.UserComments));
+
+        CreateMap<CreateUpdatePostDto, Post>()
+            .ForMember(d => d.UserLikes,    // clears likes on a create/update
+                opt => opt.Ignore())
+            .ForMember(d => d.UserComments,
+                opt => opt.Ignore());
+
+        CreateMap<Comment, CommentDto>();
     }
 }
