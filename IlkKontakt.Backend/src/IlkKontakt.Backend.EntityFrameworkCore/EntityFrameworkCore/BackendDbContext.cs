@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
 using IlkKontakt.Backend.Posts;
+using IlkKontakt.Backend.UserProfiles;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
@@ -36,6 +37,7 @@ public class BackendDbContext :
 
     public DbSet<Book> Books { get; set; }
     public DbSet<Post> Posts { get; set; }
+    public DbSet<UserProfile> UserProfiles { get; set; }
 
     #region Entities from the modules
 
@@ -146,6 +148,43 @@ public class BackendDbContext :
 
                     cb.ToJson("UserComments");
                 });
+        });
+        
+        builder.Entity<UserProfile>(b =>
+        {
+            b.ToTable("UserProfiles"); // Table name
+
+            b.HasKey(x => x.Id);
+
+            b.Property(x => x.UserId)
+                .IsRequired();
+
+            b.Property(x => x.Email)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            b.Property(x => x.PhoneNumber)
+                .IsRequired()
+                .HasMaxLength(16);
+
+            b.Property(x => x.Birthday)
+                .IsRequired();
+
+            b.Property(x => x.About)
+                .HasMaxLength(2000);
+
+            b.Property(x => x.Address)
+                .HasMaxLength(256);
+
+            b.Property(x => x.ProfilePictureUrl);
+
+            b.HasIndex(x => x.UserId).IsUnique();
+            
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         });
     }
 }

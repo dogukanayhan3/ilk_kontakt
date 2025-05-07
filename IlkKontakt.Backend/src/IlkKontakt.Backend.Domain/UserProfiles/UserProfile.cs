@@ -1,9 +1,9 @@
 using System;
 using Volo.Abp.Domain.Entities.Auditing;
 
-namespace IlkKontakt.Backend.Profile;
+namespace IlkKontakt.Backend.UserProfiles;
 
-public class Profile : AuditedEntity<Guid>
+public class UserProfile : AuditedEntity<Guid>
 {
     public Guid UserId { get; set; }
     public string About { get; set; }

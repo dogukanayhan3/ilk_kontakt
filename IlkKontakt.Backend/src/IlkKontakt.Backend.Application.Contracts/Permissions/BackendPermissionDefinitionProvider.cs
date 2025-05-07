@@ -23,6 +23,11 @@ public class BackendPermissionDefinitionProvider : PermissionDefinitionProvider
         postPermission.AddChild(BackendPermissions.Posts.Create, L("Permission:Posts.Create"));
         postPermission.AddChild(BackendPermissions.Posts.Edit, L("Permission:Posts.Edit"));
         postPermission.AddChild(BackendPermissions.Posts.Delete, L("Permission:Posts.Delete"));
+
+        var userProfilePermission = myGroup.AddPermission(BackendPermissions.UserProfiles.Default, L("Permission:UserProfiles"));
+        userProfilePermission.AddChild(BackendPermissions.UserProfiles.Create, L("Permission:UserProfiles.Create"));
+        userProfilePermission.AddChild(BackendPermissions.UserProfiles.Edit, L("Permission:UserProfiles.Edit"));
+        userProfilePermission.AddChild(BackendPermissions.UserProfiles.Delete, L("Permission:UserProfiles.Delete"));
     }
 
     private static LocalizableString L(string name)
