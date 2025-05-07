@@ -1,6 +1,8 @@
 using AutoMapper;
 using IlkKontakt.Backend.Books;
+using IlkKontakt.Backend.Permissions;
 using IlkKontakt.Backend.Posts;
+using IlkKontakt.Backend.UserProfiles;
 
 namespace IlkKontakt.Backend;
 
@@ -29,5 +31,8 @@ public class BackendApplicationAutoMapperProfile : Profile
                 opt => opt.Ignore());
 
         CreateMap<Comment, CommentDto>();
+        
+        CreateMap<UserProfile, UserProfileDto>();
+        CreateMap<CreateUpdateUserProfileDto, UserProfile>();
     }
 }
