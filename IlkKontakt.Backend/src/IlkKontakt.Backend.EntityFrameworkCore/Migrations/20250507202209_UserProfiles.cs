@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IlkKontakt.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Posts : Migration
+    public partial class UserProfiles : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -797,6 +797,34 @@ namespace IlkKontakt.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserProfiles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    About = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    Email = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    Address = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    ProfilePictureUrl = table.Column<string>(type: "text", nullable: false),
+                    Birthday = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserProfiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserProfiles_AbpUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OpenIddictAuthorizations",
                 columns: table => new
                 {
@@ -1141,6 +1169,12 @@ namespace IlkKontakt.Backend.Migrations
                 name: "IX_Posts_CreatorUserId",
                 table: "Posts",
                 column: "CreatorUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserProfiles_UserId",
+                table: "UserProfiles",
+                column: "UserId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -1232,6 +1266,9 @@ namespace IlkKontakt.Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "UserProfiles");
 
             migrationBuilder.DropTable(
                 name: "AbpBlobContainers");
