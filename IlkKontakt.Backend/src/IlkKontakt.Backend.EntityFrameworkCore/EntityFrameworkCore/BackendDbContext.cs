@@ -38,6 +38,7 @@ public class BackendDbContext :
     public DbSet<Book> Books { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
+    public DbSet<Experience> Experiences { get; set; }
 
     #region Entities from the modules
 
@@ -94,7 +95,7 @@ public class BackendDbContext :
         {
             b.ToTable(BackendConsts.DbTablePrefix + "Books",
                 BackendConsts.DbSchema);
-            b.ConfigureByConvention(); //auto configure for the base class props
+            b.ConfigureByConvention(); 
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
         });
         
@@ -184,7 +185,20 @@ public class BackendDbContext :
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
 
+        builder.Entity<Experience>(b =>
+        {
+            b.ToTable("Experiences");
+            b.ConfigureByConvention();
+            b.Property(x => x.Title).IsRequired().HasMaxLength(128);
+            b.Property(x => x.CompanyName).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Location).IsRequired().HasMaxLength(128);
+            b.Property(x => x.Description).IsRequired().HasMaxLength(1500);
+            b.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(x => x.ProfileId)
+                .IsRequired();
         });
     }
 }
