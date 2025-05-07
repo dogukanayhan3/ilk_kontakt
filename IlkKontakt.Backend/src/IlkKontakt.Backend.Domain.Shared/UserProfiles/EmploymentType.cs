@@ -1,6 +1,9 @@
 namespace IlkKontakt.Backend.UserProfiles;
 
-public class EmploymentType
+public enum EmploymentType
 {
-    
+    FullTime,
+    PartTime,
+    Contract,
+    Internship
 }
