@@ -3,6 +3,7 @@ using System;
 using IlkKontakt.Backend.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    partial class BackendDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250507211537_Experience")]
+    partial class Experience
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,8 +157,8 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1500)
-                        .HasColumnType("character varying(1500)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<int>("EmploymentType")
                         .HasColumnType("integer");
