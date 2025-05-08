@@ -13,7 +13,6 @@ using IlkKontakt.Backend.Permissions;
 
 namespace IlkKontakt.Backend.UserProfiles;
 
-[Authorize(BackendPermissions.UserProfiles.Default)]
 public class UserProfileAppService : ApplicationService, IUserProfileAppService
 {
     private readonly IRepository<UserProfile, Guid> _repository;
@@ -55,7 +54,6 @@ public class UserProfileAppService : ApplicationService, IUserProfileAppService
         );
     }
 
-    [Authorize(BackendPermissions.UserProfiles.Create)]
     public async Task<UserProfileDto> CreateAsync(CreateUpdateUserProfileDto input)
     {
         // Check if user exists
@@ -72,7 +70,6 @@ public class UserProfileAppService : ApplicationService, IUserProfileAppService
         return ObjectMapper.Map<UserProfile, UserProfileDto>(profile);
     }
 
-    [Authorize(BackendPermissions.UserProfiles.Edit)]
     public async Task<UserProfileDto> UpdateAsync(Guid id, CreateUpdateUserProfileDto input)
     {
         var profile = await _repository.GetAsync(id);
@@ -86,7 +83,6 @@ public class UserProfileAppService : ApplicationService, IUserProfileAppService
         return ObjectMapper.Map<UserProfile, UserProfileDto>(profile);
     }
 
-    [Authorize(BackendPermissions.UserProfiles.Delete)]
     public async Task DeleteAsync(Guid id)
     {
         await _repository.DeleteAsync(id);

@@ -13,7 +13,6 @@ using IlkKontakt.Backend.UserProfiles;
 
 namespace IlkKontakt.Backend.UserProfiles
 {
-    [Authorize(BackendPermissions.UserProfiles.Default)]
     public class ExperienceAppService : ApplicationService, IExperienceAppService
     {
         private readonly IRepository<Experience, Guid> _repository;
@@ -84,7 +83,6 @@ namespace IlkKontakt.Backend.UserProfiles
             );
         }
 
-        [Authorize(BackendPermissions.UserProfiles.Create)]
         public async Task<ExperienceDto> CreateAsync(CreateUpdateExperienceDto input)
         {
             await ValidateExperienceAsync(input);
@@ -100,7 +98,6 @@ namespace IlkKontakt.Backend.UserProfiles
             return ObjectMapper.Map<Experience, ExperienceDto>(experience);
         }
 
-        [Authorize(BackendPermissions.UserProfiles.Edit)]
         public async Task<ExperienceDto> UpdateAsync(Guid id, CreateUpdateExperienceDto input)
         {
             await ValidateExperienceAsync(input);
@@ -123,7 +120,6 @@ namespace IlkKontakt.Backend.UserProfiles
             return ObjectMapper.Map<Experience, ExperienceDto>(experience);
         }
 
-        [Authorize(BackendPermissions.UserProfiles.Delete)]
         public async Task DeleteAsync(Guid id)
         {
             await _repository.DeleteAsync(id);
