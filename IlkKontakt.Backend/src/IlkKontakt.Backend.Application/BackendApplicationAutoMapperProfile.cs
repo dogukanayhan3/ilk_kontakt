@@ -37,5 +37,8 @@ public class BackendApplicationAutoMapperProfile : Profile
         
         CreateMap<Experience, ExperienceDto>();
         CreateMap<CreateUpdateExperienceDto, Experience>();
+
+        CreateMap<Education, EducationDto>();
+        CreateMap<CreateUpdateEducationDto, Education>();
     }
 }
