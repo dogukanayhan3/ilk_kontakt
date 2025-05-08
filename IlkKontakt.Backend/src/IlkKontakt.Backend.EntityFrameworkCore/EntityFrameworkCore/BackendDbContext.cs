@@ -39,6 +39,7 @@ public class BackendDbContext :
     public DbSet<Post> Posts { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
+    public DbSet<Education> Educations { get; set; }
 
     #region Entities from the modules
 
@@ -200,5 +201,36 @@ public class BackendDbContext :
                 .HasForeignKey(x => x.ProfileId)
                 .IsRequired();
         });
+        
+        builder.Entity<Education>(b =>
+        {
+            b.ToTable("Educations");
+            b.ConfigureByConvention();
+    
+            b.Property(x => x.InstutionName)
+                .IsRequired()
+                .HasMaxLength(128);
+    
+            b.Property(x => x.Degree)
+                .IsRequired()
+                .HasMaxLength(128);
+            
+            b.Property(x => x.StartDate)
+                .IsRequired();
+
+            b.Property(x => x.EndDate);
+
+            b.Property(x => x.GPA)
+                .HasPrecision(5, 2);
+    
+            b.Property(x => x.Description)
+                .HasMaxLength(1500);
+    
+            b.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(x => x.ProfileId)
+                .IsRequired();
+        });
+
     }
 }

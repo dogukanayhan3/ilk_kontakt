@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IlkKontakt.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Experience : Migration
+    public partial class Education : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -873,6 +873,34 @@ namespace IlkKontakt.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Educations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InstutionName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Degree = table.Column<int>(type: "integer", maxLength: 128, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    GPA = table.Column<float>(type: "real", precision: 5, scale: 2, nullable: false),
+                    Description = table.Column<string>(type: "character varying(1500)", maxLength: 1500, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Educations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Educations_UserProfiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Experiences",
                 columns: table => new
                 {
@@ -884,7 +912,7 @@ namespace IlkKontakt.Backend.Migrations
                     StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     IsCurrentPosition = table.Column<bool>(type: "boolean", nullable: false),
-                    Description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    Description = table.Column<string>(type: "character varying(1500)", maxLength: 1500, nullable: false),
                     EmploymentType = table.Column<int>(type: "integer", nullable: false),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
@@ -1166,6 +1194,11 @@ namespace IlkKontakt.Backend.Migrations
                 column: "UserName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Educations_ProfileId",
+                table: "Educations",
+                column: "ProfileId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Experiences_ProfileId",
                 table: "Experiences",
                 column: "ProfileId");
@@ -1292,6 +1325,9 @@ namespace IlkKontakt.Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "AppBooks");
+
+            migrationBuilder.DropTable(
+                name: "Educations");
 
             migrationBuilder.DropTable(
                 name: "Experiences");

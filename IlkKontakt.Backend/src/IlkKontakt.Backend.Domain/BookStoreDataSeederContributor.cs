@@ -17,19 +17,22 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
     private readonly IRepository<IdentityUser, Guid> _userRepository;
     private readonly IRepository<UserProfile, Guid> _profileRepository;
     private readonly IRepository<Experience, Guid> _experienceRepository;
+    private readonly IRepository<Education, Guid> _educationRepository;
 
     public BackendDataSeederContributor(
         IRepository<Book, Guid> bookRepository,
         IRepository<Post, Guid> postRepository,
         IRepository<IdentityUser, Guid> userRepository,
         IRepository<UserProfile, Guid> profileRepository,
-        IRepository<Experience, Guid> experienceRepository)
+        IRepository<Experience, Guid> experienceRepository,
+        IRepository<Education, Guid> educationRepository)
     {
         _bookRepository = bookRepository;
         _postRepository = postRepository;
         _userRepository = userRepository;
         _profileRepository = profileRepository;
         _experienceRepository = experienceRepository;
+        _educationRepository = educationRepository;
     }
 
     public async Task SeedAsync(DataSeedContext context)
@@ -148,5 +151,53 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
             },
             autoSave: true
         );
+        
+        if (await _educationRepository.GetCountAsync() <= 0)
+        {
+            // High School
+            await _educationRepository.InsertAsync(
+                new Education
+                {
+                    ProfileId = profile.Id,
+                    InstutionName = "Central High School",
+                    Degree = EducationDegree.HighSchoolDiploma,
+                    StartDate = new DateTime(2006, 9, 1),
+                    EndDate = new DateTime(2010, 6, 15),
+                    GPA = 3.60f,
+                    Description = "Graduated with honors"
+                },
+                autoSave: true
+            );
+
+            // Bachelor
+            await _educationRepository.InsertAsync(
+                new Education
+                {
+                    ProfileId = profile.Id,
+                    InstutionName = "State University",
+                    Degree = EducationDegree.BachelorOfScience,
+                    StartDate = new DateTime(2010, 9, 1),
+                    EndDate = new DateTime(2014, 6, 15),
+                    GPA = 3.80f,
+                    Description = "Major in Computer Science"
+                },
+                autoSave: true
+            );
+
+            // Master
+            await _educationRepository.InsertAsync(
+                new Education
+                {
+                    ProfileId = profile.Id,
+                    InstutionName = "Tech Institute",
+                    Degree = EducationDegree.MasterOfScience,
+                    StartDate = new DateTime(2014, 9, 1),
+                    EndDate = new DateTime(2016, 6, 15),
+                    GPA = 3.90f,
+                    Description = "Focus on Software Engineering"
+                },
+                autoSave: true
+            );
+        }
     }
 }
