@@ -134,6 +134,62 @@ namespace IlkKontakt.Backend.Migrations
                     b.ToTable("Posts", (string)null);
                 });
 
+            modelBuilder.Entity("IlkKontakt.Backend.UserProfiles.Education", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<int>("Degree")
+                        .HasMaxLength(128)
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1500)
+                        .HasColumnType("character varying(1500)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<float>("GPA")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("real");
+
+                    b.Property<string>("InstutionName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<Guid>("ProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId");
+
+                    b.ToTable("Educations", (string)null);
+                });
+
             modelBuilder.Entity("IlkKontakt.Backend.UserProfiles.Experience", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2118,6 +2174,15 @@ namespace IlkKontakt.Backend.Migrations
                         });
 
                     b.Navigation("UserComments");
+                });
+
+            modelBuilder.Entity("IlkKontakt.Backend.UserProfiles.Education", b =>
+                {
+                    b.HasOne("IlkKontakt.Backend.UserProfiles.UserProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IlkKontakt.Backend.UserProfiles.Experience", b =>
