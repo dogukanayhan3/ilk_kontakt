@@ -39,6 +39,7 @@ public class BackendDbContext :
     public DbSet<Post> Posts { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
+    public DbSet<Education> Educations { get; set; }
 
     #region Entities from the modules
 
