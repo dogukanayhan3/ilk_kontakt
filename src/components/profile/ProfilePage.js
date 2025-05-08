@@ -1,171 +1,151 @@
-import React, { useState } from 'react';
-import { Edit, Camera, Users, Paperclip, Star, X, Save } from 'lucide-react';
-import Layout from "../page_layout/Layout";
-import ProfileImage from "./Profile-img";
-import "../../component-styles/ProfilePage.css";
+// src/components/profile/ProfilePage.jsx
+import React, { useState, useEffect, useRef } from 'react';
+import { Edit, Camera, X, Save, Info, Mail, Phone, MapPin, Calendar } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Layout from '../page_layout/Layout';
+import ProfileImage from './Profile-img';
+import '../../component-styles/ProfilePage.css';
 
-// Dummy post data - replace with actual data source
-const dummyPosts = [
-    {
-        id: 1,
-        title: "My First Tech Conference Experience",
-        content: "Last week, I attended the Annual Tech Summit and learned so much about the latest trends in software development...",
-        date: "2 days ago",
-        likes: 24,
-        comments: 5
-    },
-    {
-        id: 2,
-        title: "Building My First React Application",
-        content: "After months of learning, I finally completed my first full-stack React application. It was challenging but incredibly rewarding...",
-        date: "1 week ago",
-        likes: 42,
-        comments: 12
+export default function ProfilePage() {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const fileInputRef = useRef();
+
+  // Redirect if not logged in & bootstrap profile from currentUser
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
     }
-];
-
-function ProfilePostCard({ post }) {
-    return (
-        <div className="profile-post-card">
-            <h4>{post.title}</h4>
-            <p>{post.content}</p>
-            <div className="post-meta">
-                <span>{post.date}</span>
-                <div className="post-interactions">
-                    <span><Paperclip size={16} /> {post.likes} Likes</span>
-                    <span><Users size={16} /> {post.comments} Comments</span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function ProfilePage() {
-    const [isEditing, setIsEditing] = useState(false);
-    const [profileData, setProfileData] = useState({
-        name: "John Doe",
-        profession: "Software Engineer",
-        connections: 120,
-        posts: 45,
-        followers: 230
+    setProfile({
+      id: currentUser.id,
+      userId: currentUser.id,
+      about: currentUser.about || '',
+      email: currentUser.email || '',
+      phoneNumber: currentUser.phoneNumber || '',
+      address: currentUser.address || '',
+      birthday: currentUser.birthday
+        ? currentUser.birthday.split('T')[0]
+        : '',
+      profilePictureUrl: currentUser.profileImage || '',
     });
+  }, [currentUser, navigate]);
 
-    const handleEditToggle = () => {
-        setIsEditing(!isEditing);
-    };
+  const toggleEdit = () => setIsEditing((f) => !f);
+  const handleProfileChange = (e) => {
+    const { name, value } = e.target;
+    setProfile((p) => ({ ...p, [name]: value }));
+  };
+  const handleFileChange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    setProfile((p) => ({
+      ...p,
+      profilePictureUrl: URL.createObjectURL(f),
+      _file: f,
+    }));
+  };
+  const saveProfile = () => {
+    // TODO: XSRF + PUT logic here
+    setIsEditing(false);
+  };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setProfileData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+  if (!profile) return null;
 
-    const handleSaveProfile = () => {
-        // Here you would typically send the updated profile to a backend
-        setIsEditing(false);
-    };
+  return (
+    <Layout>
+      <section className="profile-section">
+        <div className="profile-card">
+          <div className="profile-image-container">
+            <ProfileImage src={profile.profilePictureUrl} />
+            {isEditing && (
+              <>
+                <button
+                  className="change-photo-btn"
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <Camera size={20} strokeWidth={1.5} />
+                </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+              </>
+            )}
+          </div>
 
-    return (
-        <Layout>
-            <section className="profile-section">
-                <div className="profile-card">
-                    <div className="profile-image-container">
-                        <ProfileImage />
-                        <button className="change-photo-btn">
-                            <Camera size={20} strokeWidth={1.5} />
-                        </button>
-                    </div>
+          {isEditing ? (
+            <div className="profile-edit-form">
+              <textarea
+                name="about"
+                placeholder="Hakkında"
+                value={profile.about}
+                onChange={handleProfileChange}
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="E-posta"
+                value={profile.email}
+                onChange={handleProfileChange}
+              />
+              <input
+                type="tel"
+                name="phoneNumber"
+                placeholder="Telefon"
+                value={profile.phoneNumber}
+                onChange={handleProfileChange}
+              />
+              <input
+                type="text"
+                name="address"
+                placeholder="Adres"
+                value={profile.address}
+                onChange={handleProfileChange}
+              />
+              <div className="date-input-group">
+                <Calendar size={18} />
+                <input
+                  type="date"
+                  name="birthday"
+                  value={profile.birthday}
+                  onChange={handleProfileChange}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <h3 id="profile-name">{currentUser.userName}</h3>
+              <div className="profile-info-list">
+                <div><Info size={16} /><span>{profile.about}</span></div>
+                <div><Mail size={16} /><span>{profile.email}</span></div>
+                <div><Phone size={16} /><span>{profile.phoneNumber}</span></div>
+                <div><MapPin size={16} /><span>{profile.address}</span></div>
+                <div><Calendar size={16} /><span>{new Date(profile.birthday).toLocaleDateString()}</span></div>
+              </div>
+            </>
+          )}
 
-                    {isEditing ? (
-                        <div className="profile-edit-form">
-                            <input 
-                                type="text" 
-                                name="name"
-                                value={profileData.name}
-                                onChange={handleInputChange}
-                                placeholder="Full Name"
-                            />
-                            <input 
-                                type="text" 
-                                name="profession"
-                                value={profileData.profession}
-                                onChange={handleInputChange}
-                                placeholder="Profession"
-                            />
-                        </div>
-                    ) : (
-                        <>
-                            <h3 id="profile-name">{profileData.name}</h3>
-                            <p id="profile-profession">{profileData.profession}</p>
-                        </>
-                    )}
-
-                    <div className="profile-details">
-                        <div className="profile-stat">
-                            <Users size={24} strokeWidth={1.5} />
-                            <div>
-                                <h4>Connections</h4>
-                                <p>{profileData.connections}</p>
-                            </div>
-                        </div>
-                        <div className="profile-stat">
-                            <Paperclip size={24} strokeWidth={1.5} />
-                            <div>
-                                <h4>Posts</h4>
-                                <p>{profileData.posts}</p>
-                            </div>
-                        </div>
-                        <div className="profile-stat">
-                            <Star size={24} strokeWidth={1.5} />
-                            <div>
-                                <h4>Followers</h4>
-                                <p>{profileData.followers}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="profile-actions">
-                        <button 
-                            id="edit-profile-btn" 
-                            onClick={handleEditToggle}
-                        >
-                            {isEditing ? (
-                                <>
-                                    <X size={18} strokeWidth={1.5} />
-                                    Cancel
-                                </>
-                            ) : (
-                                <>
-                                    <Edit size={18} strokeWidth={1.5} />
-                                    Edit Profile
-                                </>
-                            )}
-                        </button>
-                        {isEditing && (
-                            <button 
-                                className="save-profile-btn"
-                                onClick={handleSaveProfile}
-                            >
-                                <Save size={18} strokeWidth={1.5} />
-                                Save Changes
-                            </button>
-                        )}
-                    </div>
-                </div>
-
-                <section className="profile-posts-section">
-                    <h3>Recent Posts</h3>
-                    <div className="posts-grid">
-                        {dummyPosts.map(post => (
-                            <ProfilePostCard key={post.id} post={post} />
-                        ))}
-                    </div>
-                </section>
-            </section>
-        </Layout>
-    );
+          <div className="profile-actions">
+            <button id="edit-profile-btn" onClick={toggleEdit}>
+              {isEditing
+                ? <><X size={18} />Vazgeç</>
+                : <><Edit size={18} />Düzenle</>}
+            </button>
+            {isEditing && (
+              <button className="save-profile-btn" onClick={saveProfile}>
+                <Save size={18} />Kaydet
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+    </Layout>
+  );
 }
-
-export default ProfilePage;
