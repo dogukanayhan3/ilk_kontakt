@@ -6,7 +6,6 @@ namespace IlkKontakt.Backend.UserProfiles;
 public class CreateUpdateUserProfileDto
 {
     [Required]
-    public Guid UserId { get; set; }
     public string? About { get; set; }
     [Required]
     public string Email { get; set; }
