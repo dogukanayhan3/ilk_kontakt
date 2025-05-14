@@ -171,23 +171,7 @@ export default function LoginPage() {
 
       // 4) Create the UserProfile entry
       const createProfRes = await fetch(`${API_BASE}/api/app/user-profile`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          accept: 'application/json',
-          'Content-Type': 'application/json',
-          RequestVerificationToken: xsrf,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          userId: userData.id,
-          about: formData.about,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          address: formData.address,
-          profilePictureUrl: '',
-          birthday: formData.birthday,
-        }),
+        credentials: 'include'
       });
       if (!createProfRes.ok) {
         console.warn('Profil oluşturulurken hata:', await createProfRes.text());
