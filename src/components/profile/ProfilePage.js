@@ -8,9 +8,18 @@ import Layout from '../page_layout/Layout'
 import ProfileImage from './Profile-img'
 import '../../component-styles/ProfilePage.css'
 
+const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: 'FullTime', label: 'Full Time' },
+  { value: 'PartTime', label: 'Part Time' },
+  { value: 'Contract', label: 'Contract' },
+  { value: 'Internship', label: 'Internship' },
+]
+
 const API_BASE = 'https://localhost:44388'
 const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`
 const PROFILE_ROOT = `${API_BASE}/api/app/user-profile`
+const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`
+// Helper function to get cookies
 
 function getCookie(name) {
   const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
@@ -34,6 +43,22 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [showExpModal, setShowExpModal] = useState(false);
+
+  // Experience state
+  const [experiences, setExperiences] = useState([])
+  const [expLoading, setExpLoading] = useState(false)
+  const [expError, setExpError] = useState('')
+  const [newExp, setNewExp] = useState({
+    title: '',
+    companyName: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    isCurrentPosition: false,
+    description: '',
+    employmentType: 'FullTime',
+  })
 
   // On mount: load profile or prepare for creation
   useEffect(() => {
@@ -176,6 +201,85 @@ export default function ProfilePage() {
     }
   }
 
+  // Fetch experiences when profile is loaded
+useEffect(() => {
+  if (profile && profile.id) {
+    fetchExperiences()
+  }
+  // eslint-disable-next-line
+}, [profile])
+
+async function fetchExperiences() {
+  setExpLoading(true)
+  setExpError('')
+  try {
+    const res = await fetch(
+      `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
+      { credentials: 'include' }
+    )
+    if (!res.ok) throw new Error('Deneyimler yüklenemedi')
+    const data = await res.json()
+    setExperiences(data.items || [])
+  } catch (e) {
+    setExpError(e.message)
+  } finally {
+    setExpLoading(false)
+  }
+}
+
+function handleExpInput(e) {
+  const { name, value, type, checked } = e.target
+  setNewExp((exp) => ({
+    ...exp,
+    [name]: type === 'checkbox' ? checked : value,
+  }))
+}
+
+async function handleAddExperience(e) {
+  e.preventDefault()
+  setExpError('')
+  try {
+    await fetch(`${API_BASE}/api/abp/application-configuration`, {
+      credentials: 'include',
+    })
+    const xsrf = getCookie('XSRF-TOKEN')
+    if (!xsrf) throw new Error('XSRF token not found')
+
+    const payload = {
+      ...newExp,
+      profileId: profile.id,
+      startDate: newExp.startDate ? new Date(newExp.startDate) : null,
+      endDate: newExp.endDate ? new Date(newExp.endDate) : null,
+    }
+
+    const res = await fetch(EXPERIENCE_ROOT, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+        RequestVerificationToken: xsrf,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error('Deneyim eklenemedi')
+    setNewExp({
+      title: '',
+      companyName: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      isCurrentPosition: false,
+      description: '',
+      employmentType: 'FullTime',
+    })
+    fetchExperiences()
+  } catch (e) {
+    setExpError(e.message)
+  }
+}
+
   if (loading) return <div>Profil yükleniyor…</div>
 
   return (
@@ -278,6 +382,133 @@ export default function ProfilePage() {
           )}
         </div>
       </section>
+
+      <section className="experience-section">
+        <h2>Deneyimlerim</h2>
+        {expError && <div className="error-message">{expError}</div>}
+        {expLoading ? (
+          <div>Yükleniyor...</div>
+        ) : (
+          <div className="experiences-grid">
+            {experiences.map((exp) => (
+              <div className="experience-card" key={exp.id}>
+                <div className="experience-card-header">
+                  <span className="experience-title">{exp.title}</span>
+                  <span className="experience-company">@ {exp.companyName}</span>
+                </div>
+                <div className="experience-dates">
+                  {new Date(exp.startDate).toLocaleDateString()} -{' '}
+                  {exp.isCurrentPosition
+                    ? 'Devam Ediyor'
+                    : exp.endDate
+                    ? new Date(exp.endDate).toLocaleDateString()
+                    : ''}
+                </div>
+                <div className="experience-location">{exp.location}</div>
+                <div className="experience-type">
+                  {EMPLOYMENT_TYPE_OPTIONS.find(o => o.value === exp.employmentType)?.label || exp.employmentType}
+                </div>
+                <div className="experience-description">{exp.description}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add Experience Button */}
+        {profile && (
+          <div className="add-experience-btn-row">
+            <button
+              className="add-experience-btn"
+              onClick={() => setShowExpModal(true)}
+            >
+              + Yeni Deneyim Ekle
+            </button>
+          </div>
+        )}
+
+        {/* Add Experience Form */}
+        {showExpModal && (
+          <div className="modal-overlay" onClick={() => setShowExpModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <button className="modal-close-btn" onClick={() => setShowExpModal(false)}>
+                <X size={22} />
+              </button>
+              <form className="experience-form" onSubmit={async (e) => {
+                await handleAddExperience(e);
+                setShowExpModal(false);
+              }}>
+                <h3>Yeni Deneyim Ekle</h3>
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="Pozisyon"
+                  value={newExp.title}
+                  onChange={handleExpInput}
+                  required
+                />
+                <input
+                  type="text"
+                  name="companyName"
+                  placeholder="Şirket"
+                  value={newExp.companyName}
+                  onChange={handleExpInput}
+                  required
+                />
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Lokasyon"
+                  value={newExp.location}
+                  onChange={handleExpInput}
+                />
+                <select
+                  name="employmentType"
+                  value={newExp.employmentType}
+                  onChange={handleExpInput}
+                  required
+                >
+                  {EMPLOYMENT_TYPE_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={newExp.startDate}
+                  onChange={handleExpInput}
+                  required
+                />
+                <input
+                  type="date"
+                  name="endDate"
+                  value={newExp.endDate}
+                  onChange={handleExpInput}
+                  disabled={newExp.isCurrentPosition}
+                />
+                <label>
+                  <input
+                    type="checkbox"
+                    name="isCurrentPosition"
+                    checked={newExp.isCurrentPosition}
+                    onChange={handleExpInput}
+                  />
+                  Halen bu pozisyonda çalışıyorum
+                </label>
+                <textarea
+                  name="description"
+                  placeholder="Açıklama"
+                  value={newExp.description}
+                  onChange={handleExpInput}
+                />
+                <button type="submit" className="save-profile-btn" style={{ marginTop: 8 }}>
+                  <Save size={18} /> Ekle
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </section>
+
     </Layout>
   )
 }
