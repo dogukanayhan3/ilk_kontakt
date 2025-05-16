@@ -11,6 +11,7 @@ using Volo.Abp.Security.Claims;
 using Volo.Abp;
 using IlkKontakt.Backend.Permissions;
 using Volo.Abp.Authorization;
+using Volo.Abp.Domain.Entities;
 using Volo.Abp.Users;
 
 namespace IlkKontakt.Backend.UserProfiles
@@ -130,5 +131,19 @@ namespace IlkKontakt.Backend.UserProfiles
 
             await _repository.DeleteAsync(id, autoSave: true);
         }
+        
+        public async Task<UserProfileDto> GetByUserAsync()
+        {
+            if (!_currentUser.IsAuthenticated)
+                throw new AbpAuthorizationException("Not logged in.");
+
+            var userId = _currentUser.GetId();
+            var profile = await _repository.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (profile == null)
+                throw new EntityNotFoundException(typeof(UserProfile), userId);
+
+            return ObjectMapper.Map<UserProfile, UserProfileDto>(profile);
+        }
     }
+    
 }
