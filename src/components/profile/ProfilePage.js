@@ -227,6 +227,14 @@ async function fetchExperiences() {
   }
 }
 
+const getEmploymentTypeLabel = (type) => {
+  // type can be string or number
+  const found = EMPLOYMENT_TYPE_OPTIONS.find(
+    o => o.value === type || o.num === type
+  );
+  return found ? found.label : type;
+};
+
 function handleExpInput(e) {
   const { name, value, type, checked } = e.target
   setNewExp((exp) => ({
@@ -339,6 +347,13 @@ async function handleAddExperience(e) {
                 value={form.address}
                 onChange={handleChange}
               />
+              <input
+                type="text"
+                name="profilePictureUrl"
+                placeholder="Profil Fotoğrafı URL"
+                value={form.profilePictureUrl}
+                onChange={handleChange}
+              />
               <div className="date-input-group">
                 <Calendar size={18} />
                 <input
@@ -406,7 +421,7 @@ async function handleAddExperience(e) {
                 </div>
                 <div className="experience-location">{exp.location}</div>
                 <div className="experience-type">
-                  {EMPLOYMENT_TYPE_OPTIONS.find(o => o.value === exp.employmentType)?.label || exp.employmentType}
+                  {getEmploymentTypeLabel(exp.employmentType)}
                 </div>
                 <div className="experience-description">{exp.description}</div>
               </div>
