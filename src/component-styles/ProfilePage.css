@@ -10,24 +10,44 @@
 /* Card */
 .profile-card {
   background: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(50, 69, 241, 0.07);
+  padding: 32px 28px 28px 28px;
   width: 100%;
   max-width: 800px;
   text-align: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border-left: 5px solid #3245f1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
 }
 .profile-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(50, 69, 241, 0.13);
+  transform: translateY(-3px) scale(1.02);
 }
 
 /* Profile Image */
 .profile-image-container {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 20px;
+  width: 120px;
+  height: 120px;
+}
+
+.profile-image-container img,
+.profile-image-container .profile-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid #5fbcee;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(50, 69, 241, 0.07);
 }
 
 /* Photo‐upload button */
