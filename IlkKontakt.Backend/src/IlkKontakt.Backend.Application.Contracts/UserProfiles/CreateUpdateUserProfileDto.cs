@@ -5,7 +5,6 @@ namespace IlkKontakt.Backend.UserProfiles;
 
 public class CreateUpdateUserProfileDto
 {
-    [Required]
     public string? About { get; set; }
     [Required]
     public string Email { get; set; }
@@ -13,6 +12,5 @@ public class CreateUpdateUserProfileDto
     public string PhoneNumber { get; set; }
     public string? Address { get; set; }
     public string? ProfilePictureUrl { get; set; }
-    [Required]
-    public DateTime Birthday { get; set; }
+    public DateTime? Birthday { get; set; }
 }
