@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Edit, Camera, X, Save, Info, Mail, Phone, MapPin, Calendar
+  Edit,
+  Camera,
+  X,
+  Save,
+  Info,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
@@ -8,19 +16,38 @@ import Layout from '../page_layout/Layout'
 import ProfileImage from './Profile-img'
 import '../../component-styles/ProfilePage.css'
 
-const EMPLOYMENT_TYPE_OPTIONS = [
-  { value: 'FullTime', label: 'Full Time' },
-  { value: 'PartTime', label: 'Part Time' },
-  { value: 'Contract', label: 'Contract' },
-  { value: 'Internship', label: 'Internship' },
-]
-
 const API_BASE = 'https://localhost:44388'
 const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`
 const PROFILE_ROOT = `${API_BASE}/api/app/user-profile`
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`
-// Helper function to get cookies
+const EDUCATION_ROOT = `${API_BASE}/api/app/education`
 
+const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: 'FullTime', label: 'Full Time' },
+  { value: 'PartTime', label: 'Part Time' },
+  { value: 'Contract', label: 'Contract' },
+  { value: 'Internship', label: 'Internship' }
+]
+
+// Mirror of your enum; adjust labels as you wish:
+const EDUCATION_DEGREE_OPTIONS = [
+  { value: 'HighSchoolDiploma', label: 'High School Diploma' },
+  { value: 'BachelorOfArts', label: 'Bachelor of Arts' },
+  { value: 'BachelorOfScience', label: 'Bachelor of Science' },
+  { value: 'BachelorOfFineArts', label: 'Bachelor of Fine Arts' },
+  { value: 'BachelorOfEngineering', label: 'Bachelor of Engineering' },
+  { value: 'BachelorOfBusinessAdministration', label: 'BBA' },
+  { value: 'MasterOfArts', label: 'Master of Arts' },
+  { value: 'MasterOfScience', label: 'Master of Science' },
+  { value: 'MasterOfFineArts', label: 'Master of Fine Arts' },
+  { value: 'MasterOfEngineering', label: 'Master of Engineering' },
+  { value: 'MasterOfBusinessAdministration', label: 'MBA' },
+  { value: 'DoctorOfPhilosophy', label: 'PhD' },
+  { value: 'DoctorOfMedicine', label: 'MD' },
+  { value: 'DoctorOfEducation', label: 'EdD' }
+]
+
+// Helper to read XSRF cookie
 function getCookie(name) {
   const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
   return m ? m[2] : null
@@ -31,6 +58,7 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const fileInputRef = useRef()
 
+  // PROFILE
   const [profile, setProfile] = useState(null)
   const [form, setForm] = useState({
     about: '',
@@ -38,14 +66,13 @@ export default function ProfilePage() {
     phoneNumber: '',
     address: '',
     birthday: '',
-    profilePictureUrl: '',
+    profilePictureUrl: ''
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
-  const [showExpModal, setShowExpModal] = useState(false);
 
-  // Experience state
+  // EXPERIENCES
   const [experiences, setExperiences] = useState([])
   const [expLoading, setExpLoading] = useState(false)
   const [expError, setExpError] = useState('')
@@ -57,10 +84,30 @@ export default function ProfilePage() {
     endDate: '',
     isCurrentPosition: false,
     description: '',
-    employmentType: 'FullTime',
+    employmentType: 'FullTime'
   })
+  const [showExpModal, setShowExpModal] = useState(false)
+  const [editingExp, setEditingExp] = useState(false)
+  const [currentExp, setCurrentExp] = useState(null)
 
-  // On mount: load profile or prepare for creation
+  // EDUCATIONS
+  const [educations, setEducations] = useState([])
+  const [eduLoading, setEduLoading] = useState(false)
+  const [eduError, setEduError] = useState('')
+  const [newEdu, setNewEdu] = useState({
+    instutionName: '',
+    degree: 'HighSchoolDiploma',
+    startDate: '',
+    endDate: '',
+    gpa: '',
+    description: '',
+    isCurrentStudy: false
+  })
+  const [showEduModal, setShowEduModal] = useState(false)
+  const [editingEdu, setEditingEdu] = useState(false)
+  const [currentEdu, setCurrentEdu] = useState(null)
+
+  // load profile
   useEffect(() => {
     if (!currentUser) {
       navigate('/login')
@@ -84,7 +131,7 @@ export default function ProfilePage() {
           phoneNumber: dto.phoneNumber || '',
           address: dto.address || '',
           birthday: dto.birthday ? dto.birthday.split('T')[0] : '',
-          profilePictureUrl: dto.profilePictureUrl || '',
+          profilePictureUrl: dto.profilePictureUrl || ''
         })
       } else if (res.status === 404) {
         setProfile(null)
@@ -94,7 +141,7 @@ export default function ProfilePage() {
           phoneNumber: currentUser.phoneNumber || '',
           address: '',
           birthday: '',
-          profilePictureUrl: currentUser.profileImage || '',
+          profilePictureUrl: currentUser.profileImage || ''
         })
       } else {
         throw new Error('Profil yüklenemedi: ' + res.status)
@@ -106,21 +153,252 @@ export default function ProfilePage() {
     }
   }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setForm((f) => ({ ...f, [name]: value }))
+  // when we have a profile, fetch experiences & educations
+  useEffect(() => {
+    if (profile && profile.id) {
+      fetchExperiences()
+      fetchEducations()
+    }
+    // eslint-disable-next-line
+  }, [profile])
+
+  // --- EXPERIENCES HANDLERS ---
+  async function fetchExperiences() {
+    setExpLoading(true)
+    setExpError('')
+    try {
+      const res = await fetch(
+        `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Deneyimler yüklenemedi')
+      const data = await res.json()
+      setExperiences(data.items || [])
+    } catch (e) {
+      setExpError(e.message)
+    } finally {
+      setExpLoading(false)
+    }
   }
 
-  const handleFileChange = (e) => {
-    const f = e.target.files[0]
-    if (!f) return
-    setForm((f0) => ({
-      ...f0,
-      profilePictureUrl: URL.createObjectURL(f),
-      _file: f,
+  function openAddExp() {
+    setEditingExp(false)
+    setNewExp({
+      title: '',
+      companyName: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      isCurrentPosition: false,
+      description: '',
+      employmentType: 'FullTime'
+    })
+    setShowExpModal(true)
+  }
+
+  function openEditExp(exp) {
+    setEditingExp(true)
+    setCurrentExp(exp)
+    setNewExp({
+      title: exp.title,
+      companyName: exp.companyName,
+      location: exp.location,
+      startDate: exp.startDate.split('T')[0],
+      endDate: exp.endDate ? exp.endDate.split('T')[0] : '',
+      isCurrentPosition: exp.isCurrentPosition,
+      description: exp.description,
+      employmentType: exp.employmentType
+    })
+    setShowExpModal(true)
+  }
+
+  function handleExpInput(e) {
+    const { name, value, type, checked } = e.target
+    setNewExp(exp => ({
+      ...exp,
+      [name]: type === 'checkbox' ? checked : value
     }))
   }
 
+  async function handleSaveExp(e) {
+    e.preventDefault()
+    setExpError('')
+    try {
+      // XSRF
+      await fetch(`${API_BASE}/api/abp/application-configuration`, {
+        credentials: 'include'
+      })
+      const xsrf = getCookie('XSRF-TOKEN')
+      if (!xsrf) throw new Error('XSRF token not found')
+
+      const payload = {
+        ...newExp,
+        profileId: profile.id,
+        startDate: new Date(newExp.startDate),
+        endDate: newExp.endDate ? new Date(newExp.endDate) : null
+      }
+
+      let res
+      if (editingExp && currentExp) {
+        res = await fetch(`${EXPERIENCE_ROOT}/${currentExp.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
+      } else {
+        res = await fetch(EXPERIENCE_ROOT, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
+      }
+
+      if (!res.ok) throw new Error('Deneyim kaydı başarısız')
+      setShowExpModal(false)
+      fetchExperiences()
+    } catch (e) {
+      setExpError(e.message)
+    }
+  }
+
+  // --- EDUCATIONS HANDLERS ---
+  async function fetchEducations() {
+    setEduLoading(true)
+    setEduError('')
+    try {
+      const res = await fetch(
+        `${EDUCATION_ROOT}?ProfileId=${profile.id}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Eğitimler yüklenemedi')
+      const data = await res.json()
+      setEducations(data.items || [])
+    } catch (e) {
+      setEduError(e.message)
+    } finally {
+      setEduLoading(false)
+    }
+  }
+
+  function openAddEdu() {
+    setEditingEdu(false)
+    setNewEdu({
+      instutionName: '',
+      degree: 'HighSchoolDiploma',
+      startDate: '',
+      endDate: '',
+      gpa: '',
+      description: '',
+      isCurrentStudy: false
+    })
+    setShowEduModal(true)
+  }
+
+  function openEditEdu(ed) {
+    setEditingEdu(true)
+    setCurrentEdu(ed)
+    setNewEdu({
+      instutionName: ed.instutionName,
+      degree: ed.degree,
+      startDate: ed.startDate.split('T')[0],
+      endDate: ed.endDate ? ed.endDate.split('T')[0] : '',
+      gpa: ed.gpa || '',
+      description: ed.description || '',
+      isCurrentStudy: !ed.endDate
+    })
+    setShowEduModal(true)
+  }
+
+  function handleEduInput(e) {
+    const { name, value, type, checked } = e.target;
+    setNewEdu(ed => ({
+      ...ed,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  }
+
+  async function handleSaveEdu(e) {
+    e.preventDefault()
+    setEduError('')
+    try {
+      await fetch(`${API_BASE}/api/abp/application-configuration`, { credentials: 'include' })
+      const xsrf = getCookie('XSRF-TOKEN')
+      if (!xsrf) throw new Error('XSRF token not found')
+
+      const payload = {
+        ...newEdu,
+        profileId: profile.id,
+        startDate: new Date(newEdu.startDate),
+        // if currently studying, send null; else parse date
+        endDate: newEdu.isCurrentStudy
+          ? null
+          : newEdu.endDate
+          ? new Date(newEdu.endDate)
+          : null,
+        gpa: parseFloat(newEdu.gpa)
+      }
+
+      let res
+      if (editingEdu && currentEdu) {
+        res = await fetch(`${EDUCATION_ROOT}/${currentEdu.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
+      } else {
+        res = await fetch(EDUCATION_ROOT, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
+      }
+
+      if (!res.ok) throw new Error('Eğitim kaydı başarısız')
+      setShowEduModal(false)
+      fetchEducations()
+    } catch (e) {
+      setEduError(e.message)
+    }
+  }
+
+  // --- PROFILE HANDLERS (unchanged) ---
+  const handleChange = e => {
+    const { name, value } = e.target
+    setForm(f => ({ ...f, [name]: value }))
+  }
+  const handleFileChange = e => {
+    const f = e.target.files[0]
+    if (!f) return
+    setForm(f0 => ({
+      ...f0,
+      profilePictureUrl: URL.createObjectURL(f),
+      _file: f
+    }))
+  }
   const handleEdit = () => setIsEditing(true)
   const handleCancel = () => {
     if (profile) {
@@ -129,18 +407,19 @@ export default function ProfilePage() {
         email: profile.email || '',
         phoneNumber: profile.phoneNumber || '',
         address: profile.address || '',
-        birthday: profile.birthday ? profile.birthday.split('T')[0] : '',
-        profilePictureUrl: profile.profilePictureUrl || '',
+        birthday: profile.birthday
+          ? profile.birthday.split('T')[0]
+          : '',
+        profilePictureUrl: profile.profilePictureUrl || ''
       })
     }
     setIsEditing(false)
   }
-
   const handleSave = async () => {
     setError('')
     try {
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
-        credentials: 'include',
+        credentials: 'include'
       })
       const xsrf = getCookie('XSRF-TOKEN')
       if (!xsrf) throw new Error('XSRF token not found')
@@ -150,13 +429,14 @@ export default function ProfilePage() {
         email: form.email,
         phoneNumber: form.phoneNumber,
         address: form.address,
-        birthday: form.birthday ? new Date(form.birthday) : null,
-        profilePictureUrl: form.profilePictureUrl,
+        birthday: form.birthday
+          ? new Date(form.birthday)
+          : null,
+        profilePictureUrl: form.profilePictureUrl
       }
 
-      let res, updated
+      let res
       if (!profile) {
-        // Create
         res = await fetch(PROFILE_ROOT, {
           method: 'POST',
           credentials: 'include',
@@ -164,36 +444,40 @@ export default function ProfilePage() {
             accept: 'application/json',
             'Content-Type': 'application/json',
             RequestVerificationToken: xsrf,
-            'X-Requested-With': 'XMLHttpRequest',
+            'X-Requested-With': 'XMLHttpRequest'
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(payload)
         })
       } else {
-        // Update
-        res = await fetch(`${PROFILE_ROOT}/${profile.id}`, {
-          method: 'PUT',
-          credentials: 'include',
-          headers: {
-            accept: 'application/json',
-            'Content-Type': 'application/json',
-            RequestVerificationToken: xsrf,
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: JSON.stringify(payload),
-        })
+        res = await fetch(
+          `${PROFILE_ROOT}/${profile.id}`,
+          {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+              accept: 'application/json',
+              'Content-Type': 'application/json',
+              RequestVerificationToken: xsrf,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+          }
+        )
       }
       if (!res.ok) {
         throw new Error('Kaydetme başarısız: ' + res.status)
       }
-      updated = await res.json()
+      const updated = await res.json()
       setProfile(updated)
       setForm({
         about: updated.about || '',
         email: updated.email || '',
         phoneNumber: updated.phoneNumber || '',
         address: updated.address || '',
-        birthday: updated.birthday ? updated.birthday.split('T')[0] : '',
-        profilePictureUrl: updated.profilePictureUrl || '',
+        birthday: updated.birthday
+          ? updated.birthday.split('T')[0]
+          : '',
+        profilePictureUrl: updated.profilePictureUrl || ''
       })
       setIsEditing(false)
     } catch (e) {
@@ -201,100 +485,16 @@ export default function ProfilePage() {
     }
   }
 
-  // Fetch experiences when profile is loaded
-useEffect(() => {
-  if (profile && profile.id) {
-    fetchExperiences()
-  }
-  // eslint-disable-next-line
-}, [profile])
-
-async function fetchExperiences() {
-  setExpLoading(true)
-  setExpError('')
-  try {
-    const res = await fetch(
-      `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
-      { credentials: 'include' }
-    )
-    if (!res.ok) throw new Error('Deneyimler yüklenemedi')
-    const data = await res.json()
-    setExperiences(data.items || [])
-  } catch (e) {
-    setExpError(e.message)
-  } finally {
-    setExpLoading(false)
-  }
-}
-
-const getEmploymentTypeLabel = (type) => {
-  // type can be string or number
-  const found = EMPLOYMENT_TYPE_OPTIONS.find(
-    o => o.value === type || o.num === type
-  );
-  return found ? found.label : type;
-};
-
-function handleExpInput(e) {
-  const { name, value, type, checked } = e.target
-  setNewExp((exp) => ({
-    ...exp,
-    [name]: type === 'checkbox' ? checked : value,
-  }))
-}
-
-async function handleAddExperience(e) {
-  e.preventDefault()
-  setExpError('')
-  try {
-    await fetch(`${API_BASE}/api/abp/application-configuration`, {
-      credentials: 'include',
-    })
-    const xsrf = getCookie('XSRF-TOKEN')
-    if (!xsrf) throw new Error('XSRF token not found')
-
-    const payload = {
-      ...newExp,
-      profileId: profile.id,
-      startDate: newExp.startDate ? new Date(newExp.startDate) : null,
-      endDate: newExp.endDate ? new Date(newExp.endDate) : null,
-    }
-
-    const res = await fetch(EXPERIENCE_ROOT, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        accept: 'application/json',
-        'Content-Type': 'application/json',
-        RequestVerificationToken: xsrf,
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error('Deneyim eklenemedi')
-    setNewExp({
-      title: '',
-      companyName: '',
-      location: '',
-      startDate: '',
-      endDate: '',
-      isCurrentPosition: false,
-      description: '',
-      employmentType: 'FullTime',
-    })
-    fetchExperiences()
-  } catch (e) {
-    setExpError(e.message)
-  }
-}
-
   if (loading) return <div>Profil yükleniyor…</div>
 
   return (
     <Layout>
+      {/* PROFILE CARD */}
       <section className="profile-section">
         <div className="profile-card">
-          {error && <div className="error-message">{error}</div>}
+          {error && (
+            <div className="error-message">{error}</div>
+          )}
 
           <div className="profile-image-container">
             <ProfileImage src={form.profilePictureUrl} />
@@ -302,7 +502,9 @@ async function handleAddExperience(e) {
               <>
                 <button
                   className="change-photo-btn"
-                  onClick={() => fileInputRef.current.click()}
+                  onClick={() =>
+                    fileInputRef.current.click()
+                  }
                 >
                   <Camera size={20} strokeWidth={1.5} />
                 </button>
@@ -317,7 +519,6 @@ async function handleAddExperience(e) {
             )}
           </div>
 
-          {/* Always show the form for create or edit */}
           {(isEditing || !profile) ? (
             <div className="profile-edit-form">
               <textarea
@@ -364,12 +565,14 @@ async function handleAddExperience(e) {
                 />
               </div>
               <div className="profile-actions">
-                <button className="save-profile-btn" onClick={handleSave}>
+                <button
+                  className="save-profile-btn"
+                  onClick={handleSave}
+                >
                   <Save size={18} /> Kaydet
                 </button>
                 {profile && (
                   <button
-                    id="edit-profile-btn"
                     onClick={handleCancel}
                     style={{ marginLeft: 8 }}
                   >
@@ -380,16 +583,42 @@ async function handleAddExperience(e) {
             </div>
           ) : (
             <>
-              <h3 id="profile-name">{currentUser.userName}</h3>
+              <h3 id="profile-name">
+                {currentUser.userName}
+              </h3>
               <div className="profile-info-list">
-                <div><Info size={16} /><span>{profile.about}</span></div>
-                <div><Mail size={16} /><span>{profile.email}</span></div>
-                <div><Phone size={16} /><span>{profile.phoneNumber}</span></div>
-                <div><MapPin size={16} /><span>{profile.address}</span></div>
-                <div><Calendar size={16} /><span>{profile.birthday ? new Date(profile.birthday).toLocaleDateString() : ''}</span></div>
+                <div>
+                  <Info size={16} />
+                  <span>{profile.about}</span>
+                </div>
+                <div>
+                  <Mail size={16} />
+                  <span>{profile.email}</span>
+                </div>
+                <div>
+                  <Phone size={16} />
+                  <span>{profile.phoneNumber}</span>
+                </div>
+                <div>
+                  <MapPin size={16} />
+                  <span>{profile.address}</span>
+                </div>
+                <div>
+                  <Calendar size={16} />
+                  <span>
+                    {profile.birthday
+                      ? new Date(
+                          profile.birthday
+                        ).toLocaleDateString()
+                      : ''}
+                  </span>
+                </div>
               </div>
               <div className="profile-actions">
-                <button id="edit-profile-btn" onClick={handleEdit}>
+                <button
+                  id="edit-profile-btn"
+                  onClick={handleEdit}
+                >
                   <Edit size={18} /> Düzenle
                 </button>
               </div>
@@ -398,132 +627,368 @@ async function handleAddExperience(e) {
         </div>
       </section>
 
+      {/* EXPERIENCE SECTION */}
       <section className="experience-section">
         <h2>Deneyimlerim</h2>
-        {expError && <div className="error-message">{expError}</div>}
+        {expError && (
+          <div className="error-message">
+            {expError}
+          </div>
+        )}
         {expLoading ? (
           <div>Yükleniyor...</div>
         ) : (
           <div className="experiences-grid">
-            {experiences.map((exp) => (
-              <div className="experience-card" key={exp.id}>
+            {experiences.map(exp => (
+              <div
+                className="experience-card"
+                key={exp.id}
+              >
                 <div className="experience-card-header">
-                  <span className="experience-title">{exp.title}</span>
-                  <span className="experience-company">@ {exp.companyName}</span>
+                  <span className="experience-title">
+                    {exp.title}
+                  </span>
+                  <span className="experience-company">
+                    @ {exp.companyName}
+                  </span>
+                  <button
+                    className="edit-btn"
+                    onClick={() => openEditExp(exp)}
+                    style={{
+                      marginLeft: 'auto',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Edit size={16} />
+                  </button>
                 </div>
                 <div className="experience-dates">
-                  {new Date(exp.startDate).toLocaleDateString()} -{' '}
+                  {new Date(
+                    exp.startDate
+                  ).toLocaleDateString()}{' '}
+                  -{' '}
                   {exp.isCurrentPosition
                     ? 'Devam Ediyor'
                     : exp.endDate
-                    ? new Date(exp.endDate).toLocaleDateString()
+                    ? new Date(
+                        exp.endDate
+                      ).toLocaleDateString()
                     : ''}
                 </div>
-                <div className="experience-location">{exp.location}</div>
-                <div className="experience-type">
-                  {getEmploymentTypeLabel(exp.employmentType)}
+                <div className="experience-location">
+                  {exp.location}
                 </div>
-                <div className="experience-description">{exp.description}</div>
+                <div className="experience-type">
+                  {
+                    EMPLOYMENT_TYPE_OPTIONS.find(
+                      o =>
+                        o.value === exp.employmentType
+                    )?.label
+                  }
+                </div>
+                <div className="experience-description">
+                  {exp.description}
+                </div>
               </div>
             ))}
           </div>
         )}
-
-        {/* Add Experience Button */}
         {profile && (
           <div className="add-experience-btn-row">
             <button
               className="add-experience-btn"
-              onClick={() => setShowExpModal(true)}
+              onClick={openAddExp}
             >
               + Yeni Deneyim Ekle
             </button>
           </div>
         )}
+      </section>
 
-        {/* Add Experience Form */}
-        {showExpModal && (
-          <div className="modal-overlay" onClick={() => setShowExpModal(false)}>
-            <div className="modal-content" onClick={e => e.stopPropagation()}>
-              <button className="modal-close-btn" onClick={() => setShowExpModal(false)}>
-                <X size={22} />
-              </button>
-              <form className="experience-form" onSubmit={async (e) => {
-                await handleAddExperience(e);
-                setShowExpModal(false);
-              }}>
-                <h3>Yeni Deneyim Ekle</h3>
-                <input
-                  type="text"
-                  name="title"
-                  placeholder="Pozisyon"
-                  value={newExp.title}
-                  onChange={handleExpInput}
-                  required
-                />
-                <input
-                  type="text"
-                  name="companyName"
-                  placeholder="Şirket"
-                  value={newExp.companyName}
-                  onChange={handleExpInput}
-                  required
-                />
-                <input
-                  type="text"
-                  name="location"
-                  placeholder="Lokasyon"
-                  value={newExp.location}
-                  onChange={handleExpInput}
-                />
-                <select
-                  name="employmentType"
-                  value={newExp.employmentType}
-                  onChange={handleExpInput}
-                  required
-                >
-                  {EMPLOYMENT_TYPE_OPTIONS.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={newExp.startDate}
-                  onChange={handleExpInput}
-                  required
-                />
-                <input
-                  type="date"
-                  name="endDate"
-                  value={newExp.endDate}
-                  onChange={handleExpInput}
-                  disabled={newExp.isCurrentPosition}
-                />
-                <label>
-                  <input
-                    type="checkbox"
-                    name="isCurrentPosition"
-                    checked={newExp.isCurrentPosition}
-                    onChange={handleExpInput}
-                  />
-                  Halen bu pozisyonda çalışıyorum
-                </label>
-                <textarea
-                  name="description"
-                  placeholder="Açıklama"
-                  value={newExp.description}
-                  onChange={handleExpInput}
-                />
-                <button type="submit" className="save-profile-btn" style={{ marginTop: 8 }}>
-                  <Save size={18} /> Ekle
-                </button>
-              </form>
-            </div>
+      {/* EDUCATION SECTION */}
+      <section className="experience-section">
+        <h2>Eğitim Bilgilerim</h2>
+        {eduError && (
+          <div className="error-message">
+            {eduError}
+          </div>
+        )}
+        {eduLoading ? (
+          <div>Yükleniyor...</div>
+        ) : (
+          <div className="experiences-grid">
+            {educations.map(ed => (
+              <div
+                className="experience-card"
+                key={ed.id}
+              >
+                <div className="experience-card-header">
+                  <span className="experience-title">
+                    {ed.instutionName}
+                  </span>
+                  <span className="experience-company">
+                    {EDUCATION_DEGREE_OPTIONS.find(
+                      o => o.value === ed.degree
+                    )?.label}
+                  </span>
+                  <button
+                    className="edit-btn"
+                    onClick={() => openEditEdu(ed)}
+                    style={{
+                      marginLeft: 'auto',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Edit size={16} />
+                  </button>
+                </div>
+                <div className="experience-dates">
+                  {new Date(
+                    ed.startDate
+                  ).toLocaleDateString()}{' '}
+                  -{' '}
+                  {ed.endDate
+                    ? new Date(
+                        ed.endDate
+                      ).toLocaleDateString()
+                    : 'Devam Ediyor'}
+                </div>
+                <div className="experience-description">
+                  GPA: {ed.gpa?.toFixed(2) || '-'}<br />
+                  {ed.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {profile && (
+          <div className="add-experience-btn-row">
+            <button
+              className="add-experience-btn"
+              onClick={openAddEdu}
+            >
+              + Yeni Eğitim Ekle
+            </button>
           </div>
         )}
       </section>
 
+      {/* EXPERIENCE MODAL */}
+      {showExpModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowExpModal(false)}
+        >
+          <div
+            className="modal-content"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="modal-close-btn"
+              onClick={() =>
+                setShowExpModal(false)
+              }
+            >
+              <X size={22} />
+            </button>
+            <form
+              className="experience-form"
+              onSubmit={handleSaveExp}
+            >
+              <h3>
+                {editingExp
+                  ? 'Deneyimi Düzenle'
+                  : 'Yeni Deneyim Ekle'}
+              </h3>
+              <input
+                type="text"
+                name="title"
+                placeholder="Pozisyon"
+                value={newExp.title}
+                onChange={handleExpInput}
+                required
+              />
+              <input
+                type="text"
+                name="companyName"
+                placeholder="Şirket"
+                value={newExp.companyName}
+                onChange={handleExpInput}
+                required
+              />
+              <input
+                type="text"
+                name="location"
+                placeholder="Lokasyon"
+                value={newExp.location}
+                onChange={handleExpInput}
+              />
+              <select
+                name="employmentType"
+                value={newExp.employmentType}
+                onChange={handleExpInput}
+                required
+              >
+                {EMPLOYMENT_TYPE_OPTIONS.map(opt => (
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                  >
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="date"
+                name="startDate"
+                value={newExp.startDate}
+                onChange={handleExpInput}
+                required
+              />
+              <input
+                type="date"
+                name="endDate"
+                value={newExp.endDate}
+                onChange={handleExpInput}
+                disabled={
+                  newExp.isCurrentPosition
+                }
+              />
+              <label>
+                <input
+                  type="checkbox"
+                  name="isCurrentPosition"
+                  checked={
+                    newExp.isCurrentPosition
+                  }
+                  onChange={handleExpInput}
+                />
+                Halen bu pozisyonda çalışıyorum
+              </label>
+              <textarea
+                name="description"
+                placeholder="Açıklama"
+                value={newExp.description}
+                onChange={handleExpInput}
+              />
+              <button
+                type="submit"
+                className="save-profile-btn"
+                style={{ marginTop: 8 }}
+              >
+                <Save size={18} />{' '}
+                {editingExp ? 'Güncelle' : 'Ekle'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDUCATION MODAL */}
+      {showEduModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowEduModal(false)}
+        >
+          <div
+            className="modal-content"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="modal-close-btn"
+              onClick={() =>
+                setShowEduModal(false)
+              }
+            >
+              <X size={22} />
+            </button>
+            <form
+              className="experience-form"
+              onSubmit={handleSaveEdu}
+            >
+              <h3>
+                {editingEdu
+                  ? 'Eğitimi Düzenle'
+                  : 'Yeni Eğitim Ekle'}
+              </h3>
+              <input
+                type="text"
+                name="instutionName"
+                placeholder="Kurum Adı"
+                value={newEdu.instutionName}
+                onChange={handleEduInput}
+                required
+              />
+              <select
+                name="degree"
+                value={newEdu.degree}
+                onChange={handleEduInput}
+                required
+              >
+                {EDUCATION_DEGREE_OPTIONS.map(
+                  opt => (
+                    <option
+                      key={opt.value}
+                      value={opt.value}
+                    >
+                      {opt.label}
+                    </option>
+                  )
+                )}
+              </select>
+              <input
+                type="date"
+                name="startDate"
+                value={newEdu.startDate}
+                onChange={handleEduInput}
+                required
+              />
+              <input
+                type="date"
+                name="endDate"
+                value={newEdu.endDate}
+                onChange={handleEduInput}
+                disabled={newEdu.isCurrentStudy}
+              />
+              <label>
+                <input
+                  type="checkbox"
+                  name="isCurrentStudy"
+                  checked={newEdu.isCurrentStudy}
+                  onChange={handleEduInput}
+                />
+                Halen burada okuyorum
+              </label>
+              <input
+                type="number"
+                name="gpa"
+                step="0.01"
+                placeholder="GPA"
+                value={newEdu.gpa}
+                onChange={handleEduInput}
+              />
+              <textarea
+                name="description"
+                placeholder="Açıklama"
+                value={newEdu.description}
+                onChange={handleEduInput}
+              />
+              <button
+                type="submit"
+                className="save-profile-btn"
+                style={{ marginTop: 8 }}
+              >
+                <Save size={18} />{' '}
+                {editingEdu ? 'Güncelle' : 'Ekle'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }
