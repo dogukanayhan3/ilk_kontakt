@@ -43,14 +43,16 @@ namespace IlkKontakt.Backend.UserProfiles
 
             var query = queryable
                 .WhereIf(!string.IsNullOrWhiteSpace(input.Email),
-                         x => x.Email.Contains(input.Email))
+                    x => x.Email.Contains(input.Email))
                 .WhereIf(!string.IsNullOrWhiteSpace(input.PhoneNumber),
-                         x => x.PhoneNumber.Contains(input.PhoneNumber))
+                    x => x.PhoneNumber.Contains(input.PhoneNumber))
                 .WhereIf(!string.IsNullOrWhiteSpace(input.Address),
-                         x => x.Address.Contains(input.Address))
-                .OrderBy(input.Sorting.IsNullOrWhiteSpace()
-                         ? nameof(UserProfile.CreationTime) + " desc"
-                         : input.Sorting)
+                    x => x.Address.Contains(input.Address))
+                .WhereIf(input.UserId.HasValue,
+                    x => x.UserId == input.UserId.Value) // filter by UserId if provided
+                .OrderBy(string.IsNullOrWhiteSpace(input.Sorting)
+                    ? nameof(UserProfile.CreationTime) + " desc"
+                    : input.Sorting)
                 .Skip(input.SkipCount)
                 .Take(input.MaxResultCount);
 
@@ -62,6 +64,7 @@ namespace IlkKontakt.Backend.UserProfiles
                 ObjectMapper.Map<List<UserProfile>, List<UserProfileDto>>(profiles)
             );
         }
+
 
         public async Task<UserProfileDto> CreateAsync(
             CreateUpdateUserProfileDto input)
