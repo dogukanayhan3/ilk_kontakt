@@ -1,10 +1,9 @@
 /* General Styles */
 html, body {
-    font-family: 'Galano Classic Alt', sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: 'Arial', sans-serif;
 }
 
 .login-wrapper {
@@ -14,7 +13,7 @@ html, body {
     height: 100%;
     background: linear-gradient(135deg, #3245f1, #5fbcee);
     animation: gradient 6s infinite alternate;
-    overflow: hidden;
+    overflow-y: auto;      /* allow vertical scroll if card too tall */
 }
 
 @keyframes gradient {
@@ -30,9 +29,11 @@ html, body {
 .login-card {
     background: #ffffff;
     border-radius: 12px;
-    padding: 40px;
+    padding: 30px 20px;    /* reduced to accommodate scrollbar */
     width: 100%;
     max-width: 600px;
+    max-height: 90vh;      /* limit height to 90% of viewport */
+    overflow-y: auto;      /* scroll inside the card if needed */
     text-align: center;
     animation: fadeIn 1s ease-out;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
@@ -50,15 +51,9 @@ html, body {
     }
 }
 
-.login-mode .login-card {
-    transform: scale(1.02);
-    transform: translateY(0);
-    opacity: 1;
-}
-
+.login-mode .login-card,
 .signup-mode .login-card {
-    transform: scale(1.02);
-    transform: translateY(0);
+    transform: scale(1.02) translateY(0);
     opacity: 1;
 }
 
@@ -84,18 +79,21 @@ html, body {
     color: #3245f1;
 }
 
-.login-form input, .login-form select {
+.login-form input,
+.login-form select,
+.login-form textarea {
     font-size: 1em;
     padding: 12px;
     border: 1px solid #5fbcee;
     border-radius: 6px;
     width: 100%;
     margin-bottom: 15px;
+    resize: vertical;
 }
 
 /* Buttons */
 .login-button {
-    position: relative; /* For positioning the pseudo-element */
+    position: relative;
     font-size: 1.2em;
     padding: 14px;
     background-color: #5fbcee;
@@ -103,9 +101,9 @@ html, body {
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    overflow: hidden; /* Ensures the circle doesn't go outside the button */
+    overflow: hidden;
     z-index: 0;
-    transition: color 0.2s ease; /* Smooth text color transition */
+    transition: color 0.2s ease;
 }
 
 .login-button::before {
@@ -118,16 +116,16 @@ html, body {
     background-color: #3245f1;
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    z-index: -1; /* Keeps the circle behind the text */
-    transition: width 0.2s ease, height 0.2s ease; /* Smooth growth effect */
+    z-index: -1;
+    transition: width 0.2s ease, height 0.2s ease;
 }
 
 .login-button:hover {
-    color: white; /* Ensures the text remains visible on hover */
+    color: white;
 }
 
 .login-button:hover::before {
-    width: 300%; /* Expands the circle to cover the button */
+    width: 300%;
     height: 300%;
 }
 
@@ -182,5 +180,29 @@ html, body {
         padding: 20px;
         margin: 20px;
         width: calc(100% - 40px);
+    }
+}
+
+/* === New: Two-Column Signup Layout === */
+.signup-mode .login-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+}
+
+.signup-mode .login-form textarea,
+.signup-mode .login-form .login-button,
+.signup-mode .login-form .toggle-text {
+    grid-column: 1 / -1;
+}
+
+.signup-mode .login-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 600px) {
+    .signup-mode .login-form {
+        display: block;
     }
 }
