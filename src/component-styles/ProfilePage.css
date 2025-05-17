@@ -174,11 +174,11 @@
   background: #3245f1;
 }
 .save-profile-btn {
-  background: #4caf50;
+  background: #3245f1;
   color: white;
 }
 .save-profile-btn:hover {
-  background: #45a049;
+  background: #5fbcee;
 }
 
 /* Posts Section (if you need to re-use or tweak) */
@@ -302,6 +302,7 @@
 .experience-form textarea,
 .experience-form select {
   width: 100%;
+  max-width: 100%;
   padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
