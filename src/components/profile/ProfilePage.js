@@ -21,6 +21,9 @@ const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`
 const PROFILE_ROOT = `${API_BASE}/api/app/user-profile`
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`
 const EDUCATION_ROOT = `${API_BASE}/api/app/education`
+const SKILL_ROOT = `${API_BASE}/api/app/skill`
+const LANGUAGE_ROOT = `${API_BASE}/api/app/language`
+const PROJECT_ROOT = `${API_BASE}/api/app/project`
 
 const EMPLOYMENT_TYPE_OPTIONS = [
   { value: 'FullTime', label: 'Full Time' },
@@ -46,6 +49,17 @@ const EDUCATION_DEGREE_OPTIONS = [
   { value: 'DoctorOfMedicine', label: 'MD' },
   { value: 'DoctorOfEducation', label: 'EdD' }
 ]
+
+const LANGUAGE_PROFICIENCY_OPTIONS = [
+  { value: 'Elementary',          label: 'Elementary' },
+  { value: 'LimitedWorking',      label: 'Limited Working' },
+  { value: 'ProfessionalWorking', label: 'Professional Working' },
+  { value: 'Fluent',              label: 'Fluent' },
+  { value: 'Native',              label: 'Native' },
+]
+
+// Map numeric 1–5 to enum keys
+const SKILL_ENUM = ['One', 'Two', 'Three', 'Four', 'Five']
 
 // Helper to read XSRF cookie
 function getCookie(name) {
@@ -107,6 +121,46 @@ export default function ProfilePage() {
   const [editingEdu, setEditingEdu] = useState(false)
   const [currentEdu, setCurrentEdu] = useState(null)
 
+  // SKILLS
+  const [skills, setSkills] = useState([])
+  const [skillLoading, setSkillLoading] = useState(false)
+  const [skillError, setSkillError] = useState('')
+  const [newSkill, setNewSkill] = useState({
+    skillName: '',
+    proficiencyValue: 0
+  })  // newSkill holds the name + numeric proficiency (0–5)
+  const [showSkillModal, setShowSkillModal] = useState(false)
+  const [editingSkill, setEditingSkill] = useState(false)
+  const [currentSkill, setCurrentSkill] = useState(null)
+
+  // LANGUAGES state
+  const [languages, setLanguages] = useState([])
+  const [langLoading,  setLangLoading]  = useState(false)
+  const [langError,    setLangError]    = useState('')
+  const [newLang,      setNewLang]      = useState({
+    languageName: '',
+    languageProficiency:
+      LANGUAGE_PROFICIENCY_OPTIONS[0].value,
+  })
+  const [showLangModal,  setShowLangModal]  = useState(false)
+  const [editingLang,    setEditingLang]    = useState(false)
+  const [currentLang,    setCurrentLang]    = useState(null)
+
+  // PROJECTS state
+  const [projects,      setProjects]      = useState([])
+  const [projLoading,   setProjLoading]   = useState(false)
+  const [projError,     setProjError]     = useState('')
+  const [newProj,       setNewProj]       = useState({
+    projectName: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    projectUrl: ''
+  })
+  const [showProjModal,   setShowProjModal]   = useState(false)
+  const [editingProj,     setEditingProj]     = useState(false)
+  const [currentProj,     setCurrentProj]     = useState(null)
+
   // load profile
   useEffect(() => {
     if (!currentUser) {
@@ -158,9 +212,310 @@ export default function ProfilePage() {
     if (profile && profile.id) {
       fetchExperiences()
       fetchEducations()
+      fetchLanguages()
+      fetchProjects()
+      fetchSkills()
     }
     // eslint-disable-next-line
   }, [profile])
+
+  // --- SKILLS HANDLERS ---
+
+  async function fetchSkills() {
+    setSkillLoading(true)
+    setSkillError('')
+    try {
+      const res = await fetch(
+        `${SKILL_ROOT}?ProfileId=${profile.id}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error('Could not load skills')
+      const data = await res.json()
+      setSkills(data.items || [])
+    } catch (e) {
+      setSkillError(e.message)
+    } finally {
+      setSkillLoading(false)
+    }
+  }
+
+  function openAddSkill() {
+    setEditingSkill(false)
+    setCurrentSkill(null)
+    setNewSkill({ skillName: '', proficiencyValue: 0 })
+    setShowSkillModal(true)
+  }
+
+  function openEditSkill(skill) {
+    setEditingSkill(true)
+    setCurrentSkill(skill)
+    // derive numeric from enum key
+    const idx = SKILL_ENUM.indexOf(skill.skillProficiency) + 1
+    setNewSkill({ skillName: skill.skillName, proficiencyValue: idx })
+    setShowSkillModal(true)
+  }
+
+  function handleSkillNameChange(e) {
+    setNewSkill(sk => ({ ...sk, skillName: e.target.value }))
+  }
+
+  function handleSkillProficiency(n) {
+    setNewSkill(sk => ({ ...sk, proficiencyValue: n }))
+  }
+
+  async function handleSaveSkill(e) {
+    e.preventDefault()
+    setSkillError('')
+    try {
+      // fetch xsrf
+      await fetch(`${API_BASE}/api/abp/application-configuration`, {
+        credentials: 'include'
+      })
+      const xsrf = getCookie('XSRF-TOKEN')
+      if (!xsrf) throw new Error('XSRF token not found')
+      // build payload
+      const payload = {
+        profileId: profile.id,
+        skillName: newSkill.skillName,
+        skillProficiency: SKILL_ENUM[newSkill.proficiencyValue - 1]
+      }
+      const url = editingSkill
+        ? `${SKILL_ROOT}/${currentSkill.id}`
+        : SKILL_ROOT
+      const method = editingSkill ? 'PUT' : 'POST'
+
+      const res = await fetch(url, {
+        method,
+        credentials: 'include',
+        headers: {
+          accept: 'application/json',
+          'Content-Type': 'application/json',
+          RequestVerificationToken: xsrf,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) throw new Error('Failed to save skill')
+      setShowSkillModal(false)
+      fetchSkills()
+    } catch (e) {
+      setSkillError(e.message)
+    }
+  }
+
+  // --- LANGUAGES ---
+  async function fetchLanguages() {
+    setLangLoading(true)
+    setLangError('')
+    try {
+      const res = await fetch(
+        `${LANGUAGE_ROOT}?ProfileId=${profile.id}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error(
+        'Diller yüklenemedi'
+      )
+      const data = await res.json()
+      setLanguages(data.items || [])
+    } catch (e) {
+      setLangError(e.message)
+    } finally {
+      setLangLoading(false)
+    }
+  }
+  function openAddLang() {
+    setEditingLang(false)
+    setNewLang({
+      languageName: '',
+      languageProficiency:
+        LANGUAGE_PROFICIENCY_OPTIONS[0].value
+    })
+    setShowLangModal(true)
+  }
+  function openEditLang(lang) {
+    setEditingLang(true)
+    setCurrentLang(lang)
+    setNewLang({
+      languageName: lang.languageName,
+      languageProficiency:
+        lang.languageProficiency
+    })
+    setShowLangModal(true)
+  }
+  function handleLangInput(e) {
+    const { name, value } = e.target
+    setNewLang(l => ({ ...l, [name]: value }))
+  }
+  async function handleSaveLang(e) {
+    e.preventDefault()
+    setLangError('')
+    try {
+      await fetch(
+        `${API_BASE}/api/abp/application-configuration`,
+        { credentials: 'include' }
+      )
+      const xsrf = getCookie('XSRF-TOKEN')
+      if (!xsrf) throw new Error(
+        'XSRF token not found'
+      )
+      const payload = {
+        ...newLang,
+        profileId: profile.id
+      }
+      let res
+      if (editingLang && currentLang) {
+        res = await fetch(
+          `${LANGUAGE_ROOT}/${currentLang.id}`,
+          {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+              accept: 'application/json',
+              'Content-Type':
+                'application/json',
+              RequestVerificationToken: xsrf,
+              'X-Requested-With':
+                'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+          }
+        )
+      } else {
+        res = await fetch(LANGUAGE_ROOT, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type':
+              'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With':
+              'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
+      }
+      if (!res.ok) throw new Error(
+        'Dil kaydı başarısız'
+      )
+      setShowLangModal(false)
+      fetchLanguages()
+    } catch (e) {
+      setLangError(e.message)
+    }
+  }
+
+  // --- PROJECTS ---
+  async function fetchProjects() {
+    setProjLoading(true)
+    setProjError('')
+    try {
+      const res = await fetch(
+        `${PROJECT_ROOT}?ProfileId=${profile.id}`,
+        { credentials: 'include' }
+      )
+      if (!res.ok) throw new Error(
+        'Projeler yüklenemedi'
+      )
+      const data = await res.json()
+      setProjects(data.items || [])
+    } catch (e) {
+      setProjError(e.message)
+    } finally {
+      setProjLoading(false)
+    }
+  }
+  function openAddProj() {
+    setEditingProj(false)
+    setNewProj({
+      projectName: '',
+      description: '',
+      startDate: '',
+      endDate: '',
+      projectUrl: ''
+    })
+    setShowProjModal(true)
+  }
+  function openEditProj(p) {
+    setEditingProj(true)
+    setCurrentProj(p)
+    setNewProj({
+      projectName: p.projectName,
+      description: p.description,
+      startDate: p.startDate.split('T')[0],
+      endDate: p.endDate
+        ? p.endDate.split('T')[0]
+        : '',
+      projectUrl: p.projectUrl || ''
+    })
+    setShowProjModal(true)
+  }
+  function handleProjInput(e) {
+    const { name, value } = e.target
+    setNewProj(p => ({ ...p, [name]: value }))
+  }
+  async function handleSaveProj(e) {
+    e.preventDefault()
+    setProjError('')
+    try {
+      await fetch(
+        `${API_BASE}/api/abp/application-configuration`,
+        { credentials: 'include' }
+      )
+      const xsrf = getCookie('XSRF-TOKEN')
+      if (!xsrf) throw new Error(
+        'XSRF token not found'
+      )
+      const payload = {
+        ...newProj,
+        profileId: profile.id,
+        startDate: new Date(newProj.startDate),
+        endDate: newProj.endDate
+          ? new Date(newProj.endDate)
+          : null
+      }
+      let res
+      if (editingProj && currentProj) {
+        res = await fetch(
+          `${PROJECT_ROOT}/${currentProj.id}`,
+          {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+              accept: 'application/json',
+              'Content-Type':
+                'application/json',
+              RequestVerificationToken: xsrf,
+              'X-Requested-With':
+                'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+          }
+        )
+      } else {
+        res = await fetch(PROJECT_ROOT, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type':
+              'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With':
+              'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
+      }
+      if (!res.ok) throw new Error(
+        'Proje kaydı başarısız'
+      )
+      setShowProjModal(false)
+      fetchProjects()
+    } catch (e) {
+      setProjError(e.message)
+    }
+  }
 
   // --- EXPERIENCES HANDLERS ---
   async function fetchExperiences() {
@@ -777,6 +1132,152 @@ export default function ProfilePage() {
         )}
       </section>
 
+      {/* SKILL SECTION */}
+      <section className="skill-section">
+        <h2>Yeteneklerim</h2>
+        {skillError && <div className="error-message">{skillError}</div>}
+        {skillLoading
+          ? <div>Yükleniyor...</div>
+          : <div className="skills-grid">
+              {skills.map((sk) => {
+                const filled = SKILL_ENUM.indexOf(sk.skillProficiency) + 1;
+                return (
+                  <div key={sk.id} className="skill-card">
+                    <div className="skill-card-header">
+                      <span className="skill-name">{sk.skillName}</span>
+                      <button className="edit-btn"
+                              onClick={() => openEditSkill(sk)}>
+                        <Edit size={16}/>
+                      </button>
+                    </div>
+                    {/* proficiency dots under the name */}
+                    <div className="skill-dots">
+                      {[1,2,3,4,5].map(n => (
+                        <span key={n}
+                              className={`dot ${n <= filled ? 'filled' : ''}`}/>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+        }
+        {profile && (
+          <div className="add-skill-btn-row">
+            <button className="add-skill-btn" onClick={openAddSkill}>
+              + Yeni Yetenek Ekle
+            </button>
+          </div>
+        )}
+      </section>
+
+
+      {/* LANGUAGE SECTION */}
+      <section className="language-section">
+        <h2>Dillerim</h2>
+        {langError && <div className="error-message">{langError}</div>}
+        {langLoading
+          ? <div>Yükleniyor...</div>
+          : <div className="languages-grid">
+              {languages.map((l) => (
+                <div key={l.id} className="language-card">
+                  <div className="language-card-header">
+                    <span className="language-name">{l.languageName}</span>
+                    <button className="edit-btn"
+                            onClick={() => openEditLang(l)}>
+                      <Edit size={16}/>
+                    </button>
+                  </div>
+                  {/* textual proficiency under name */}
+                  <div className="language-proficiency">
+                    {
+                      LANGUAGE_PROFICIENCY_OPTIONS.find(
+                        o => o.value === l.languageProficiency
+                      )?.label
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+        }
+        {profile && (
+          <div className="add-language-btn-row">
+            <button className="add-language-btn" onClick={openAddLang}>
+              + Yeni Dil Ekle
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* PROJECT SECTION */}
+      <section className="project-section">
+        <h2>Projelerim</h2>
+        {projError && (
+          <div className="error-message">
+            {projError}
+          </div>
+        )}
+        {projLoading ? (
+          <div>Yükleniyor...</div>
+        ) : (
+          <div className="projects-grid">
+            {projects.map(p => (
+              <div
+                key={p.id}
+                className="project-card"
+              >
+                <div className="project-card-header">
+                  <span className="project-name">
+                    {p.projectName}
+                  </span>
+                  <button
+                    className="edit-btn"
+                    onClick={() => openEditProj(p)}
+                  >
+                    <Edit size={16} />
+                  </button>
+                </div>
+                <div className="project-dates">
+                  {new Date(
+                    p.startDate
+                  ).toLocaleDateString()}{' '}
+                  -{' '}
+                  {p.endDate
+                    ? new Date(
+                        p.endDate
+                      ).toLocaleDateString()
+                    : 'Devam Ediyor'}
+                </div>
+                <div className="project-description">
+                  {p.description}
+                </div>
+                {p.projectUrl && (
+                  <div className="project-link">
+                    <a
+                      href={p.projectUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {p.projectUrl}
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {profile && (
+          <div className="add-project-btn-row">
+            <button
+              className="add-project-btn"
+              onClick={openAddProj}
+            >
+              + Yeni Proje Ekle
+            </button>
+          </div>
+        )}
+      </section>
+
       {/* EXPERIENCE MODAL */}
       {showExpModal && (
         <div
@@ -985,6 +1486,159 @@ export default function ProfilePage() {
                 <Save size={18} />{' '}
                 {editingEdu ? 'Güncelle' : 'Ekle'}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SKILL MODAL */}
+      {showSkillModal && (
+        <div className="modal-overlay" onClick={() => setShowSkillModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button
+              className="modal-close-btn"
+              onClick={() => setShowSkillModal(false)}
+            >
+              <X size={22} />
+            </button>
+            <form className="experience-form" onSubmit={handleSaveSkill}>
+              <h3>{editingSkill ? 'Yetenek Düzenle' : 'Yeni Yetenek Ekle'}</h3>
+              <input
+                type="text"
+                name="skillName"
+                placeholder="Yetenek Adı"
+                value={newSkill.skillName}
+                onChange={handleSkillNameChange}
+                required
+              />
+              <div className="proficiency-dots">
+                {[1,2,3,4,5].map(n => (
+                  <span
+                    key={n}
+                    className={`dot ${n <= newSkill.proficiencyValue ? 'filled' : ''}`}
+                    onClick={() => handleSkillProficiency(n)}
+                  />
+                ))}
+              </div>
+              <button type="submit" className="save-profile-btn">
+                <Save size={18} /> {editingSkill ? 'Güncelle' : 'Ekle'}
+              </button>
+              {skillError && <div className="error-message">{skillError}</div>}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* LANGUAGE MODAL */}
+      {showLangModal && (
+        <div className="modal-overlay" onClick={() => setShowLangModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="modal-close-btn"
+                    onClick={() => setShowLangModal(false)}>
+              <X size={22}/>
+            </button>
+            <form className="experience-form" onSubmit={handleSaveLang}>
+              <h3>{editingLang ? 'Dili Düzenle' : 'Yeni Dil Ekle'}</h3>
+              <input type="text"
+                    name="languageName"
+                    placeholder="Dil Adı"
+                    value={newLang.languageName}
+                    onChange={handleLangInput}
+                    required />
+              <select name="languageProficiency"
+                      value={newLang.languageProficiency}
+                      onChange={handleLangInput}
+                      required>
+                {LANGUAGE_PROFICIENCY_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <button type="submit" className="save-profile-btn">
+                <Save size={18}/> {editingLang ? 'Güncelle' : 'Ekle'}
+              </button>
+              {langError && <div className="error-message">{langError}</div>}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* PROJECT MODAL */}
+      {showProjModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowProjModal(false)}
+        >
+          <div
+            className="modal-content"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="modal-close-btn"
+              onClick={() =>
+                setShowProjModal(false)
+              }
+            >
+              <X size={22} />
+            </button>
+            <form
+              className="experience-form"
+              onSubmit={handleSaveProj}
+            >
+              <h3>
+                {editingProj
+                  ? 'Projeyi Düzenle'
+                  : 'Yeni Proje Ekle'}
+              </h3>
+              <input
+                type="text"
+                name="projectName"
+                placeholder="Proje Adı"
+                value={newProj.projectName}
+                onChange={handleProjInput}
+                required
+              />
+              <textarea
+                name="description"
+                placeholder="Açıklama"
+                value={newProj.description}
+                onChange={handleProjInput}
+              />
+              <input
+                type="date"
+                name="startDate"
+                value={newProj.startDate}
+                onChange={handleProjInput}
+                required
+              />
+              <input
+                type="date"
+                name="endDate"
+                value={newProj.endDate}
+                onChange={handleProjInput}
+              />
+              <input
+                type="url"
+                name="projectUrl"
+                placeholder="Proje URL"
+                value={newProj.projectUrl}
+                onChange={handleProjInput}
+              />
+              <button
+                type="submit"
+                className="save-profile-btn"
+              >
+                <Save size={18} />{' '}
+                {editingProj
+                  ? 'Güncelle'
+                  : 'Ekle'}
+              </button>
+              {projError && (
+                <div className="error-message">
+                  {projError}
+                </div>
+              )}
             </form>
           </div>
         </div>
