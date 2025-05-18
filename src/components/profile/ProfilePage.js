@@ -50,6 +50,17 @@ const EDUCATION_DEGREE_OPTIONS = [
   { value: 'DoctorOfEducation', label: 'EdD' }
 ]
 
+function getProficiencyLabel(level) {
+  switch(level) {
+    case 1: return "Başlangıç (1/5)";
+    case 2: return "Temel (2/5)";
+    case 3: return "Orta (3/5)";
+    case 4: return "İleri (4/5)";
+    case 5: return "Uzman (5/5)";
+    default: return "Seviye seçiniz";
+  }
+}
+
 const LANGUAGE_PROFICIENCY_OPTIONS = [
   { value: 'Elementary',          label: 'Elementary' },
   { value: 'LimitedWorking',      label: 'Limited Working' },
@@ -247,13 +258,17 @@ export default function ProfilePage() {
   }
 
   function openEditSkill(skill) {
-    setEditingSkill(true)
-    setCurrentSkill(skill)
-    // derive numeric from enum key
-    const idx = SKILL_ENUM.indexOf(skill.skillProficiency) + 1
-    setNewSkill({ skillName: skill.skillName, proficiencyValue: idx })
-    setShowSkillModal(true)
+    setEditingSkill(true);
+    setCurrentSkill(skill);
+    // derive numeric from enum key - add 1 because array is 0-indexed but our UI is 1-5
+    const idx = SKILL_ENUM.indexOf(skill.skillProficiency) + 1;
+    setNewSkill({ 
+      skillName: skill.skillName, 
+      proficiencyValue: idx 
+    });
+    setShowSkillModal(true);
   }
+
 
   function handleSkillNameChange(e) {
     setNewSkill(sk => ({ ...sk, skillName: e.target.value }))
@@ -264,25 +279,36 @@ export default function ProfilePage() {
   }
 
   async function handleSaveSkill(e) {
-    e.preventDefault()
-    setSkillError('')
+    e.preventDefault();
+    setSkillError('');
     try {
       // fetch xsrf
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
         credentials: 'include'
-      })
-      const xsrf = getCookie('XSRF-TOKEN')
-      if (!xsrf) throw new Error('XSRF token not found')
+      });
+      const xsrf = getCookie('XSRF-TOKEN');
+      if (!xsrf) throw new Error('XSRF token not found');
+      
+      // Make sure we have a valid proficiency value
+      if (newSkill.proficiencyValue < 1 || newSkill.proficiencyValue > 5) {
+        throw new Error('Please select a proficiency level');
+      }
+      
       // build payload
       const payload = {
         profileId: profile.id,
         skillName: newSkill.skillName,
         skillProficiency: SKILL_ENUM[newSkill.proficiencyValue - 1]
+      };
+      
+      let url, method;
+      if (editingSkill && currentSkill) {
+        url = `${SKILL_ROOT}/${currentSkill.id}`;
+        method = 'PUT';
+      } else {
+        url = SKILL_ROOT;
+        method = 'POST';
       }
-      const url = editingSkill
-        ? `${SKILL_ROOT}/${currentSkill.id}`
-        : SKILL_ROOT
-      const method = editingSkill ? 'PUT' : 'POST'
 
       const res = await fetch(url, {
         method,
@@ -294,14 +320,20 @@ export default function ProfilePage() {
           'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify(payload)
-      })
-      if (!res.ok) throw new Error('Failed to save skill')
-      setShowSkillModal(false)
-      fetchSkills()
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error?.message || 'Failed to save skill');
+      }
+      
+      setShowSkillModal(false);
+      await fetchSkills(); // Make sure to await this to refresh the skills list
     } catch (e) {
-      setSkillError(e.message)
+      setSkillError(e.message);
     }
   }
+
 
   // --- LANGUAGES ---
   async function fetchLanguages() {
@@ -984,7 +1016,7 @@ export default function ProfilePage() {
 
       {/* EXPERIENCE SECTION */}
       <section className="experience-section">
-        <h2>Deneyimlerim</h2>
+        <h2>Deneyimler</h2>
         {expError && (
           <div className="error-message">
             {expError}
@@ -1064,7 +1096,7 @@ export default function ProfilePage() {
 
       {/* EDUCATION SECTION */}
       <section className="experience-section">
-        <h2>Eğitim Bilgilerim</h2>
+        <h2>Eğitim Bilgileri</h2>
         {eduError && (
           <div className="error-message">
             {eduError}
@@ -1134,28 +1166,28 @@ export default function ProfilePage() {
 
       {/* SKILL SECTION */}
       <section className="skill-section">
-        <h2>Yeteneklerim</h2>
+        <h2>Yetenekler</h2>
         {skillError && <div className="error-message">{skillError}</div>}
         {skillLoading
           ? <div>Yükleniyor...</div>
           : <div className="skills-grid">
               {skills.map((sk) => {
-                const filled = SKILL_ENUM.indexOf(sk.skillProficiency) + 1;
+                // Always convert to string before toLowerCase
+                const proficiency = String(sk.skillProficiency || '').toLowerCase();
+                const enumIndex = SKILL_ENUM.findIndex(e => e.toLowerCase() === proficiency);
+                let level = enumIndex + 1;
+                if (level < 1 || level > 5) level = 1; // fallback to 1 if not valid
+
                 return (
                   <div key={sk.id} className="skill-card">
                     <div className="skill-card-header">
                       <span className="skill-name">{sk.skillName}</span>
-                      <button className="edit-btn"
-                              onClick={() => openEditSkill(sk)}>
+                      <button className="edit-btn" onClick={() => openEditSkill(sk)}>
                         <Edit size={16}/>
                       </button>
                     </div>
-                    {/* proficiency dots under the name */}
-                    <div className="skill-dots">
-                      {[1,2,3,4,5].map(n => (
-                        <span key={n}
-                              className={`dot ${n <= filled ? 'filled' : ''}`}/>
-                      ))}
+                    <div className="skill-proficiency-text">
+                      {getProficiencyLabel(level)}
                     </div>
                   </div>
                 );
@@ -1171,33 +1203,34 @@ export default function ProfilePage() {
         )}
       </section>
 
-
       {/* LANGUAGE SECTION */}
       <section className="language-section">
-        <h2>Dillerim</h2>
+        <h2>Diller</h2>
         {langError && <div className="error-message">{langError}</div>}
         {langLoading
           ? <div>Yükleniyor...</div>
           : <div className="languages-grid">
-              {languages.map((l) => (
-                <div key={l.id} className="language-card">
-                  <div className="language-card-header">
-                    <span className="language-name">{l.languageName}</span>
-                    <button className="edit-btn"
-                            onClick={() => openEditLang(l)}>
-                      <Edit size={16}/>
-                    </button>
+              {languages.map((l) => {
+                // Find the label for this proficiency level
+                const proficiencyLabel = LANGUAGE_PROFICIENCY_OPTIONS.find(
+                  opt => opt.value === l.languageProficiency
+                )?.label || l.languageProficiency;
+                
+                return (
+                  <div key={l.id} className="language-card">
+                    <div className="language-card-header">
+                      <span className="language-name">{l.languageName}</span>
+                      <button className="edit-btn"
+                              onClick={() => openEditLang(l)}>
+                        <Edit size={16}/>
+                      </button>
+                    </div>
+                    <div className="language-proficiency-text">
+                      Seviye: {proficiencyLabel + 1}/5  
+                    </div>
                   </div>
-                  {/* textual proficiency under name */}
-                  <div className="language-proficiency">
-                    {
-                      LANGUAGE_PROFICIENCY_OPTIONS.find(
-                        o => o.value === l.languageProficiency
-                      )?.label
-                    }
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
         }
         {profile && (
@@ -1211,7 +1244,7 @@ export default function ProfilePage() {
 
       {/* PROJECT SECTION */}
       <section className="project-section">
-        <h2>Projelerim</h2>
+        <h2>Projeler</h2>
         {projError && (
           <div className="error-message">
             {projError}
@@ -1511,15 +1544,26 @@ export default function ProfilePage() {
                 onChange={handleSkillNameChange}
                 required
               />
-              <div className="proficiency-dots">
-                {[1,2,3,4,5].map(n => (
-                  <span
-                    key={n}
-                    className={`dot ${n <= newSkill.proficiencyValue ? 'filled' : ''}`}
-                    onClick={() => handleSkillProficiency(n)}
-                  />
-                ))}
+              
+              <div className="skill-proficiency-selector">
+                <label>Yetenek Seviyesi:</label>
+                <div className="proficiency-dots">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={`dot-button ${n <= newSkill.proficiencyValue ? 'filled' : ''}`}
+                      onClick={() => handleSkillProficiency(n)}
+                    >
+                      <span className="dot"></span>
+                    </button>
+                  ))}
+                </div>
+                <div className="proficiency-label">
+                  {getProficiencyLabel(newSkill.proficiencyValue)}
+                </div>
               </div>
+              
               <button type="submit" className="save-profile-btn">
                 <Save size={18} /> {editingSkill ? 'Güncelle' : 'Ekle'}
               </button>
