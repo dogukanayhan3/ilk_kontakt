@@ -40,5 +40,14 @@ public class BackendApplicationAutoMapperProfile : Profile
 
         CreateMap<Education, EducationDto>();
         CreateMap<CreateUpdateEducationDto, Education>();
+
+        CreateMap<Project, ProjectDto>();
+        CreateMap<CreateUpdateProjectDto, Project>();
+        
+        CreateMap<Skill, SkillDto>();
+        CreateMap<CreateUpdateSkillDto, Skill>();
+        
+        CreateMap<Language, LanguageDto>();
+        CreateMap<CreateUpdateLanguageDto, Language>();
     }
 }
