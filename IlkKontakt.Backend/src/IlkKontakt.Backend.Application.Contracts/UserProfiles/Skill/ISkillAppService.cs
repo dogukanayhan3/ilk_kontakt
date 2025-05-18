@@ -2,7 +2,7 @@ using System;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
-namespace IlkKontakt.Backend.UserProfiles.Skill;
+namespace IlkKontakt.Backend.UserProfiles;
 
 public interface ISkillAppService :
     ICrudAppService<

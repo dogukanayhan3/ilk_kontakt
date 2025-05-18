@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace IlkKontakt.Backend.UserProfiles.Skill;
+namespace IlkKontakt.Backend.UserProfiles;
 
 public class CreateUpdateSkillDto
 {

@@ -1,7 +1,7 @@
 using System;
 using Volo.Abp.Application.Dtos;
 
-namespace IlkKontakt.Backend.UserProfiles.Project;
+namespace IlkKontakt.Backend.UserProfiles;
 
 public class ProjectDto : AuditedEntityDto<Guid>
 {
