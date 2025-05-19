@@ -40,7 +40,11 @@ public class BackendDbContext :
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
     public DbSet<Education> Educations { get; set; }
+    public DbSet<Language> Languages { get; set; }
+    public DbSet<Project> Project { get; set; } 
+    public DbSet<Skill> Skill { get; set; }
 
+    
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext
@@ -231,6 +235,58 @@ public class BackendDbContext :
                 .HasForeignKey(x => x.ProfileId)
                 .IsRequired();
         });
+
+        builder.Entity<Project>(b =>
+            {   
+                b.ToTable("Projects");
+                b.ConfigureByConvention();
+                
+                b.Property(x => x.ProjectName)
+                    .IsRequired()
+                    .HasMaxLength(128);
+                
+                b.Property(x => x.Description)
+                    .IsRequired()
+                    .HasMaxLength(512);
+                
+                b.HasOne<UserProfile>()
+                    .WithMany()
+                    .HasForeignKey(x => x.ProfileId)
+                    .IsRequired();            
+            }
+        );
+        
+        builder.Entity<Language>(b =>
+            {   
+                b.ToTable("Languages");
+                b.ConfigureByConvention();
+                
+                b.Property(x => x.LanguageName)
+                    .IsRequired()
+                    .HasMaxLength(64);
+                
+                b.HasOne<UserProfile>()
+                    .WithMany()
+                    .HasForeignKey(x => x.ProfileId)
+                    .IsRequired();            
+            }
+        );
+        
+        builder.Entity<Skill>(b =>
+            {   
+                b.ToTable("Skills");
+                b.ConfigureByConvention();
+                
+                b.Property(x => x.SkillName)
+                    .IsRequired()
+                    .HasMaxLength(64);
+                
+                b.HasOne<UserProfile>()
+                    .WithMany()
+                    .HasForeignKey(x => x.ProfileId)
+                    .IsRequired();            
+            }
+        );
 
     }
 }

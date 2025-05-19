@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp;
 using System.Linq.Dynamic.Core;
-using IlkKontakt.Backend.Permissions;
 
 namespace IlkKontakt.Backend.UserProfiles
 {

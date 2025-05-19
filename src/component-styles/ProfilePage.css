@@ -174,11 +174,11 @@
   background: #3245f1;
 }
 .save-profile-btn {
-  background: #4caf50;
+  background: #3245f1;
   color: white;
 }
 .save-profile-btn:hover {
-  background: #45a049;
+  background: #5fbcee;
 }
 
 /* Posts Section (if you need to re-use or tweak) */
@@ -199,92 +199,37 @@
 }
 
 /* EXPERIENCE SECTION */
-.experience-section {
-  width: 100%;
-  max-width: 800px;
-  margin: 40px auto 0 auto;
-  padding: 0 10px;
-}
-.experience-section h3 {
-  color: #3245f1;
-  text-align: center;
-  margin-bottom: 24px;
-  font-size: 1.5em;
-  letter-spacing: 0.5px;
-}
-.experiences-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  margin-top: 24px;
-}
-.experience-card {
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(50, 69, 241, 0.07);
-  padding: 22px 20px 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-left: 5px solid #5fbcee;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.experience-card:hover {
-  box-shadow: 0 6px 18px rgba(50, 69, 241, 0.13);
-  transform: translateY(-3px) scale(1.02);
-}
-.experience-card-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
 .experience-title {
-  font-size: 1.15em;
-  font-weight: 600;
+  font-size: 1.2em;
+  font-weight: bold;
   color: #3245f1;
 }
 .experience-company {
   font-size: 1em;
   color: #5fbcee;
 }
+
+/* Layout for details */
+.experience-location {
+  font-size: 0.95em;
+  color: #666;
+  font-weight: 500;
+  margin-top: 4px;
+}
 .experience-dates {
-  font-size: 0.97em;
+  font-size: 0.95em;
   color: #888;
 }
-.experience-location {
-  font-size: 0.97em;
-  color: #666;
-}
 .experience-type {
-  font-size: 0.97em;
+  font-size: 0.95em;
   color: #3245f1;
   font-weight: 500;
 }
 .experience-description {
   font-size: 1em;
   color: #444;
-  margin-top: 6px;
   line-height: 1.5;
-}
-
-/* Add/Edit Experience Button */
-.add-experience-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #3245f1;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  margin: 0 auto 24px auto;
-  transition: background 0.2s;
-}
-.add-experience-btn:hover {
-  background: #5fbcee;
+  margin-top: 8px;
 }
 
 /* Experience Form (if you have one) */
@@ -302,6 +247,7 @@
 .experience-form textarea,
 .experience-form select {
   width: 100%;
+  max-width: 100%;
   padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
@@ -377,4 +323,282 @@
   .experiences-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* SKILL, LANGUAGE, PROJECT SECTION CONTAINERS */
+.skill-section,
+.language-section,
+.project-section,
+.experience-section {
+  width: 100%;
+  max-width: 800px;
+  margin: 40px auto 0;
+  padding: 0 10px;
+}
+.skill-section h2,
+.language-section h2,
+.project-section h2,
+.experience-section h2 {
+  color: #3245f1;
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 1.5em;
+  letter-spacing: 0.5px;
+}
+
+/* GRID LAYOUTS */
+.skills-grid,
+.languages-grid,
+.projects-grid,
+.experiences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px,1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* CARD BASE */
+.skill-card,
+.language-card,
+.project-card,
+.experience-card {
+  background: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(50,69,241,0.07);
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 5px solid #5fbcee;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.skill-card:hover,
+.language-card:hover,
+.project-card:hover,
+.experience-card:hover {
+  box-shadow: 0 6px 18px rgba(50,69,241,0.13);
+  transform: translateY(-3px) scale(1.02);
+}
+
+/* CARD HEADERS */
+.skill-card-header,
+.language-card-header,
+.project-card-header,
+.experience-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.skill-name,
+.language-name,
+.project-name,
+.experience-name {
+  font-size: 1.15em;
+  font-weight: 600;
+  color: #3245f1;
+}
+.edit-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Skill proficiency display in cards */
+.skill-proficiency-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.skill-level-label {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 2px;
+}
+
+.skill-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.skill-dots .dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: background 0.2s;
+}
+
+.skill-level-text {
+  font-size: 0.95em;
+  color: #666;
+  margin-top: 4px 0 8px 0;
+}
+
+.skill-dots .dot.filled {
+  background: #3245f1;
+}
+
+.skill-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  justify-content: flex-start;
+}
+
+/* Skill proficiency selector in modal */
+.skill-proficiency-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.skill-proficiency-selector label {
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 4px;
+}
+
+.proficiency-dots {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0;
+  justify-content: center;
+}
+
+.dot-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot-button .dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.dot-button:hover .dot {
+  transform: scale(1.1);
+  background: #5fbcee;
+}
+
+.dot-button.filled .dot {
+  background: #3245f1;
+}
+
+.proficiency-label {
+  font-size: 0.95em;
+  color: #3245f1;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 8px;
+}
+
+
+/* LANGUAGE PROFICIENCY LABEL */
+.language-proficiency {
+  font-size: 0.97em;
+  color: #666;
+  font-weight: 500;
+}
+.language-proficiency-text {
+  font-size: 0.95em;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* ADD BUTTON ROW */
+.add-skill-btn-row,
+.add-language-btn-row,
+.add-project-btn-row,
+.add-experience-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 32px 0 0;
+}
+.add-skill-btn,
+.add-language-btn,
+.add-project-btn,
+.add-experience-btn {
+  background: #3245f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-skill-btn:hover,
+.add-language-btn:hover,
+.add-project-btn:hover,
+.add-experience-btn:hover {
+  background: #5fbcee;
+}
+
+/* PROJECT DETAILS */
+.project-dates {
+  font-size: 0.97em;
+  color: #888;
+}
+.project-description {
+  font-size: 1em;
+  color: #444;
+  line-height: 1.5;
+}
+.project-link a {
+  color: #3245f1;
+  text-decoration: none;
+}
+.project-link a:hover {
+  text-decoration: underline;
+}
+
+/* ADD BUTTON ROWS */
+.add-skill-btn-row,
+.add-language-btn-row,
+.add-project-btn-row,
+.add-experience-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 32px 0 0 0;
+}
+.add-skill-btn,
+.add-language-btn,
+.add-project-btn,
+.add-experience-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #3245f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.add-skill-btn:hover,
+.add-language-btn:hover,
+.add-project-btn:hover,
+.add-experience-btn:hover {
+  background: #5fbcee;
 }
