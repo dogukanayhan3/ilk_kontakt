@@ -327,13 +327,12 @@ export default function ProfilePage() {
         throw new Error(errorData?.error?.message || 'Failed to save skill');
       }
       
+      await fetchSkills(); // Await before closing modal
       setShowSkillModal(false);
-      await fetchSkills(); // Make sure to await this to refresh the skills list
     } catch (e) {
       setSkillError(e.message);
     }
   }
-
 
   // --- LANGUAGES ---
   async function fetchLanguages() {
@@ -1172,11 +1171,9 @@ export default function ProfilePage() {
           ? <div>Yükleniyor...</div>
           : <div className="skills-grid">
               {skills.map((sk) => {
-                // Always convert to string before toLowerCase
-                const proficiency = String(sk.skillProficiency || '').toLowerCase();
-                const enumIndex = SKILL_ENUM.findIndex(e => e.toLowerCase() === proficiency);
-                let level = enumIndex + 1;
-                if (level < 1 || level > 5) level = 1; // fallback to 1 if not valid
+                // Use the number directly
+                let level = Number(sk.skillProficiency);
+                if (isNaN(level) || level < 1 || level > 5) level = 1; // fallback
 
                 return (
                   <div key={sk.id} className="skill-card">
