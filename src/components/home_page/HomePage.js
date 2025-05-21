@@ -160,13 +160,13 @@ function HomePage() {
         <div className="feed-left">
           <div className="profile-card">
             <img
-              src={currentUser?.profileImage || 'https://via.placeholder.com/150'}
+              src={currentUser?.profilePictureUrl || '/default-avatar.png'}
               alt="Profile"
+              className="profile-image"
             />
-            {/* Display username from currentUser context */}
             <h3>{currentUser?.userName || 'Misafir'}</h3>
-            <p>Yazılım Mühendisi</p> {/* Placeholder title */}
-            <button onClick={() => navigate('/profile')}>Profil</button> {/* Example navigation */}
+            <p>Yazılım Mühendisi</p>
+            <button onClick={() => navigate('/profile')}>Profil</button>
           </div>
         </div>
 
@@ -175,26 +175,32 @@ function HomePage() {
           {/* Post Creation Form */}
           <div className="post-creation">
             <form onSubmit={handlePostSubmit}>
-              <textarea
-                className="post-input"
-                placeholder="Düşüncelerinizi paylaşın..."
-                value={newPostContent}
-                onChange={(e) => setNewPostContent(e.target.value)}
-                disabled={!currentUser} // Disable if not logged in
-                rows={3} // Adjust size
-              />
+              <div className="post-input-container">
+                <img
+                  src={currentUser?.profilePictureUrl || '/default-avatar.png'}
+                  alt="Profile"
+                  className="post-profile-image"
+                />
+                <textarea
+                  className="post-input"
+                  placeholder="Düşüncelerinizi paylaşın..."
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
+                  disabled={!currentUser}
+                  rows={3}
+                />
+              </div>
               <div className="post-submit">
                 <button
                   type="submit"
                   className="share-post-btn"
-                  disabled={!currentUser || !newPostContent.trim()} // Disable if not logged in or empty
+                  disabled={!currentUser || !newPostContent.trim()}
                 >
                   <Send size={18} />
                   Paylaş
                 </button>
               </div>
             </form>
-            {/* Display errors related to post creation */}
             {error && <div className="error-message">{error}</div>}
           </div>
 
@@ -208,19 +214,18 @@ function HomePage() {
               <Post
                 key={post.id}
                 id={post.id}
-                // Pass props matching the updated Post component's expectations
-                userName={post.userName} // Use userName from fetched post data
+                userName={post.userName}
                 content={post.content}
                 userLikes={post.userLikes}
-                numberOfLikes={post.numberOfLikes} // Pass numberOfLikes
+                numberOfLikes={post.numberOfLikes}
                 userComments={post.userComments}
                 publishDate={post.publishDate}
-                onPostUpdate={fetchPosts} // Pass the fetchPosts function for refreshing
+                onPostUpdate={fetchPosts}
+                profileImage={post.profilePictureUrl || '/default-avatar.png'}
               />
             ))
           )}
-           {/* Display general fetch errors here if not shown elsewhere */}
-           {!loading && error && posts.length === 0 && <div className="error-message">{error}</div>}
+          {!loading && error && posts.length === 0 && <div className="error-message">{error}</div>}
         </div>
 
         {/* Right Sidebar (Suggestions) */}
