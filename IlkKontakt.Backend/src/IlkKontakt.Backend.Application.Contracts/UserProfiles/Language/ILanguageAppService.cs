@@ -8,7 +8,7 @@ public interface ILanguageAppService :
     ICrudAppService<
     LanguageDto,
     Guid,
-    PagedResultRequestDto,
+    LanguagePagedAndSortedResultRequestDto,
     CreateUpdateLanguageDto>
 {
     
