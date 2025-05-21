@@ -8,7 +8,7 @@ public interface ISkillAppService :
     ICrudAppService<
     SkillDto,
     Guid,
-    PagedResultRequestDto,
+    SkillPagedAndSortedResultRequestDto,
     CreateUpdateSkillDto>
 {
     

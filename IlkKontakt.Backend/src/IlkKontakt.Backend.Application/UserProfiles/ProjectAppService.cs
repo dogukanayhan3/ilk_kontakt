@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -29,31 +30,48 @@ namespace IlkKontakt.Backend.UserProfiles
         }
 
         public async Task<PagedResultDto<ProjectDto>> GetListAsync(
-            PagedResultRequestDto input)
+            ProjectPagedAndSortedResultRequestDto input)
         {
             var queryable = await _repository.GetQueryableAsync();
 
-            var totalCount = await AsyncExecuter.CountAsync(queryable);
+            var query = queryable
+                .WhereIf(input.ProfileId.HasValue,
+                    x => x.ProfileId == input.ProfileId.Value)
+                .WhereIf(!string.IsNullOrWhiteSpace(input.ProjectName),
+                    x => x.ProjectName.Contains(input.ProjectName))
+                .WhereIf(input.EarliestStartDate.HasValue,
+                    x => x.StartDate >= input.EarliestStartDate.Value)
+                .WhereIf(input.LatestStartDate.HasValue,
+                    x => x.StartDate <= input.LatestStartDate.Value)
+                .WhereIf(input.EarliestEndDate.HasValue,
+                    x => x.EndDate >= input.EarliestEndDate.Value)
+                .WhereIf(input.LatestEndDate.HasValue,
+                    x => x.EndDate <= input.LatestEndDate.Value);
 
-            var items = await AsyncExecuter.ToListAsync(
-                queryable
-                    .Skip(input.SkipCount)
-                    .Take(input.MaxResultCount)
-            );
+            var totalCount = await AsyncExecuter.CountAsync(query);
 
-            var dtos = ObjectMapper.Map<List<Project>, List<ProjectDto>>(items);
+            query = query
+                .OrderBy(input.Sorting ?? $"{nameof(Project.StartDate)} desc")
+                .Skip(input.SkipCount)
+                .Take(input.MaxResultCount);
+
+            var list = await AsyncExecuter.ToListAsync(query);
+            var dtos = ObjectMapper.Map<List<Project>, List<ProjectDto>>(list);
+
             return new PagedResultDto<ProjectDto>(totalCount, dtos);
         }
 
-        public async Task<PagedResultDto<ProjectDto>> GetListByProfileAsync(Guid profileId)
+        public async Task<PagedResultDto<ProjectDto>> GetListByProfileAsync(
+            Guid profileId)
         {
             var queryable = await _repository.GetQueryableAsync();
-            var filtered = queryable
+            var query = queryable
                 .Where(x => x.ProfileId == profileId)
-                .OrderByDescending(x => x.StartDate);
+                .OrderBy($"{nameof(Project.StartDate)} desc");
 
-            var list = await AsyncExecuter.ToListAsync(filtered);
+            var list = await AsyncExecuter.ToListAsync(query);
             var dtos = ObjectMapper.Map<List<Project>, List<ProjectDto>>(list);
+
             return new PagedResultDto<ProjectDto>(list.Count, dtos);
         }
 

@@ -8,7 +8,7 @@ public interface IProjectAppService :
     ICrudAppService<
     ProjectDto,
     Guid,
-    PagedResultRequestDto,
+    ProjectPagedAndSortedResultRequestDto,
     CreateUpdateProjectDto>
 {
     
