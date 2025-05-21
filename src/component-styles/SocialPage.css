@@ -1,5 +1,5 @@
 .social-connections-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 20px;
     width: 100%;
@@ -8,141 +8,145 @@
 
 .connections-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
     margin-bottom: 30px;
 }
 
 .social-connection-card {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    border: 1px solid #eaeaea;
 }
 
 .social-connection-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
 .connection-header {
     display: flex;
     align-items: center;
-    padding: 20px;
-    background-color: #f0f0f0;
+    padding: 25px;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #eaeaea;
 }
 
 .connection-profile-image {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-    margin-right: 15px;
+    margin-right: 20px;
     object-fit: cover;
-    border: 3px solid #5fbcee;
+    border: 3px solid #3FC0FF;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .connection-info h3 {
-    color: #5fbcee;
-    margin: 0 0 10px 0;
-    font-size: 1.2em;
+    color: #1a1a1a;
+    margin: 0 0 8px 0;
+    font-size: 1.3em;
+    font-weight: 600;
 }
 
 .connection-info p {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #555;
+    color: #4a5568;
     margin: 0;
+    font-size: 0.95em;
 }
 
 .connection-projects {
-    padding: 20px;
+    padding: 25px;
     flex-grow: 1;
+    background-color: white;
 }
 
 .connection-projects h4 {
-    color: #5fbcee;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #5fbcee;
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    font-weight: 600;
+    position: relative;
     padding-bottom: 10px;
+}
+
+.connection-projects h4::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background-color: #3FC0FF;
+    border-radius: 2px;
 }
 
 .project-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 15px;
     padding: 15px;
-    background-color: #f0f0f0;
-    border-radius: 6px;
-    transition: background-color 0.3s ease;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid #eaeaea;
 }
 
 .project-item:hover {
-    background-color: #e0e0e0;
+    background-color: #f1f5f9;
+    transform: translateX(5px);
 }
 
 .project-details h5 {
-    margin: 0 0 10px 0;
-    color: #333;
+    margin: 0 0 8px 0;
+    color: #1a1a1a;
+    font-size: 1.05em;
+    font-weight: 600;
 }
 
 .project-details p {
     margin: 0;
-    color: #666;
+    color: #4a5568;
     font-size: 0.9em;
+    line-height: 1.5;
 }
 
 .project-link-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #5fbcee;
+    background-color: #3FC0FF;
     color: white;
     border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
+    padding: 8px 16px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
     gap: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 .project-link-btn:hover {
-    background-color: #3245f1;
-}
-
-.network-actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.expand-network-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #5fbcee;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s ease;
-    gap: 10px;
-}
-
-.expand-network-btn:hover {
-    background-color: #3245f1;
+    background-color: #2d9cdb;
+    transform: translateY(-2px);
 }
 
 /* Responsive Adjustments */
 @media screen and (max-width: 1200px) {
     .connections-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }
 
