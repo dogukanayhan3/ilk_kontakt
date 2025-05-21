@@ -12,7 +12,7 @@ import {
   Github
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Layout from '../page_layout/Layout'
 import ProfileImage from './Profile-img'
 import '../../component-styles/ProfilePage.css'
@@ -82,6 +82,7 @@ function getCookie(name) {
 export default function ProfilePage() {
   const { currentUser } = useAuth()
   const navigate = useNavigate()
+  const { userId } = useParams()
   const fileInputRef = useRef()
 
   // PROFILE
@@ -97,6 +98,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [isOwnProfile, setIsOwnProfile] = useState(true)
 
   // EXPERIENCES
   const [experiences, setExperiences] = useState([])
@@ -181,13 +183,15 @@ export default function ProfilePage() {
     }
     loadProfile()
     // eslint-disable-next-line
-  }, [currentUser])
+  }, [currentUser, userId])
 
   async function loadProfile() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(PROFILE_BY_USER, { credentials: 'include' })
+      // If userId is provided, fetch that user's profile, otherwise fetch current user's profile
+      const endpoint = userId ? `${PROFILE_ROOT}/${userId}` : PROFILE_BY_USER;
+      const res = await fetch(endpoint, { credentials: 'include' })
       if (res.ok) {
         const dto = await res.json()
         setProfile(dto)
@@ -199,6 +203,8 @@ export default function ProfilePage() {
           birthday: dto.birthday ? dto.birthday.split('T')[0] : '',
           profilePictureUrl: dto.profilePictureUrl || ''
         })
+        // Set isOwnProfile based on whether we're viewing our own profile
+        setIsOwnProfile(!userId || userId === currentUser.id);
       } else if (res.status === 404) {
         setProfile(null)
         setForm({
@@ -209,6 +215,7 @@ export default function ProfilePage() {
           birthday: '',
           profilePictureUrl: currentUser.profileImage || ''
         })
+        setIsOwnProfile(true);
       } else {
         throw new Error('Profil yüklenemedi: ' + res.status)
       }
@@ -891,7 +898,7 @@ export default function ProfilePage() {
 
           <div className="profile-image-container">
             <ProfileImage src={form.profilePictureUrl} />
-            {(isEditing || !profile) && (
+            {(isEditing || !profile) && isOwnProfile && (
               <>
                 <button
                   className="change-photo-btn"
@@ -910,7 +917,7 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {(isEditing || !profile) ? (
+          {(isEditing || !profile) && isOwnProfile ? (
             <div className="profile-edit-form">
               <textarea
                 name="about"
@@ -974,38 +981,40 @@ export default function ProfilePage() {
             </div>
           ) : (
             <>
-              <h3 id="profile-name">{currentUser.userName}</h3>
+              <h3 id="profile-name">{profile?.userName}</h3>
               <div className="profile-info-list">
                 <div>
                   <Info size={20} />
-                  <span>{profile.about}</span>
+                  <span>{profile?.about}</span>
                 </div>
                 <div>
                   <Mail size={20} />
-                  <span>{profile.email}</span>
+                  <span>{profile?.email}</span>
                 </div>
                 <div>
                   <Phone size={20} />
-                  <span>{profile.phoneNumber}</span>
+                  <span>{profile?.phoneNumber}</span>
                 </div>
                 <div>
                   <MapPin size={20} />
-                  <span>{profile.address}</span>
+                  <span>{profile?.address}</span>
                 </div>
                 <div>
                   <Calendar size={20} />
                   <span>
-                    {profile.birthday
+                    {profile?.birthday
                       ? new Date(profile.birthday).toLocaleDateString()
                       : ''}
                   </span>
                 </div>
               </div>
-              <div className="profile-actions">
-                <button id="edit-profile-btn" onClick={handleEdit}>
-                  <Edit size={18} /> Düzenle
-                </button>
-              </div>
+              {isOwnProfile && (
+                <div className="profile-actions">
+                  <button id="edit-profile-btn" onClick={handleEdit}>
+                    <Edit size={18} /> Düzenle
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1019,7 +1028,7 @@ export default function ProfilePage() {
           <section className="experience-section">
             <div className="section-header">
               <h2>Deneyimler</h2>
-              {profile && (
+              {isOwnProfile && (
                 <button className="add-experience-btn" onClick={openAddExp}>
                   + Yeni Deneyim
                 </button>
@@ -1041,18 +1050,20 @@ export default function ProfilePage() {
                       <span className="experience-company">
                         @ {exp.companyName}
                       </span>
-                      <button
-                        className="edit-btn"
-                        onClick={() => openEditExp(exp)}
-                        style={{
-                          marginLeft: 'auto',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Edit size={16} />
-                      </button>
+                      {isOwnProfile && (
+                        <button
+                          className="edit-btn"
+                          onClick={() => openEditExp(exp)}
+                          style={{
+                            marginLeft: 'auto',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Edit size={16} />
+                        </button>
+                      )}
                     </div>
                     <div className="experience-dates">
                       {new Date(
@@ -1091,7 +1102,7 @@ export default function ProfilePage() {
           <section className="education-section">
             <div className="section-header">
               <h2>Eğitim Bilgileri</h2>
-              {profile && (
+              {isOwnProfile && (
                 <button className="add-experience-btn" onClick={openAddEdu}>
                   + Yeni Eğitim
                 </button>
@@ -1120,18 +1131,20 @@ export default function ProfilePage() {
                           o => o.value === ed.degree
                         )?.label}
                       </span>
-                      <button
-                        className="edit-btn"
-                        onClick={() => openEditEdu(ed)}
-                        style={{
-                          marginLeft: 'auto',
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <Edit size={16} />
-                      </button>
+                      {isOwnProfile && (
+                        <button
+                          className="edit-btn"
+                          onClick={() => openEditEdu(ed)}
+                          style={{
+                            marginLeft: 'auto',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Edit size={16} />
+                        </button>
+                      )}
                     </div>
                     <div className="experience-dates">
                       {new Date(
@@ -1161,7 +1174,7 @@ export default function ProfilePage() {
           <section className="skill-section">
             <div className="section-header">
               <h2>Yetenekler</h2>
-              {profile && (
+              {isOwnProfile && (
                 <button className="add-skill-btn" onClick={openAddSkill}>
                   + Yeni Yetenek
                 </button>
@@ -1172,17 +1185,18 @@ export default function ProfilePage() {
               ? <div>Yükleniyor...</div>
               : <div className="skills-grid">
                   {skills.map((sk) => {
-                    // Use the number directly
                     let level = Number(sk.skillProficiency);
-                    if (isNaN(level) || level < 1 || level > 5) level = 1; // fallback
+                    if (isNaN(level) || level < 1 || level > 5) level = 1;
 
                     return (
                       <div key={sk.id} className="skill-card">
                         <div className="skill-card-header">
                           <span className="skill-name">{sk.skillName}</span>
-                          <button className="edit-btn" onClick={() => openEditSkill(sk)}>
-                            <Edit size={16}/>
-                          </button>
+                          {isOwnProfile && (
+                            <button className="edit-btn" onClick={() => openEditSkill(sk)}>
+                              <Edit size={16}/>
+                            </button>
+                          )}
                         </div>
                         <div className="skill-proficiency-text">
                           {getProficiencyLabel(level)}
@@ -1198,7 +1212,7 @@ export default function ProfilePage() {
           <section className="language-section">
             <div className="section-header">
               <h2>Diller</h2>
-              {profile && (
+              {isOwnProfile && (
                 <button className="add-language-btn" onClick={openAddLang}>
                   + Yeni Dil
                 </button>
@@ -1209,7 +1223,6 @@ export default function ProfilePage() {
               ? <div>Yükleniyor...</div>
               : <div className="languages-grid">
                   {languages.map((l) => {
-                    // Find the label for this proficiency level
                     const proficiencyLabel = LANGUAGE_PROFICIENCY_OPTIONS.find(
                       opt => opt.value === l.languageProficiency
                     )?.label || l.languageProficiency;
@@ -1218,10 +1231,12 @@ export default function ProfilePage() {
                       <div key={l.id} className="language-card">
                         <div className="language-card-header">
                           <span className="language-name">{l.languageName}</span>
-                          <button className="edit-btn"
-                                  onClick={() => openEditLang(l)}>
-                            <Edit size={16}/>
-                          </button>
+                          {isOwnProfile && (
+                            <button className="edit-btn"
+                                    onClick={() => openEditLang(l)}>
+                              <Edit size={16}/>
+                            </button>
+                          )}
                         </div>
                         <div className="language-proficiency-text">
                           Seviye: {proficiencyLabel + 1}/5  
@@ -1237,7 +1252,7 @@ export default function ProfilePage() {
           <section className="project-section">
             <div className="section-header">
               <h2>Projeler</h2>
-              {profile && (
+              {isOwnProfile && (
                 <button className="add-project-btn" onClick={openAddProj}>
                   + Yeni Proje
                 </button>
@@ -1258,12 +1273,14 @@ export default function ProfilePage() {
                       <span className="project-name">
                         {p.projectName}
                       </span>
-                      <button
-                        className="edit-btn"
-                        onClick={() => openEditProj(p)}
-                      >
-                        <Edit size={16} />
-                      </button>
+                      {isOwnProfile && (
+                        <button
+                          className="edit-btn"
+                          onClick={() => openEditProj(p)}
+                        >
+                          <Edit size={16} />
+                        </button>
+                      )}
                     </div>
                     <div className="project-dates">
                       {new Date(p.startDate).toLocaleDateString()} -{' '}
