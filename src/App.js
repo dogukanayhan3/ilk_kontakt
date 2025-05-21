@@ -70,30 +70,6 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          {/* <Route 
-            path="/about_us" 
-            element={
-              <ProtectedRoute>
-                <AboutUsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/privacy_policy" 
-            element={
-              <ProtectedRoute>
-                <PrivacyPolicyPage />
-              </ProtectedRoute>
-          } 
-          />
-          <Route 
-            path="/terms_of_use" 
-            element={
-              <ProtectedRoute>
-                <TermsOfUsePage />
-              </ProtectedRoute>
-          } 
-          /> */}
           <Route 
             path="/contact_us" 
             element={
