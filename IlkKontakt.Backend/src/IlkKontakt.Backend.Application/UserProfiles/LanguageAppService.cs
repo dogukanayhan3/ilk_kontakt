@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -29,27 +30,43 @@ namespace IlkKontakt.Backend.UserProfiles
         }
 
         public async Task<PagedResultDto<LanguageDto>> GetListAsync(
-            PagedResultRequestDto input)
+            LanguagePagedAndSortedResultRequestDto input)
         {
-            var query = await _repository.GetQueryableAsync();
-            var total = await AsyncExecuter.CountAsync(query);
-            var list = await AsyncExecuter.ToListAsync(
-                query
-                    .Skip(input.SkipCount)
-                    .Take(input.MaxResultCount)
-            );
+            var queryable = await _repository.GetQueryableAsync();
+
+            var query = queryable
+                .WhereIf(input.ProfileId.HasValue,
+                    x => x.ProfileId == input.ProfileId.Value)
+                .WhereIf(!string.IsNullOrWhiteSpace(input.LanguageName),
+                    x => x.LanguageName.Contains(input.LanguageName))
+                .WhereIf(input.LanguageProficiency.HasValue,
+                    x => x.LanguageProficiency ==
+                         input.LanguageProficiency.Value);
+
+            var totalCount = await AsyncExecuter.CountAsync(query);
+
+            query = query
+                .OrderBy(input.Sorting ?? $"{nameof(Language.LanguageName)} asc")
+                .Skip(input.SkipCount)
+                .Take(input.MaxResultCount);
+
+            var list = await AsyncExecuter.ToListAsync(query);
             var dtos = ObjectMapper.Map<List<Language>, List<LanguageDto>>(list);
-            return new PagedResultDto<LanguageDto>(total, dtos);
+
+            return new PagedResultDto<LanguageDto>(totalCount, dtos);
         }
 
         public async Task<PagedResultDto<LanguageDto>> GetListByProfileAsync(
             Guid profileId)
         {
-            var query = (await _repository.GetQueryableAsync())
+            var queryable = await _repository.GetQueryableAsync();
+            var query = queryable
                 .Where(x => x.ProfileId == profileId)
-                .OrderBy(x => x.LanguageName);
+                .OrderBy($"{nameof(Language.LanguageName)} asc");
+
             var list = await AsyncExecuter.ToListAsync(query);
             var dtos = ObjectMapper.Map<List<Language>, List<LanguageDto>>(list);
+
             return new PagedResultDto<LanguageDto>(list.Count, dtos);
         }
 

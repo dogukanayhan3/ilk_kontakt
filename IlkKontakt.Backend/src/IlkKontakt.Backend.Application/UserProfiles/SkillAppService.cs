@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
@@ -29,27 +30,42 @@ namespace IlkKontakt.Backend.UserProfiles
         }
 
         public async Task<PagedResultDto<SkillDto>> GetListAsync(
-            PagedResultRequestDto input)
+            SkillPagedAndSortedResultRequestDto input)
         {
-            var query = await _repository.GetQueryableAsync();
-            var total = await AsyncExecuter.CountAsync(query);
-            var list = await AsyncExecuter.ToListAsync(
-                query
-                    .Skip(input.SkipCount)
-                    .Take(input.MaxResultCount)
-            );
+            var queryable = await _repository.GetQueryableAsync();
+
+            var query = queryable
+                .WhereIf(input.ProfileId.HasValue,
+                    x => x.ProfileId == input.ProfileId.Value)
+                .WhereIf(!string.IsNullOrWhiteSpace(input.SkillName),
+                    x => x.SkillName.Contains(input.SkillName))
+                .WhereIf(input.SkillProficiency.HasValue,
+                    x => x.SkillProficiency == input.SkillProficiency.Value);
+
+            var totalCount = await AsyncExecuter.CountAsync(query);
+
+            query = query
+                .OrderBy(input.Sorting ?? $"{nameof(Skill.SkillName)} asc")
+                .Skip(input.SkipCount)
+                .Take(input.MaxResultCount);
+
+            var list = await AsyncExecuter.ToListAsync(query);
             var dtos = ObjectMapper.Map<List<Skill>, List<SkillDto>>(list);
-            return new PagedResultDto<SkillDto>(total, dtos);
+
+            return new PagedResultDto<SkillDto>(totalCount, dtos);
         }
 
         public async Task<PagedResultDto<SkillDto>> GetListByProfileAsync(
             Guid profileId)
         {
-            var query = (await _repository.GetQueryableAsync())
+            var queryable = await _repository.GetQueryableAsync();
+            var query = queryable
                 .Where(x => x.ProfileId == profileId)
-                .OrderBy(x => x.SkillName);
+                .OrderBy($"{nameof(Skill.SkillName)} asc");
+
             var list = await AsyncExecuter.ToListAsync(query);
             var dtos = ObjectMapper.Map<List<Skill>, List<SkillDto>>(list);
+
             return new PagedResultDto<SkillDto>(list.Count, dtos);
         }
 
