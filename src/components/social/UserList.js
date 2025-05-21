@@ -14,55 +14,27 @@ function UserList() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        console.log('UserList component mounted');
         fetchUsers();
     }, []);
 
     async function fetchUsers() {
-        console.log('Starting to fetch users...');
         setLoading(true);
         setError('');
         try {
             // Fetch all user profiles
-            console.log('Fetching profiles from:', PROFILE_ROOT);
-            const profilesRes = await fetch(PROFILE_ROOT, { 
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!profilesRes.ok) {
-                console.error('Profile fetch failed:', profilesRes.status, profilesRes.statusText);
-                throw new Error('Failed to fetch profiles');
-            }
-            
+            const profilesRes = await fetch(PROFILE_ROOT, { credentials: 'include' });
+            if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
             const profilesData = await profilesRes.json();
-            console.log('Profiles fetched:', profilesData);
             const profiles = profilesData.items || [];
 
             // For each profile, fetch their latest experience and projects
-            console.log('Fetching details for', profiles.length, 'profiles');
             const usersWithDetails = await Promise.all(
                 profiles.map(async (profile) => {
-                    console.log('Fetching details for profile:', profile.id);
-                    
                     // Fetch experiences
                     const expRes = await fetch(
                         `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
-                        { 
-                            credentials: 'include',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        }
+                        { credentials: 'include' }
                     );
-                    if (!expRes.ok) {
-                        console.error('Experience fetch failed for profile', profile.id);
-                        return profile;
-                    }
                     const expData = await expRes.json();
                     const experiences = expData.items || [];
                     
@@ -74,18 +46,8 @@ function UserList() {
                     // Fetch projects
                     const projRes = await fetch(
                         `${PROJECT_ROOT}?ProfileId=${profile.id}`,
-                        { 
-                            credentials: 'include',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        }
+                        { credentials: 'include' }
                     );
-                    if (!projRes.ok) {
-                        console.error('Project fetch failed for profile', profile.id);
-                        return { ...profile, latestExperience, projects: [] };
-                    }
                     const projData = await projRes.json();
                     const projects = projData.items || [];
 
@@ -97,10 +59,8 @@ function UserList() {
                 })
             );
 
-            console.log('All user details fetched:', usersWithDetails);
             setUsers(usersWithDetails);
         } catch (e) {
-            console.error('Error in fetchUsers:', e);
             setError(e.message);
         } finally {
             setLoading(false);
@@ -136,7 +96,7 @@ function UserList() {
                                     )}
                                 </div>
                             </div>
-                            {user.projects && user.projects.length > 0 && (
+                            {user.projects.length > 0 && (
                                 <div className="connection-projects">
                                     <h4>Projeler</h4>
                                     {user.projects.map(project => (
