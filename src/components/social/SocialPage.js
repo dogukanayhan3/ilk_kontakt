@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Briefcase, ArrowUpRight } from 'lucide-react';
 import Layout from "../page_layout/Layout";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from 'react-router-dom';
 import "../../component-styles/SocialPage.css";
 
 const API_BASE = 'https://localhost:44388';
@@ -14,6 +15,7 @@ function SocialPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const { currentUser } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchUsers();
@@ -100,6 +102,10 @@ function SocialPage() {
         }
     }
 
+    const handleUserClick = (userId) => {
+        navigate(`/profilepage/${userId}`);
+    };
+
     if (loading) return <div>Loading users...</div>;
     if (error) return <div>Error: {error}</div>;
 
@@ -112,7 +118,12 @@ function SocialPage() {
             <section className="social-connections-container">
                 <div className="connections-grid">
                     {users.map(user => (
-                        <div key={user.id} className="social-connection-card">
+                        <div 
+                            key={user.id} 
+                            className="social-connection-card"
+                            onClick={() => handleUserClick(user.id)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <div className="connection-header">
                                 <img 
                                     src={user.profilePictureUrl || '/default-avatar.png'} 
@@ -144,6 +155,7 @@ function SocialPage() {
                                                     target="_blank" 
                                                     rel="noreferrer"
                                                     className="project-link-btn"
+                                                    onClick={(e) => e.stopPropagation()}
                                                 >
                                                     Detaylar <ArrowUpRight size={16} strokeWidth={2} />
                                                 </a>

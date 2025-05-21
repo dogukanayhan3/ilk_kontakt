@@ -63,6 +63,14 @@ function App() {
             } 
           />
           <Route 
+            path="/profilepage/:userId" 
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/notificationspage" 
             element={
               <ProtectedRoute>
