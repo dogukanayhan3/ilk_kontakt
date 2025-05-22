@@ -5,6 +5,8 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
+using IlkKontakt.Backend.Connections;
+using IlkKontakt.Backend.EntityFrameworkCore.Configurations;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -43,6 +45,7 @@ public class BackendDbContext :
     public DbSet<Language> Languages { get; set; }
     public DbSet<Project> Project { get; set; } 
     public DbSet<Skill> Skill { get; set; }
+    public DbSet<Connection> Connections { get; set; }
 
     
     #region Entities from the modules
@@ -112,6 +115,9 @@ public class BackendDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+        
+        builder.ApplyConfiguration(new ConnectionEntityConfiguration());
+
         
         builder.Entity<Post>(b =>
         {

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IlkKontakt.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Profile : Migration
+    public partial class Added_Connections : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -769,6 +769,36 @@ namespace IlkKontakt.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AppConnections",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppConnections", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AppConnections_AbpUsers_ReceiverId",
+                        column: x => x.ReceiverId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_AppConnections_AbpUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Posts",
                 columns: table => new
                 {
@@ -1269,6 +1299,17 @@ namespace IlkKontakt.Backend.Migrations
                 column: "UserName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AppConnections_ReceiverId",
+                table: "AppConnections",
+                column: "ReceiverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AppConnections_SenderId_ReceiverId",
+                table: "AppConnections",
+                columns: new[] { "SenderId", "ReceiverId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Educations_ProfileId",
                 table: "Educations",
                 column: "ProfileId");
@@ -1415,6 +1456,9 @@ namespace IlkKontakt.Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "AppBooks");
+
+            migrationBuilder.DropTable(
+                name: "AppConnections");
 
             migrationBuilder.DropTable(
                 name: "Educations");

@@ -28,6 +28,15 @@ public class BackendPermissionDefinitionProvider : PermissionDefinitionProvider
         userProfilePermission.AddChild(BackendPermissions.UserProfiles.Create, L("Permission:UserProfiles.Create"));
         userProfilePermission.AddChild(BackendPermissions.UserProfiles.Edit, L("Permission:UserProfiles.Edit"));
         userProfilePermission.AddChild(BackendPermissions.UserProfiles.Delete, L("Permission:UserProfiles.Delete"));
+        
+        var connectionPerm = myGroup
+            .AddPermission(BackendPermissions.Connection.Default, L("Permission:Connections"));
+
+        connectionPerm.AddChild(BackendPermissions.Connection.Create, L("Permission:ConnectionCreate"));
+        connectionPerm.AddChild(BackendPermissions.Connection.Update, L("Permission:ConnectionUpdate"));
+        connectionPerm.AddChild(BackendPermissions.Connection.Delete, L("Permission:ConnectionDelete"));
+        connectionPerm.AddChild(BackendPermissions.Connection.View,   L("Permission:ConnectionView"));
+
     }
 
     private static LocalizableString L(string name)
