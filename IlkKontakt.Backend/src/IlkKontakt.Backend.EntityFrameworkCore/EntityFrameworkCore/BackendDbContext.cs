@@ -7,6 +7,7 @@ using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
+using IlkKontakt.Backend.Courses;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
@@ -43,6 +44,9 @@ public class BackendDbContext :
     public DbSet<Language> Languages { get; set; }
     public DbSet<Project> Project { get; set; } 
     public DbSet<Skill> Skill { get; set; }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<Instructor> Instructors { get; set; }
+    public DbSet<Enrollment> Enrollments { get; set; }
 
     
     #region Entities from the modules
@@ -287,6 +291,66 @@ public class BackendDbContext :
                     .IsRequired();            
             }
         );
+
+        builder.Entity<Course>(b =>
+        {
+            b.ToTable("Courses");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title)
+                .IsRequired()
+                .HasMaxLength(128);
+
+            b.Property(x => x.Description)
+                .HasMaxLength(1500);
+
+            b.Property(x => x.ThumbnailUrl)
+                .HasMaxLength(512);
+
+            b.HasOne<Instructor>()
+                .WithMany()
+                .HasForeignKey(x => x.InstructorId)
+                .IsRequired();
+        });
+
+        builder.Entity<Instructor>(b =>
+        {
+            b.ToTable("Instructors");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.UserId)
+                .IsRequired();
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .IsRequired();
+        });
+
+        builder.Entity<Enrollment>(b =>
+        {
+            b.ToTable("Enrollments");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.UserId)
+                .IsRequired();
+
+            b.Property(x => x.CourseId)
+                .IsRequired();
+
+            b.Property(x => x.EnrollmentDate)
+                .IsRequired();
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .IsRequired();
+
+            b.HasOne<Course>()
+                .WithMany()
+                .HasForeignKey(x => x.CourseId)
+                .IsRequired();
+        });
 
     }
 }

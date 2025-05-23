@@ -1,6 +1,6 @@
 using AutoMapper;
 using IlkKontakt.Backend.Books;
-using IlkKontakt.Backend.Permissions;
+using IlkKontakt.Backend.Courses;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 
@@ -49,5 +49,14 @@ public class BackendApplicationAutoMapperProfile : Profile
         
         CreateMap<Language, LanguageDto>();
         CreateMap<CreateUpdateLanguageDto, Language>();
+
+        CreateMap<Course, CourseDto>();
+        CreateMap<CreateUpdateCourseDto, Course>();
+        
+        CreateMap<Enrollment, EnrollmentDto>();
+        CreateMap<CreateUpdateEnrollmentDto, Enrollment>();
+
+        CreateMap<Instructor, InstructorDto>();
+        CreateMap<CreateUpdateInstructorDto, Instructor>();
     }
 }
