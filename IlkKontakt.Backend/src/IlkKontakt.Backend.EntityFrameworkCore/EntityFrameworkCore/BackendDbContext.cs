@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
+using IlkKontakt.Backend.Connections;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 using IlkKontakt.Backend.Courses;
@@ -47,6 +48,7 @@ public class BackendDbContext :
     public DbSet<Course> Courses { get; set; }
     public DbSet<Instructor> Instructors { get; set; }
     public DbSet<Enrollment> Enrollments { get; set; }
+    public DbSet<Connection> Connections { get; set; }
 
     
     #region Entities from the modules
@@ -116,6 +118,31 @@ public class BackendDbContext :
         //    b.ConfigureByConvention(); //auto configure for the base class props
         //    //...
         //});
+        
+        builder.Entity<DbLoggerCategory.Database.Connection>(b =>
+        {
+            b.ToTable("AppConnections");
+            b.ConfigureByConvention(); // id, auditing columns
+
+            b.Property(c => c.SenderId).IsRequired();
+            b.Property(c => c.ReceiverId).IsRequired();
+            b.Property(c => c.Status).IsRequired();
+
+            // Prevent duplicate requests
+            b.HasIndex(c => new { c.SenderId, c.ReceiverId })
+                .IsUnique();
+
+            // FKs to AbpUsers
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(c => c.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(c => c.ReceiverId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
         
         builder.Entity<Post>(b =>
         {

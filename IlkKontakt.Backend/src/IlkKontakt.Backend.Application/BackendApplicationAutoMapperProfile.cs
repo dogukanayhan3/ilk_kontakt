@@ -3,6 +3,7 @@ using IlkKontakt.Backend.Books;
 using IlkKontakt.Backend.Courses;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
+using IlkKontakt.Backend.Connections;
 
 namespace IlkKontakt.Backend;
 
@@ -49,6 +50,17 @@ public class BackendApplicationAutoMapperProfile : Profile
         
         CreateMap<Language, LanguageDto>();
         CreateMap<CreateUpdateLanguageDto, Language>();
+        
+        CreateMap<Connection, ConnectionDto>();
+
+        CreateMap<CreateConnectionDto, Connection>()
+            .ForMember(dest => dest.SenderId, opt => opt.Ignore()) // set in service
+            .ForMember(dest => dest.Status,   opt => opt.Ignore());
+
+        CreateMap<UpdateConnectionStatusDto, Connection>()
+            .ForMember(dest => dest.SenderId,   opt => opt.Ignore())
+            .ForMember(dest => dest.ReceiverId, opt => opt.Ignore());
+
 
         CreateMap<Course, CourseDto>();
         CreateMap<CreateUpdateCourseDto, Course>();
