@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using IlkKontakt.Backend.Books;
 using IlkKontakt.Backend.Connections;
-using IlkKontakt.Backend.EntityFrameworkCore.Configurations;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -116,8 +115,30 @@ public class BackendDbContext :
         //    //...
         //});
         
-        builder.ApplyConfiguration(new ConnectionEntityConfiguration());
+        builder.Entity<Connection>(b =>
+        {
+            b.ToTable("AppConnections");
+            b.ConfigureByConvention(); // id, auditing columns
 
+            b.Property(c => c.SenderId).IsRequired();
+            b.Property(c => c.ReceiverId).IsRequired();
+            b.Property(c => c.Status).IsRequired();
+
+            // Prevent duplicate requests
+            b.HasIndex(c => new { c.SenderId, c.ReceiverId })
+                .IsUnique();
+
+            // FKs to AbpUsers
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(c => c.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(c => c.ReceiverId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
         
         builder.Entity<Post>(b =>
         {
