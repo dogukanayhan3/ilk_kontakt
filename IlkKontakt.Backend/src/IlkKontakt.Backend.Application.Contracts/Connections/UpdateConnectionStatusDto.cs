@@ -2,7 +2,7 @@
 
 namespace IlkKontakt.Backend.Connections;
 
-public class UpdateConnectionDto
+public class UpdateConnectionStatusDto
 {
     [Required]
     public ConnectionStatus Status { get; set; }

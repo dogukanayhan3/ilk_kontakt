@@ -57,7 +57,7 @@ public class BackendApplicationAutoMapperProfile : Profile
             .ForMember(dest => dest.SenderId, opt => opt.Ignore()) // set in service
             .ForMember(dest => dest.Status,   opt => opt.Ignore());
 
-        CreateMap<UpdateConnectionDto, Connection>()
+        CreateMap<UpdateConnectionStatusDto, Connection>()
             .ForMember(dest => dest.SenderId,   opt => opt.Ignore())
             .ForMember(dest => dest.ReceiverId, opt => opt.Ignore());
 
