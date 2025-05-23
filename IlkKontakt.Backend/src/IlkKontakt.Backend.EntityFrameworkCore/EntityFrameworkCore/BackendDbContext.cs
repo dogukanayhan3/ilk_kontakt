@@ -119,9 +119,9 @@ public class BackendDbContext :
         //    //...
         //});
         
-        builder.Entity<DbLoggerCategory.Database.Connection>(b =>
+        builder.Entity<Connection>(b =>
         {
-            b.ToTable("AppConnections");
+            b.ToTable("Connections");
             b.ConfigureByConvention(); // id, auditing columns
 
             b.Property(c => c.SenderId).IsRequired();
