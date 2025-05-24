@@ -6,4 +6,6 @@ namespace IlkKontakt.Backend.Courses;
 public class InstructorPagedAndSortedResultRequestDto : PagedAndSortedResultRequestDto
 {
     public Guid? UserId { get; set; }
+    public Guid? InstructorUserProfileId { get; set; }
+
 }

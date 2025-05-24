@@ -6,4 +6,5 @@ namespace IlkKontakt.Backend.Courses;
 public class Instructor : AuditedAggregateRoot<Guid>
 {
     public Guid UserId { get; set; }
+    public Guid InstructorUserProfileId { get; set; }
 }

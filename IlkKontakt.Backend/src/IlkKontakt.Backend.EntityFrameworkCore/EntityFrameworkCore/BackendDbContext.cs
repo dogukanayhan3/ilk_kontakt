@@ -195,6 +195,15 @@ public class BackendDbContext :
 
             b.Property(x => x.UserId)
                 .IsRequired();
+            
+            b.Property(x => x.Name)
+                .HasMaxLength(128);
+            
+            b.Property(x => x.Surname)
+                .HasMaxLength(128);
+            
+            b.Property(x => x.UserName)
+                .HasMaxLength(128);
 
             b.Property(x => x.Email)
                 .IsRequired()
@@ -352,6 +361,10 @@ public class BackendDbContext :
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .IsRequired();
+
+            b.HasOne<UserProfile>()
+                .WithMany()
+                .HasForeignKey(x => x.InstructorUserProfileId);
         });
 
         builder.Entity<Enrollment>(b =>
