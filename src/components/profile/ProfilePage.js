@@ -93,7 +93,10 @@ export default function ProfilePage() {
     phoneNumber: '',
     address: '',
     birthday: '',
-    profilePictureUrl: ''
+    profilePictureUrl: '',
+    name: '',
+    surname: '',
+    userName: ''
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -201,7 +204,10 @@ export default function ProfilePage() {
           phoneNumber: dto.phoneNumber || '',
           address: dto.address || '',
           birthday: dto.birthday ? dto.birthday.split('T')[0] : '',
-          profilePictureUrl: dto.profilePictureUrl || ''
+          profilePictureUrl: dto.profilePictureUrl || '',
+          name: dto.name || '',
+          surname: dto.surname || '',
+          userName: dto.userName || ''
         })
         // Set isOwnProfile based on whether we're viewing our own profile
         setIsOwnProfile(!userId || userId === currentUser.id);
@@ -213,7 +219,10 @@ export default function ProfilePage() {
           phoneNumber: currentUser.phoneNumber || '',
           address: '',
           birthday: '',
-          profilePictureUrl: currentUser.profileImage || ''
+          profilePictureUrl: currentUser.profileImage || '',
+          name: currentUser.name || '',
+          surname: currentUser.surname || '',
+          userName: currentUser.userName || ''
         })
         setIsOwnProfile(true);
       } else {
@@ -804,7 +813,10 @@ export default function ProfilePage() {
         birthday: profile.birthday
           ? profile.birthday.split('T')[0]
           : '',
-        profilePictureUrl: profile.profilePictureUrl || ''
+        profilePictureUrl: profile.profilePictureUrl || '',
+        name: profile.name || '',
+        surname: profile.surname || '',
+        userName: profile.userName || ''
       })
     }
     setIsEditing(false)
@@ -823,10 +835,11 @@ export default function ProfilePage() {
         email: form.email,
         phoneNumber: form.phoneNumber,
         address: form.address,
-        birthday: form.birthday
-          ? new Date(form.birthday)
-          : null,
-        profilePictureUrl: form.profilePictureUrl
+        birthday: form.birthday ? new Date(form.birthday) : null,
+        profilePictureUrl: form.profilePictureUrl,
+        name: form.name,
+        surname: form.surname,
+        userName: form.userName
       }
 
       let res
@@ -843,20 +856,17 @@ export default function ProfilePage() {
           body: JSON.stringify(payload)
         })
       } else {
-        res = await fetch(
-          `${PROFILE_ROOT}/${profile.id}`,
-          {
-            method: 'PUT',
-            credentials: 'include',
-            headers: {
-              accept: 'application/json',
-              'Content-Type': 'application/json',
-              RequestVerificationToken: xsrf,
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify(payload)
-          }
-        )
+        res = await fetch(`${PROFILE_ROOT}/${profile.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            RequestVerificationToken: xsrf,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify(payload)
+        })
       }
       if (!res.ok) {
         throw new Error('Kaydetme başarısız: ' + res.status)
@@ -868,10 +878,11 @@ export default function ProfilePage() {
         email: updated.email || '',
         phoneNumber: updated.phoneNumber || '',
         address: updated.address || '',
-        birthday: updated.birthday
-          ? updated.birthday.split('T')[0]
-          : '',
-        profilePictureUrl: updated.profilePictureUrl || ''
+        birthday: updated.birthday ? updated.birthday.split('T')[0] : '',
+        profilePictureUrl: updated.profilePictureUrl || '',
+        name: updated.name || '',
+        surname: updated.surname || '',
+        userName: updated.userName || ''
       })
       setIsEditing(false)
     } catch (e) {
@@ -919,6 +930,27 @@ export default function ProfilePage() {
 
           {(isEditing || !profile) && isOwnProfile ? (
             <div className="profile-edit-form">
+              <input
+                type="text"
+                name="userName"
+                placeholder="Kullanıcı Adı"
+                value={form.userName}
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="name"
+                placeholder="Ad"
+                value={form.name}
+                onChange={handleChange}
+              />
+              <input
+                type="text"
+                name="surname"
+                placeholder="Soyad"
+                value={form.surname}
+                onChange={handleChange}
+              />
               <textarea
                 name="about"
                 placeholder="Hakkında"
@@ -983,6 +1015,10 @@ export default function ProfilePage() {
             <>
               <h3 id="profile-name">{profile?.userName}</h3>
               <div className="profile-info-list">
+                <div>
+                  <Info size={20} />
+                  <span>{profile?.name} {profile?.surname}</span>
+                </div>
                 <div>
                   <Info size={20} />
                   <span>{profile?.about}</span>
