@@ -9,8 +9,8 @@ const ENROLLMENT_ROOT = `${API_BASE}/api/app/enrollment`;
 
 // Helper to get XSRF cookie
 function getCookie(name) {
-  const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return m ? m[2] : null;
+    const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return m ? m[2] : null;
 }
 
 function CourseCard({ course, isInstructor, onInstructorStatusChange }) {
@@ -76,6 +76,23 @@ function CourseCard({ course, isInstructor, onInstructorStatusChange }) {
         }
     };
 
+    // Get instructor display name with fallback
+    const getInstructorDisplayName = () => {
+        if (course.instructorFullName && course.instructorFullName.trim()) {
+            return course.instructorFullName;
+        }
+        
+        // Fallback to individual name parts if full name is not available
+        if (course.instructorName || course.instructorSurname) {
+            const name = course.instructorName || '';
+            const surname = course.instructorSurname || '';
+            const fullName = `${name} ${surname}`.trim();
+            return fullName || 'Bilinmeyen Eğitmen';
+        }
+        
+        return 'Bilinmeyen Eğitmen';
+    };
+
     return (
         <div className="course-listing">
             <div className="course-image">
@@ -91,7 +108,7 @@ function CourseCard({ course, isInstructor, onInstructorStatusChange }) {
                     <div className="instructor-info">
                         <Users size={18} strokeWidth={1.5} />
                         <div>
-                            <strong>Eğitmen ID: {course.instructorId}</strong>
+                            <strong>Eğitmen: {getInstructorDisplayName()}</strong>
                             <p>Oluşturulma: {formatDate(course.creationTime)}</p>
                         </div>
                     </div>

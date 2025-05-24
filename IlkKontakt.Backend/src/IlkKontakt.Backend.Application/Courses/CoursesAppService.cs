@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
+using IlkKontakt.Backend.UserProfiles;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -16,14 +17,17 @@ namespace IlkKontakt.Backend.Courses
     {
         private readonly IRepository<Course, Guid> _courseRepository;
         private readonly IRepository<Instructor, Guid> _instructorRepository;
+        private readonly IRepository<UserProfile, Guid> _userProfileRepository;
 
         public CourseAppService(
             IRepository<Course, Guid> courseRepository,
-            IRepository<Instructor, Guid> instructorRepository
+            IRepository<Instructor, Guid> instructorRepository,
+            IRepository<UserProfile, Guid> userProfileRepository
         )
         {
             _courseRepository = courseRepository;
             _instructorRepository = instructorRepository;
+            _userProfileRepository = userProfileRepository;
         }
 
         public async Task<CourseDto> GetAsync(Guid id)
@@ -37,7 +41,7 @@ namespace IlkKontakt.Backend.Courses
                 );
             }
 
-            return ObjectMapper.Map<Course, CourseDto>(course);
+            return await MapCourseToDtoWithInstructorInfo(course);
         }
 
         public async Task<PagedResultDto<CourseDto>> GetListAsync(
@@ -66,7 +70,7 @@ namespace IlkKontakt.Backend.Courses
                 );
 
             var totalCount = await AsyncExecuter.CountAsync(query);
-            var list = await AsyncExecuter.ToListAsync(
+            var courses = await AsyncExecuter.ToListAsync(
                 query
                     .OrderBy(
                         input.Sorting ?? $"{nameof(Course.CreationTime)} desc"
@@ -75,13 +79,15 @@ namespace IlkKontakt.Backend.Courses
                     .Take(input.MaxResultCount)
             );
 
-            return new PagedResultDto<CourseDto>(
-                totalCount,
-                ObjectMapper.Map<List<Course>, List<CourseDto>>(list)
-            );
+            var courseDtos = new List<CourseDto>();
+            foreach (var course in courses)
+            {
+                courseDtos.Add(await MapCourseToDtoWithInstructorInfo(course));
+            }
+
+            return new PagedResultDto<CourseDto>(totalCount, courseDtos);
         }
 
-        // New method to get all courses (independent from current user)
         public async Task<PagedResultDto<CourseDto>> GetAllCoursesAsync(
             CoursePagedAndSortedResultRequestDto input
         )
@@ -98,7 +104,7 @@ namespace IlkKontakt.Backend.Courses
                 );
 
             var totalCount = await AsyncExecuter.CountAsync(query);
-            var list = await AsyncExecuter.ToListAsync(
+            var courses = await AsyncExecuter.ToListAsync(
                 query
                     .OrderBy(
                         input.Sorting ?? $"{nameof(Course.CreationTime)} desc"
@@ -107,27 +113,29 @@ namespace IlkKontakt.Backend.Courses
                     .Take(input.MaxResultCount)
             );
 
-            return new PagedResultDto<CourseDto>(
-                totalCount,
-                ObjectMapper.Map<List<Course>, List<CourseDto>>(list)
-            );
+            var courseDtos = new List<CourseDto>();
+            foreach (var course in courses)
+            {
+                courseDtos.Add(await MapCourseToDtoWithInstructorInfo(course));
+            }
+
+            return new PagedResultDto<CourseDto>(totalCount, courseDtos);
         }
 
-        // Method to get all published courses (public view)
         public async Task<PagedResultDto<CourseDto>> GetPublishedCoursesAsync(
             CoursePagedAndSortedResultRequestDto input
         )
         {
             var queryable = await _courseRepository.GetQueryableAsync();
             var query = queryable
-                .Where(c => c.IsPublished == true) // Only published courses
+                .Where(c => c.IsPublished == true)
                 .WhereIf(
                     !input.Title.IsNullOrWhiteSpace(),
                     c => c.Title.Contains(input.Title)
                 );
 
             var totalCount = await AsyncExecuter.CountAsync(query);
-            var list = await AsyncExecuter.ToListAsync(
+            var courses = await AsyncExecuter.ToListAsync(
                 query
                     .OrderBy(
                         input.Sorting ?? $"{nameof(Course.CreationTime)} desc"
@@ -136,18 +144,19 @@ namespace IlkKontakt.Backend.Courses
                     .Take(input.MaxResultCount)
             );
 
-            return new PagedResultDto<CourseDto>(
-                totalCount,
-                ObjectMapper.Map<List<Course>, List<CourseDto>>(list)
-            );
+            var courseDtos = new List<CourseDto>();
+            foreach (var course in courses)
+            {
+                courseDtos.Add(await MapCourseToDtoWithInstructorInfo(course));
+            }
+
+            return new PagedResultDto<CourseDto>(totalCount, courseDtos);
         }
 
-        // Method to get any course by ID (for public viewing)
         public async Task<CourseDto> GetPublicAsync(Guid id)
         {
             var course = await _courseRepository.GetAsync(id);
             
-            // Only allow viewing published courses publicly
             if (!course.IsPublished)
             {
                 throw new AbpAuthorizationException(
@@ -155,7 +164,7 @@ namespace IlkKontakt.Backend.Courses
                 );
             }
 
-            return ObjectMapper.Map<Course, CourseDto>(course);
+            return await MapCourseToDtoWithInstructorInfo(course);
         }
 
         public async Task<CourseDto> CreateAsync(CreateUpdateCourseDto input)
@@ -176,7 +185,7 @@ namespace IlkKontakt.Backend.Courses
 
             await _courseRepository.InsertAsync(course, autoSave: true);
 
-            return ObjectMapper.Map<Course, CourseDto>(course);
+            return await MapCourseToDtoWithInstructorInfo(course);
         }
 
         public async Task<CourseDto> UpdateAsync(
@@ -204,12 +213,11 @@ namespace IlkKontakt.Backend.Courses
             }
 
             ObjectMapper.Map(input, course);
-            // preserve instructor
             course.InstructorId = instr.Id;
 
             await _courseRepository.UpdateAsync(course, autoSave: true);
 
-            return ObjectMapper.Map<Course, CourseDto>(course);
+            return await MapCourseToDtoWithInstructorInfo(course);
         }
 
         public Task DeleteAsync(Guid id)
@@ -219,6 +227,52 @@ namespace IlkKontakt.Backend.Courses
                 c => c.Id == id && c.InstructorId == userId,
                 autoSave: true
             );
+        }
+
+        // Helper method to map course to DTO with instructor information
+        private async Task<CourseDto> MapCourseToDtoWithInstructorInfo(Course course)
+        {
+            var courseDto = ObjectMapper.Map<Course, CourseDto>(course);
+
+            // Get instructor information
+            var instructor = await _instructorRepository.FirstOrDefaultAsync(
+                i => i.Id == course.InstructorId
+            );
+
+            if (instructor != null)
+            {
+                // Get user profile information
+                var userProfile = await _userProfileRepository.FirstOrDefaultAsync(
+                    up => up.Id == instructor.InstructorUserProfileId
+                );
+
+                if (userProfile != null)
+                {
+                    courseDto.InstructorName = userProfile.Name ?? "Bilinmeyen";
+                    courseDto.InstructorSurname = userProfile.Surname ?? "Eğitmen";
+                    courseDto.InstructorFullName = $"{userProfile.Name} {userProfile.Surname}".Trim();
+                    
+                    // If full name is empty, use a default
+                    if (string.IsNullOrWhiteSpace(courseDto.InstructorFullName))
+                    {
+                        courseDto.InstructorFullName = "Bilinmeyen Eğitmen";
+                    }
+                }
+                else
+                {
+                    courseDto.InstructorName = "Bilinmeyen";
+                    courseDto.InstructorSurname = "Eğitmen";
+                    courseDto.InstructorFullName = "Bilinmeyen Eğitmen";
+                }
+            }
+            else
+            {
+                courseDto.InstructorName = "Bilinmeyen";
+                courseDto.InstructorSurname = "Eğitmen";
+                courseDto.InstructorFullName = "Bilinmeyen Eğitmen";
+            }
+
+            return courseDto;
         }
     }
 }
