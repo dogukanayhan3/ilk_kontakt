@@ -70,7 +70,7 @@ function CourseCard({ course, isInstructor, onInstructorStatusChange }) {
             alert('Kursa başarıyla kaydoldunuz!');
         } catch (err) {
             console.error(err);
-            setError(err.message);
+            setError("You are already enrolled in this course.");
         } finally {
             setIsEnrolling(false);
         }
