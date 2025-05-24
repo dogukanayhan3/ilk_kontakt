@@ -1,798 +1,503 @@
-/* Banner Section */
-.profile-banner {
-  width: 100%;
-  height: 200px;
-  background: linear-gradient(135deg, #3245f1 0%, #5fbcee 100%);
-  margin-bottom: 100px;
-  position: relative;
-  border-radius: 0 0 20px 20px;
-  box-shadow: 0 4px 20px rgba(50, 69, 241, 0.15);
-}
-
-/* Container */
-.profile-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  margin-top: -50px;
-  position: relative;
-  z-index: 2;
-}
-
-/* Card */
-.profile-card {
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(50, 69, 241, 0.12);
-  padding: 40px;
-  width: 100%;
-  max-width: 1000px;
+/* ------------------------------ */
+/* 1. Welcome Banner             */
+/* ------------------------------ */
+.welcome {
+  background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
+  color: #fff;
+  padding: 60px 20px;
   text-align: center;
-  transition: box-shadow 0.2s, transform 0.2s;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   margin-bottom: 40px;
 }
-
-.profile-card:hover {
-  box-shadow: 0 12px 40px rgba(50, 69, 241, 0.18);
-  transform: translateY(-5px);
+.welcome h1 {
+  font-size: 2.8em;
+  margin: 0 0 10px;
+}
+.welcome p {
+  font-size: 1.1em;
+  margin: 0;
 }
 
-/* Profile Image */
+/* ------------------------------ */
+/* 2. Profile Card & Header      */
+/* ------------------------------ */
+.profile-section {
+  display: flex;
+  justify-content: center;
+  padding: 0 20px 60px;
+}
+.profile-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(50, 69, 241, 0.1);
+  max-width: 900px;
+  width: 100%;
+  padding: 40px 30px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(50, 69, 241, 0.15);
+}
+
+/* ------------------------------ */
+/* 3. Profile Image & Photo Button*/
+/* ------------------------------ */
 .profile-image-container {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 30px;
-  width: 180px;
-  height: 180px;
+  width: 160px; height: 160px;
+  margin: -100px auto 20px;
 }
-
-.profile-image-container img,
-.profile-image-container .profile-image {
-  width: 180px;
-  height: 180px;
+.profile-image-container img {
+  width: 160px; height: 160px;
   object-fit: cover;
   border-radius: 50%;
-  border: 6px solid #ffffff;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(50, 69, 241, 0.15);
-  transition: transform 0.3s ease;
+  border: 6px solid #fff;
+  box-shadow: 0 8px 24px rgba(50, 69, 241, 0.12);
+  transition: transform 0.3s;
 }
-
-.profile-image-container:hover img,
-.profile-image-container:hover .profile-image {
+.profile-image-container:hover img {
   transform: scale(1.05);
 }
-
-/* Photo-upload button */
 .change-photo-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: #3245f1;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 45px;
-  height: 45px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; bottom: 0; right: 0;
+  background: #3245f1; color: #fff;
+  width: 40px; height: 40px;
+  border: none; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  z-index: 1;
-  box-shadow: 0 4px 12px rgba(50, 69, 241, 0.2);
+  box-shadow: 0 4px 12px rgba(50,69,241,0.2);
+  transition: background 0.3s, transform 0.3s;
 }
-
 .change-photo-btn:hover {
-  background-color: #5fbcee;
+  background: #5fbcee;
   transform: scale(1.1);
 }
 
-/* Profile Info List */
-.profile-info-list {
-  text-align: left;
-  margin: 30px 0;
-  width: 100%;
-  max-width: 600px;
-}
-
-.profile-info-list div {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
-  padding: 12px 20px;
-  background: #f8f9ff;
-  border-radius: 12px;
-  transition: transform 0.2s ease;
-}
-
-.profile-info-list div:hover {
-  transform: translateX(5px);
-  background: #f0f3ff;
-}
-
-.profile-info-list span {
-  font-size: 1.1em;
-  color: #2c3e50;
-}
-
-/* Two Column Layout Container */
-.two-column-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* Section Styles */
-.experience-section,
-.education-section,
-.skill-section,
-.language-section,
-.project-section {
-  width: 100%;
-  max-width: 800px;
-  margin: 40px auto 0;
-  padding: 0 10px;
-}
-
-.experience-section h2,
-.education-section h2,
-.skill-section h2,
-.language-section h2,
-.project-section h2 {
-  color: #3245f1;
-  text-align: center;
-  margin-bottom: 24px;
-  font-size: 1.5em;
-  letter-spacing: 0.5px;
-}
-
-/* Card Styles */
-.experience-card,
-.education-card,
-.skill-card,
-.language-card,
-.project-card {
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(50,69,241,0.07);
-  padding: 22px 20px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-left: 5px solid #5fbcee;
-  transition: box-shadow 0.2s, transform 0.2s;
-  margin-bottom: 20px;
-}
-
-.experience-card:hover,
-.education-card:hover,
-.skill-card:hover,
-.language-card:hover,
-.project-card:hover {
-  box-shadow: 0 6px 18px rgba(50,69,241,0.13);
-  transform: translateY(-3px) scale(1.02);
-}
-
-/* Card Headers */
-.experience-card-header,
-.education-card-header,
-.skill-card-header,
-.language-card-header,
-.project-card-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.experience-title,
-.education-title,
-.skill-name,
-.language-name,
-.project-name {
-  font-size: 1.15em;
-  font-weight: 600;
-  color: #3245f1;
-}
-
-.experience-company,
-.education-degree,
-.skill-proficiency-text,
-.language-proficiency-text,
-.project-dates {
-  font-size: 0.95em;
-  color: #666;
-}
-
-/* Add Button Styles */
-.add-experience-btn,
-.add-education-btn,
-.add-skill-btn,
-.add-language-btn,
-.add-project-btn {
-  background: #3245f1;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.add-experience-btn:hover,
-.add-education-btn:hover,
-.add-skill-btn:hover,
-.add-language-btn:hover,
-.add-project-btn:hover {
-  background: #5fbcee;
-}
-
-/* GitHub Link */
-.github-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #3245f1;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.github-link:hover {
-  color: #5fbcee;
-}
-
-.github-link svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* Responsive Design */
-@media screen and (max-width: 1024px) {
-  .two-column-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .experience-section h2,
-  .education-section h2,
-  .skill-section h2,
-  .language-section h2,
-  .project-section h2 {
-    font-size: 1.3em;
-  }
-}
-
-/* Edit Form */
+/* ------------------------------ */
+/* 4. Profile Edit Form           */
+/* ------------------------------ */
 .profile-edit-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
-  text-align: left;
+  display: flex; flex-direction: column; gap: 15px;
+  margin-top: 20px;
 }
 .profile-edit-form input,
 .profile-edit-form textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1em;
-}
-.date-input-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.date-input-group input[type="date"] {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-
-/* Stats Row */
-.profile-details {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  margin-top: 20px;
-}
-.profile-stat {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f0f0f0;
-  padding: 15px;
   border-radius: 6px;
-  transition: transform 0.3s ease;
-}
-.profile-stat:hover {
-  transform: translateY(-3px);
-}
-.profile-stat h4 {
-  margin: 0;
-  color: #5fbcee;
   font-size: 1em;
+  transition: border-color 0.2s;
 }
-.profile-stat p {
-  margin: 5px 0 0;
-  font-size: 1.2em;
+.profile-edit-form input:focus,
+.profile-edit-form textarea:focus {
+  outline: none;
+  border-color: #5fbcee;
+  box-shadow: 0 0 0 2px rgba(95,188,238,0.2);
+}
+.profile-edit-form textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
-/* Actions */
+/* ------------------------------ */
+/* 5. Profile Info (view mode)    */
+/* ------------------------------ */
+.profile-info-list {
+  text-align: left;
+  max-width: 600px;
+  margin: 20px auto 0;
+}
+.profile-info-list div {
+  display: flex; align-items: center; gap: 12px;
+  background: #f8fafc; padding: 12px 16px;
+  border-radius: 8px; margin-bottom: 12px;
+  transition: background 0.2s, transform 0.2s;
+}
+.profile-info-list div:hover {
+  background: #f0f3ff;
+  transform: translateX(4px);
+}
+.profile-info-list span {
+  color: #2c3e50; font-size: 1em;
+}
+
+/* ------------------------------ */
+/* 6. Profile Actions             */
+/* ------------------------------ */
 .profile-actions {
-  display: flex;
-  gap: 10px;
+  display: flex; justify-content: center; gap: 12px;
   margin-top: 20px;
 }
 #edit-profile-btn,
 .save-profile-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  gap: 10px;
-  font-size: 1em;
-  padding: 12px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
+  color: #fff; border: none; padding: 10px 20px;
+  border-radius: 25px; font-weight: 600; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-#edit-profile-btn {
-  background: #5fbcee;
-  color: white;
-}
-#edit-profile-btn:hover {
-  background: #3245f1;
-}
-.save-profile-btn {
-  background: #3245f1;
-  color: white;
-}
+#edit-profile-btn:hover,
 .save-profile-btn:hover {
-  background: #5fbcee;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(50,69,241,0.3);
 }
 
-/* Posts Section (if you need to re-use or tweak) */
-.profile-posts-section {
-  width: 100%;
-  max-width: 800px;
-  margin-top: 40px;
-}
-.profile-posts-section h3 {
-  text-align: center;
-  color: #5fbcee;
-  margin-bottom: 20px;
-}
-.posts-grid {
+/* ------------------------------ */
+/* 7. Two-Column Layout           */
+/* ------------------------------ */
+.two-column-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: 1000px;
+  margin: 0 auto 60px;
+  padding: 0 20px;
+}
+@media screen and (max-width: 800px) {
+  .two-column-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------ */
+/* 8. Section Headers             */
+/* ------------------------------ */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-header h2 {
+  font-size: 1.4em; color: #3245f1;
+  position: relative; padding-bottom: 4px;
+}
+.section-header h2::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; width: 40px; height: 3px;
+  background: #5fbcee; border-radius: 2px;
+}
+.section-header button {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg,#5fbcee 0%,#3245f1 100%);
+  color: #fff; border: none; padding: 6px 12px;
+  border-radius: 20px; font-size: 0.9em; font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.section-header button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(50,69,241,0.3);
+}
+
+/* ------------------------------ */
+/* 9. Grids for Content Lists     */
+/* ------------------------------ */
+.experiences-grid,
+.education-grid,
+.skills-grid,
+.languages-grid,
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 20px;
 }
 
-/* EXPERIENCE SECTION */
-.experience-title {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #3245f1;
-}
-.experience-company {
-  font-size: 1em;
-  color: #5fbcee;
-}
-
-/* Layout for details */
-.experience-location {
-  font-size: 0.95em;
-  color: #666;
-  font-weight: 500;
-  margin-top: 4px;
-}
-.experience-dates {
-  font-size: 0.95em;
-  color: #888;
-}
-.experience-type {
-  font-size: 0.95em;
-  color: #3245f1;
-  font-weight: 500;
-}
-.experience-description {
-  font-size: 1em;
-  color: #444;
-  line-height: 1.5;
-  margin-top: 8px;
-}
-
-/* Experience Form (if you have one) */
-.experience-form {
+/* ------------------------------ */
+/* 10. Card Base                  */
+/* ------------------------------ */
+.experience-card,
+.education-card,
+.skill-card,
+.language-card,
+.project-card {
   background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(50, 69, 241, 0.07);
-  padding: 20px;
-  margin-bottom: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  transition: transform 0.3s, box-shadow 0.3s;
 }
-.experience-form input,
-.experience-form textarea,
-.experience-form select {
-  width: 100%;
-  max-width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 1em;
-}
-.experience-form label {
-  font-weight: 500;
-  color: #3245f1;
-  margin-bottom: 4px;
+.experience-card:hover,
+.education-card:hover,
+.skill-card:hover,
+.language-card:hover,
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.1);
 }
 
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(50, 69, 241, 0.13);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1001;
+/* ------------------------------ */
+/* 11. Card Header & Edit Button  */
+/* ------------------------------ */
+.experience-card-header,
+.education-card-header,
+.skill-card-header,
+.language-card-header,
+.project-card-header {
+  display: flex; align-items: center; gap: 6px;
 }
-
-.modal-content {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(50,69,241,0.18);
-  padding: 32px 24px 24px 24px;
-  min-width: 340px;
-  max-width: 95vw;
-  position: relative;
-  animation: modalIn 0.18s cubic-bezier(.4,2,.6,1) both;
+.experience-title,
+.education-title,
+.skill-name,
+.language-name,
+.project-name {
+  font-size: 1em; font-weight: 600; color: #3245f1;
 }
-
-@keyframes modalIn {
-  from { transform: translateY(40px) scale(0.97); opacity: 0; }
-  to { transform: none; opacity: 1; }
-}
-
-.modal-close-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+.edit-btn {
+  margin-left: auto;
   background: none;
   border: none;
   color: #3245f1;
   cursor: pointer;
-  font-size: 1.2em;
+  transition: color 0.2s, transform 0.2s;
+}
+.edit-btn:hover {
+  color: #5fbcee;
+  transform: scale(1.1);
+}
+
+/* ------------------------------ */
+/* 12. Meta & Detail Text         */
+/* ------------------------------ */
+.experience-dates,
+.education-dates,
+.skill-proficiency-text,
+.language-proficiency-text,
+.project-dates {
+  font-size: 0.9em;
+  color: #4a5568;
+}
+.experience-location,
+.experience-type,
+.education-description,
+.project-description {
+  font-size: 0.9em;
+  color: #666;
+}
+
+/* ------------------------------ */
+/* 13. Project Link               */
+/* ------------------------------ */
+.github-link {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #3245f1;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.github-link:hover {
+  color: #5fbcee;
+}
+
+/* ------------------------------ */
+/* 14. Modals                     */
+/* ------------------------------ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(50,69,241,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(50,69,241,0.18);
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+}
+.modal-close-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none;
+  color: #3245f1; cursor: pointer;
   transition: color 0.2s;
 }
 .modal-close-btn:hover {
   color: #5fbcee;
 }
 
-.add-experience-btn-row {
-  display: flex;
-  justify-content: flex-end;
-  margin: 32px 0 0 0;
-}
-
-/* Responsive */
-@media screen and (max-width: 768px) {
-  .profile-details {
-    flex-direction: column;
-  }
-  .profile-actions {
-    flex-direction: column;
-  }
-  .education-form {
-    flex-direction: column;
-  }
-}
-@media (max-width: 600px) {
-  .experiences-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* SKILL, LANGUAGE, PROJECT SECTION CONTAINERS */
-.skill-section,
-.language-section,
-.project-section,
-.experience-section {
-  width: 100%;
-  max-width: 800px;
-  margin: 40px auto 0;
-  padding: 0 10px;
-}
-.skill-section h2,
-.language-section h2,
-.project-section h2,
-.experience-section h2 {
-  color: #3245f1;
-  text-align: center;
-  margin-bottom: 24px;
-  font-size: 1.5em;
-  letter-spacing: 0.5px;
-}
-
-/* GRID LAYOUTS */
-.skills-grid,
-.languages-grid,
-.projects-grid,
-.experiences-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px,1fr));
-  gap: 24px;
-  margin-top: 24px;
-}
-
-/* CARD BASE */
-.skill-card,
-.language-card,
-.project-card,
-.experience-card {
-  background: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(50,69,241,0.07);
-  padding: 22px 20px 18px;
+/* ------------------------------ */
+/* 15. Modal Form Styles          */
+/* ------------------------------ */
+.experience-form,
+.education-form,
+.skill-form,
+.language-form,
+.project-form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  border-left: 5px solid #5fbcee;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.skill-card:hover,
-.language-card:hover,
-.project-card:hover,
-.experience-card:hover {
-  box-shadow: 0 6px 18px rgba(50,69,241,0.13);
-  transform: translateY(-3px) scale(1.02);
-}
-
-/* CARD HEADERS */
-.skill-card-header,
-.language-card-header,
-.project-card-header,
-.experience-card-header {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.skill-name,
-.language-name,
-.project-name,
-.experience-name {
-  font-size: 1.15em;
-  font-weight: 600;
-  color: #3245f1;
-}
-.edit-btn {
-  margin-left: auto;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-/* Skill proficiency display in cards */
-.skill-proficiency-display {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  gap: 12px;
   margin-top: 8px;
 }
-
-.skill-level-label {
-  font-size: 0.85em;
-  color: #666;
-  margin-top: 2px;
+.experience-form input,
+.experience-form select,
+.education-form input,
+.education-form select,
+.skill-form input,
+.language-form input,
+.language-form select,
+.project-form input,
+.project-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  transition: border-color 0.2s;
 }
-
-.skill-dots {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
+.experience-form textarea,
+.education-form textarea,
+.project-form textarea {
+  resize: vertical;
+  min-height: 60px;
 }
-
-.skill-dots .dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #ddd;
-  transition: background 0.2s;
+.experience-form input:focus,
+.experience-form select:focus,
+.education-form input:focus,
+.education-form select:focus,
+.skill-form input:focus,
+.language-form input:focus,
+.language-form select:focus,
+.project-form input:focus,
+.project-form textarea:focus {
+  outline: none;
+  border-color: #5fbcee;
+  box-shadow: 0 0 0 2px rgba(95,188,238,0.2);
 }
-
-.skill-level-text {
-  font-size: 0.95em;
-  color: #666;
-  margin-top: 4px 0 8px 0;
-}
-
-.skill-dots .dot.filled {
-  background: #3245f1;
-}
-
-.skill-dots {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-  justify-content: flex-start;
-}
-
-/* Skill proficiency selector in modal */
 .skill-proficiency-selector {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 10px 0;
+}
+.proficiency-dots {
+  display: flex; gap: 8px;
+}
+.dot-button {
+  background: none; border: none; padding: 0; cursor: pointer;
+}
+.dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #ddd; transition: background 0.2s, transform 0.1s;
+}
+.dot-button:hover .dot {
+  transform: scale(1.2);
+}
+.filled {
+  background: #3245f1;
+}
+.proficiency-label {
+  font-size: 0.9em; color: #444; text-align: center;
+}
+
+/* Save / Add Buttons in Modals */
+.save-profile-btn,
+.section-header button {
+  /* already defined above */
+}
+
+/* Error message inside forms */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
   padding: 10px;
-  background: #f9f9f9;
-  border-radius: 8px;
+  border-radius: 5px;
+  border: 1px solid #f5c6cb;
+  font-size: 0.9em;
+  margin-top: 4px;
+}
+
+/* Skill-Level Selector (in the “Yeni Yetenek Ekle” modal) */
+.skill-proficiency-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
 }
 
 .skill-proficiency-selector label {
   font-weight: 500;
   color: #444;
-  margin-bottom: 4px;
 }
 
 .proficiency-dots {
   display: flex;
-  gap: 10px;
-  margin: 8px 0;
+  gap: 12px;
   justify-content: center;
+  margin-top: 6px;
 }
 
-.dot-button {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
+.proficiency-dots .dot-button {
+  /* Make each button a generous circle hit-area */
   width: 36px;
   height: 36px;
+  background: transparent;
+  border: none;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease;
 }
 
-.dot-button .dot {
-  width: 20px;
-  height: 20px;
+.proficiency-dots .dot-button:hover {
+  transform: scale(1.1);
+}
+
+.proficiency-dots .dot {
+  /* The visible dot */
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: #ddd;
-  transition: background 0.2s, transform 0.1s;
+  transition: background 0.2s ease;
 }
 
-.dot-button:hover .dot {
-  transform: scale(1.1);
-  background: #5fbcee;
-}
-
-.dot-button.filled .dot {
+/* Filled (selected) state */
+.proficiency-dots .dot-button.filled .dot {
   background: #3245f1;
 }
 
+/* Show intermediate hover color */
+.proficiency-dots .dot-button:not(.filled):hover .dot {
+  background: #5fbcee;
+}
+
+/* Label under dots */
 .proficiency-label {
-  font-size: 0.95em;
-  color: #3245f1;
-  font-weight: 500;
+  font-size: 0.9em;
+  color: #444;
   text-align: center;
-  margin-top: 8px;
-}
-
-
-/* LANGUAGE PROFICIENCY LABEL */
-.language-proficiency {
-  font-size: 0.97em;
-  color: #666;
-  font-weight: 500;
-}
-.language-proficiency-text {
-  font-size: 0.95em;
-  color: #666;
   margin-top: 4px;
 }
 
-/* ADD BUTTON ROW */
-.add-skill-btn-row,
-.add-language-btn-row,
-.add-project-btn-row,
-.add-experience-btn-row {
-  display: flex;
-  justify-content: flex-end;
-  margin: 32px 0 0;
-}
-.add-skill-btn,
-.add-language-btn,
-.add-project-btn,
-.add-experience-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #3245f1;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.add-skill-btn:hover,
-.add-language-btn:hover,
-.add-project-btn:hover,
-.add-experience-btn:hover {
-  background: #5fbcee;
-}
 
-/* PROJECT DETAILS */
-.project-dates {
-  font-size: 0.97em;
-  color: #888;
-}
-.project-description {
-  font-size: 1em;
-  color: #444;
-  line-height: 1.5;
-}
-.project-link a {
-  color: #3245f1;
-  text-decoration: none;
-}
-.project-link a:hover {
-  text-decoration: underline;
-}
-
-/* ADD BUTTON ROWS */
-.add-skill-btn-row,
-.add-language-btn-row,
-.add-project-btn-row,
-.add-experience-btn-row {
-  display: flex;
-  justify-content: flex-end;
-  margin: 32px 0 0 0;
-}
-.add-skill-btn,
-.add-language-btn,
-.add-project-btn,
-.add-experience-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #3245f1;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 1em;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.add-skill-btn:hover,
-.add-language-btn:hover,
-.add-project-btn:hover,
-.add-experience-btn:hover {
-  background: #5fbcee;
+/* ------------------------------ */
+/* 16. Responsive Tweaks          */
+/* ------------------------------ */
+@media screen and (max-width: 600px) {
+  .two-column-container,
+  .experiences-grid,
+  .education-grid,
+  .skills-grid,
+  .languages-grid,
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }

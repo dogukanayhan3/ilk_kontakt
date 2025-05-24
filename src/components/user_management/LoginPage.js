@@ -5,8 +5,6 @@ import {
   User,
   Lock,
   Mail,
-  Phone,
-  UserCircle,
   CheckCircle,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -28,10 +26,7 @@ export default function LoginPage() {
     username: '',
     password: '',
     confirmPassword: '',
-    name: '',
-    surname: '',
     email: '',
-    phoneNumber: '',
   })
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -134,10 +129,7 @@ export default function LoginPage() {
           userName: formData.username,
           emailAddress: formData.email,
           password: formData.password,
-          appName: 'IlkKontaktApp',
-          name: formData.name,
-          surname: formData.surname,
-          phoneNumber: formData.phoneNumber
+          appName: 'IlkKontaktApp'
         }),
       })
       if (!regRes.ok) {
@@ -183,28 +175,6 @@ export default function LoginPage() {
       setCurrentUser(userInfo)
       localStorage.setItem('currentUser', JSON.stringify(userInfo))
       localStorage.setItem('isAuthenticated', 'true')
-
-      // 5) (commented out) Create the UserProfile record
-      /*
-      await fetch(`${API_BASE}/api/app/user-profile`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          accept: 'application/json',
-          'Content-Type': 'application/json',
-          RequestVerificationToken: xsrf,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify({
-          about: '',
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          address: '',
-          birthday: new Date().toISOString(),
-          profilePictureUrl: '',
-        }),
-      })
-      */
 
       // 6) Navigate to homepage
       navigate('/homepage')
@@ -282,32 +252,6 @@ export default function LoginPage() {
             </div>
             <div className="form-group">
               <label>
-                <UserCircle size={18} /> Ad
-              </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Adınızı girin"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>
-                <UserCircle size={18} /> Soyad
-              </label>
-              <input
-                type="text"
-                name="surname"
-                placeholder="Soyadınızı girin"
-                value={formData.surname}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>
                 <Mail size={18} /> E-posta
               </label>
               <input
@@ -315,19 +259,6 @@ export default function LoginPage() {
                 name="email"
                 placeholder="E-posta adresinizi girin"
                 value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>
-                <Phone size={18} /> Telefon
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                placeholder="Telefon numaranızı girin"
-                value={formData.phoneNumber}
                 onChange={handleChange}
                 required
               />

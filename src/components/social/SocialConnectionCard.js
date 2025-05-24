@@ -29,6 +29,12 @@ function SocialConnectionCard({ connection }) {
                     </div>
                 ))}
             </div>
+            <button
+                className="view-profile-btn"
+                onClick={() => navigate(`/profile/${connection.id}`)}
+            >
+                Profili Görüntüle
+            </button>
         </div>
     );
 }
