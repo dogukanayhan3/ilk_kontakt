@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IlkKontakt.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class CourseUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -1110,7 +1110,7 @@ namespace IlkKontakt.Backend.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Description = table.Column<string>(type: "character varying(1500)", maxLength: 1500, nullable: false),
-                    ThumbnailUrl = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    ThumbnailUrl = table.Column<string>(type: "text", nullable: false),
                     InstructorId = table.Column<Guid>(type: "uuid", nullable: false),
                     IsPublished = table.Column<bool>(type: "boolean", nullable: false),
                     ExtraProperties = table.Column<string>(type: "text", nullable: false),

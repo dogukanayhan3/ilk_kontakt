@@ -12,7 +12,6 @@ public class CreateUpdateCourseDto
     [StringLength(2048)]
     public string Description { get; set; }
 
-    [StringLength(512)]
     public string ThumbnailUrl { get; set; }
     public Guid InstructorId { get; set; }
 

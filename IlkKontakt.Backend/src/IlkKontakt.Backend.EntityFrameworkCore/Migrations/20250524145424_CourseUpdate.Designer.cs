@@ -13,8 +13,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250524134648_initial")]
-    partial class initial
+    [Migration("20250524145424_CourseUpdate")]
+    partial class CourseUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -177,8 +177,7 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()

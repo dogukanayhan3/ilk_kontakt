@@ -174,8 +174,7 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.Property<string>("ThumbnailUrl")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()

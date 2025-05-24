@@ -339,10 +339,7 @@ public class BackendDbContext :
 
             b.Property(x => x.Description)
                 .HasMaxLength(1500);
-
-            b.Property(x => x.ThumbnailUrl)
-                .HasMaxLength(512);
-
+            
             b.HasOne<Instructor>()
                 .WithMany()
                 .HasForeignKey(x => x.InstructorId)
