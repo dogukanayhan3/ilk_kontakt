@@ -308,7 +308,8 @@ function HomePage() {
                 userComments={post.userComments}
                 publishDate={post.publishDate}
                 onPostUpdate={fetchPosts}
-                profileImage={post.profilePictureUrl || '/default-avatar.png'}
+                profileImage={post.profilePictureUrl}
+                userProfileImage={getProfileImage()}
               />
             ))
           )}
