@@ -416,6 +416,73 @@
   margin-top: 4px;
 }
 
+/* Skill-Level Selector (in the “Yeni Yetenek Ekle” modal) */
+.skill-proficiency-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.skill-proficiency-selector label {
+  font-weight: 500;
+  color: #444;
+}
+
+.proficiency-dots {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.proficiency-dots .dot-button {
+  /* Make each button a generous circle hit-area */
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.proficiency-dots .dot-button:hover {
+  transform: scale(1.1);
+}
+
+.proficiency-dots .dot {
+  /* The visible dot */
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ddd;
+  transition: background 0.2s ease;
+}
+
+/* Filled (selected) state */
+.proficiency-dots .dot-button.filled .dot {
+  background: #3245f1;
+}
+
+/* Show intermediate hover color */
+.proficiency-dots .dot-button:not(.filled):hover .dot {
+  background: #5fbcee;
+}
+
+/* Label under dots */
+.proficiency-label {
+  font-size: 0.9em;
+  color: #444;
+  text-align: center;
+  margin-top: 4px;
+}
+
+
 /* ------------------------------ */
 /* 16. Responsive Tweaks          */
 /* ------------------------------ */

@@ -194,7 +194,7 @@ function EducationPage() {
                 <div className="instructor-application-section">
                     {!isInstructor ? (
                         <button 
-                            className="instructor-btn"
+                            className="create-course-btn"
                             onClick={handleInstructorApplication}
                             disabled={isApplying}
                         >
