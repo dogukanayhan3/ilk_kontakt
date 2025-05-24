@@ -120,3 +120,40 @@
         flex-direction: column; /* Stacked on smaller screens as well */
     }
 }
+
+.instructor-application-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+}
+
+.instructor-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.instructor-btn:hover {
+    background-color: #45a049;
+}
+
+.instructor-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.instructor-btn svg {
+    margin-right: 8px;
+}

@@ -13,4 +13,11 @@ public interface ICourseAppService :
         CoursePagedAndSortedResultRequestDto,
         CreateUpdateCourseDto>
 {
+    Task<PagedResultDto<CourseDto>> GetAllCoursesAsync(
+        CoursePagedAndSortedResultRequestDto input);
+    
+    Task<PagedResultDto<CourseDto>> GetPublishedCoursesAsync(
+        CoursePagedAndSortedResultRequestDto input);
+    
+    Task<CourseDto> GetPublicAsync(Guid id);
 }

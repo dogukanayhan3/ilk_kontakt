@@ -4,6 +4,7 @@ import LoginPage from './components/user_management/LoginPage';
 import JobListPage from './components/positions/JobListPage';
 import ContactPage from './components/contact/ContactPage';
 import EducationPage from "./components/education/EducationPage";
+import CreateCoursePage from "./components/education/CreateCoursePage";
 import ProfilePage from "./components/profile/ProfilePage";
 import SocialPage from "./components/social/SocialPage";
 import NotificationsPage from "./components/notifications/NotificationsPage";
@@ -51,6 +52,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EducationPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/create-course" 
+            element={
+              <ProtectedRoute>
+                <CreateCoursePage />
               </ProtectedRoute>
             } 
           />

@@ -181,14 +181,14 @@ function HomePage() {
                   alt="Profile"
                   className="post-profile-image"
                 />
-                <textarea
-                  className="post-input"
-                  placeholder="Düşüncelerinizi paylaşın..."
-                  value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
+              <textarea
+                className="post-input"
+                placeholder="Düşüncelerinizi paylaşın..."
+                value={newPostContent}
+                onChange={(e) => setNewPostContent(e.target.value)}
                   disabled={!currentUser}
                   rows={3}
-                />
+              />
               </div>
               <div className="post-submit">
                 <button
@@ -225,7 +225,7 @@ function HomePage() {
               />
             ))
           )}
-          {!loading && error && posts.length === 0 && <div className="error-message">{error}</div>}
+           {!loading && error && posts.length === 0 && <div className="error-message">{error}</div>}
         </div>
 
         {/* Right Sidebar (Suggestions) */}
