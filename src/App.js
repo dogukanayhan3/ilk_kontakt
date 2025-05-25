@@ -4,6 +4,7 @@ import LoginPage from './components/user_management/LoginPage';
 import JobListPage from './components/positions/JobListPage';
 import ContactPage from './components/contact/ContactPage';
 import EducationPage from "./components/education/EducationPage";
+import CreateCoursePage from "./components/education/CreateCoursePage";
 import ProfilePage from "./components/profile/ProfilePage";
 import SocialPage from "./components/social/SocialPage";
 import NotificationsPage from "./components/notifications/NotificationsPage";
@@ -55,7 +56,23 @@ function App() {
             } 
           />
           <Route 
+            path="/create-course" 
+            element={
+              <ProtectedRoute>
+                <CreateCoursePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/profilepage" 
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profilepage/:userId" 
             element={
               <ProtectedRoute>
                 <ProfilePage />
@@ -70,30 +87,6 @@ function App() {
               </ProtectedRoute>
             } 
           />
-          {/* <Route 
-            path="/about_us" 
-            element={
-              <ProtectedRoute>
-                <AboutUsPage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/privacy_policy" 
-            element={
-              <ProtectedRoute>
-                <PrivacyPolicyPage />
-              </ProtectedRoute>
-          } 
-          />
-          <Route 
-            path="/terms_of_use" 
-            element={
-              <ProtectedRoute>
-                <TermsOfUsePage />
-              </ProtectedRoute>
-          } 
-          /> */}
           <Route 
             path="/contact_us" 
             element={

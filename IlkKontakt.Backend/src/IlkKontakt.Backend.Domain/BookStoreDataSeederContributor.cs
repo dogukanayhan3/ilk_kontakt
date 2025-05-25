@@ -88,6 +88,9 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
             {
                 UserId = user.Id,
                 About = "Experienced software developer with a passion for technology",
+                Name = "Dogukan",
+                Surname = "Ayhan",
+                UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = "+1234567890",
                 Address = "123 Tech Street, Silicon Valley, CA",

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IlkKontakt.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Education : Migration
+    public partial class CourseUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -769,6 +769,36 @@ namespace IlkKontakt.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Connections",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Connections", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Connections_AbpUsers_ReceiverId",
+                        column: x => x.ReceiverId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Connections_AbpUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Posts",
                 columns: table => new
                 {
@@ -803,6 +833,9 @@ namespace IlkKontakt.Backend.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     About = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Surname = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    UserName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
                     Email = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     PhoneNumber = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     Address = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
@@ -931,6 +964,112 @@ namespace IlkKontakt.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Instructors",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    InstructorUserProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Instructors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Instructors_AbpUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Instructors_UserProfiles_InstructorUserProfileId",
+                        column: x => x.InstructorUserProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Languages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LanguageName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    LanguageProficiency = table.Column<int>(type: "integer", nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Languages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Languages_UserProfiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Projects",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProjectName = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Description = table.Column<string>(type: "character varying(512)", maxLength: 512, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ProjectUrl = table.Column<string>(type: "text", nullable: true),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Projects", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Projects_UserProfiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Skills",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SkillName = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    SkillProficiency = table.Column<int>(type: "integer", nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Skills", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Skills_UserProfiles_ProfileId",
+                        column: x => x.ProfileId,
+                        principalTable: "UserProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OpenIddictTokens",
                 columns: table => new
                 {
@@ -962,6 +1101,66 @@ namespace IlkKontakt.Backend.Migrations
                         column: x => x.AuthorizationId,
                         principalTable: "OpenIddictAuthorizations",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Courses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Title = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Description = table.Column<string>(type: "character varying(1500)", maxLength: 1500, nullable: false),
+                    ThumbnailUrl = table.Column<string>(type: "text", nullable: false),
+                    InstructorId = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsPublished = table.Column<bool>(type: "boolean", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Courses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Courses_Instructors_InstructorId",
+                        column: x => x.InstructorId,
+                        principalTable: "Instructors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Enrollments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CourseId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    EnrollmentDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Enrollments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Enrollments_AbpUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AbpUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Enrollments_Courses_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -1194,13 +1393,54 @@ namespace IlkKontakt.Backend.Migrations
                 column: "UserName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Connections_ReceiverId",
+                table: "Connections",
+                column: "ReceiverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Connections_SenderId_ReceiverId",
+                table: "Connections",
+                columns: new[] { "SenderId", "ReceiverId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Courses_InstructorId",
+                table: "Courses",
+                column: "InstructorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Educations_ProfileId",
                 table: "Educations",
                 column: "ProfileId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Enrollments_CourseId",
+                table: "Enrollments",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Enrollments_UserId",
+                table: "Enrollments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Experiences_ProfileId",
                 table: "Experiences",
+                column: "ProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Instructors_InstructorUserProfileId",
+                table: "Instructors",
+                column: "InstructorUserProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Instructors_UserId",
+                table: "Instructors",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Languages_ProfileId",
+                table: "Languages",
                 column: "ProfileId");
 
             migrationBuilder.CreateIndex(
@@ -1237,6 +1477,16 @@ namespace IlkKontakt.Backend.Migrations
                 name: "IX_Posts_CreatorUserId",
                 table: "Posts",
                 column: "CreatorUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projects_ProfileId",
+                table: "Projects",
+                column: "ProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Skills_ProfileId",
+                table: "Skills",
+                column: "ProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserProfiles_UserId",
@@ -1327,10 +1577,19 @@ namespace IlkKontakt.Backend.Migrations
                 name: "AppBooks");
 
             migrationBuilder.DropTable(
+                name: "Connections");
+
+            migrationBuilder.DropTable(
                 name: "Educations");
 
             migrationBuilder.DropTable(
+                name: "Enrollments");
+
+            migrationBuilder.DropTable(
                 name: "Experiences");
+
+            migrationBuilder.DropTable(
+                name: "Languages");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictScopes");
@@ -1340,6 +1599,12 @@ namespace IlkKontakt.Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "Projects");
+
+            migrationBuilder.DropTable(
+                name: "Skills");
 
             migrationBuilder.DropTable(
                 name: "AbpBlobContainers");
@@ -1357,7 +1622,7 @@ namespace IlkKontakt.Backend.Migrations
                 name: "AbpRoles");
 
             migrationBuilder.DropTable(
-                name: "UserProfiles");
+                name: "Courses");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictAuthorizations");
@@ -1366,10 +1631,16 @@ namespace IlkKontakt.Backend.Migrations
                 name: "AbpAuditLogs");
 
             migrationBuilder.DropTable(
-                name: "AbpUsers");
+                name: "Instructors");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictApplications");
+
+            migrationBuilder.DropTable(
+                name: "UserProfiles");
+
+            migrationBuilder.DropTable(
+                name: "AbpUsers");
         }
     }
 }
