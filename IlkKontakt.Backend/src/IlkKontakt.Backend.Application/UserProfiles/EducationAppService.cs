@@ -2,17 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp;
 using System.Linq.Dynamic.Core;
-using IlkKontakt.Backend.Permissions;
 
 namespace IlkKontakt.Backend.UserProfiles
 {
-    [Authorize(BackendPermissions.UserProfiles.Default)]
     public class EducationAppService : ApplicationService, IEducationAppService
     {
         private readonly IRepository<Education, Guid> _repository;
@@ -103,7 +100,6 @@ namespace IlkKontakt.Backend.UserProfiles
             );
         }
 
-        [Authorize(BackendPermissions.UserProfiles.Create)]
         public async Task<EducationDto> CreateAsync(CreateUpdateEducationDto input)
         {
             await ValidateEducationAsync(input);
@@ -114,7 +110,6 @@ namespace IlkKontakt.Backend.UserProfiles
             return ObjectMapper.Map<Education, EducationDto>(education);
         }
 
-        [Authorize(BackendPermissions.UserProfiles.Edit)]
         public async Task<EducationDto> UpdateAsync(Guid id, CreateUpdateEducationDto input)
         {
             await ValidateEducationAsync(input);
@@ -132,7 +127,6 @@ namespace IlkKontakt.Backend.UserProfiles
             return ObjectMapper.Map<Education, EducationDto>(education);
         }
 
-        [Authorize(BackendPermissions.UserProfiles.Delete)]
         public async Task DeleteAsync(Guid id)
         {
             await _repository.DeleteAsync(id);

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
-import Layout from '../page_layout/Layout'; // Ensure path is correct
-import Post from './Post'; // Ensure path is correct
+import React, { useState, useEffect, useCallback } from 'react';
+import Layout from '../page_layout/Layout';
+import Post from './Post';
 import { Send } from 'lucide-react';
-import '../../component-styles/HomePage.css'; // Ensure path is correct
-import { useAuth } from '../../contexts/AuthContext'; // Ensure path is correct
+import '../../component-styles/HomePage.css';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 // Helper to get a cookie value by name
@@ -12,13 +12,15 @@ function getCookie(name) {
   return match ? match[2] : null;
 }
 
-const API_BASE_URL = 'https://localhost:44388'; // Define base URL
+const API_BASE_URL = 'https://localhost:44388';
 
 function HomePage() {
   const [posts, setPosts] = useState([]);
   const [newPostContent, setNewPostContent] = useState('');
-  const [loading, setLoading] = useState(true); // Start loading initially
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [userProfile, setUserProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -29,24 +31,51 @@ function HomePage() {
     }
   }, [currentUser, navigate]);
 
-  // Fetch posts function using useCallback to stabilize its identity
-  const fetchPosts = useCallback(async () => {
-    // Don't set loading true here if called as a refresh,
-    // only on initial load or explicit full refresh scenarios.
-    // setLoading(true); // Consider removing this line if fetchPosts is only for refresh
-    setError('');
-    if (!currentUser) return; // Don't fetch if user logs out
+  // Fetch user profile function
+  const fetchUserProfile = useCallback(async () => {
+    if (!currentUser) return;
 
     try {
-      // Fetch posts list - adjust MaxResultCount as needed
       const response = await fetch(
-        `${API_BASE_URL}/api/app/post?SkipCount=0&MaxResultCount=20`, // Use base URL
+        `${API_BASE_URL}/api/app/user-profile/by-user`,
         {
-          credentials: 'include', // Send cookies for authentication
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      if (response.ok) {
+        const profileData = await response.json();
+        setUserProfile(profileData);
+      } else if (response.status === 404) {
+        // User doesn't have a profile yet
+        setUserProfile(null);
+      } else {
+        console.error('Failed to fetch user profile');
+      }
+    } catch (err) {
+      console.error('Fetch user profile error:', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [currentUser]);
+
+  // Fetch posts function using useCallback to stabilize its identity
+  const fetchPosts = useCallback(async () => {
+    setError('');
+    if (!currentUser) return;
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/app/post?SkipCount=0&MaxResultCount=20`,
+        {
+          credentials: 'include',
         },
       );
 
-      // Handle unauthorized or redirect
       if (response.status === 401 || response.redirected) {
         console.log('Unauthorized or redirected, navigating to login.');
         navigate('/login');
@@ -58,26 +87,28 @@ function HomePage() {
       }
 
       const data = await response.json();
-      // Ensure data.items is an array before setting state
       setPosts(Array.isArray(data.items) ? data.items : []);
     } catch (err) {
       console.error('Fetch posts error:', err);
       setError(err.message);
-      setPosts([]); // Clear posts on error
+      setPosts([]);
     } finally {
-      setLoading(false); // Set loading false after fetch attempt
+      setLoading(false);
     }
-  }, [navigate, currentUser]); // Add currentUser dependency
+  }, [navigate, currentUser]);
 
   // Initial fetch on component mount if user is logged in
   useEffect(() => {
     if (currentUser) {
-      setLoading(true); // Set loading true for initial fetch
+      setLoading(true);
+      setProfileLoading(true);
       fetchPosts();
+      fetchUserProfile();
     } else {
-      setLoading(false); // Not logged in, not loading
+      setLoading(false);
+      setProfileLoading(false);
     }
-  }, [currentUser, fetchPosts]); // Depend on currentUser and fetchPosts
+  }, [currentUser, fetchPosts, fetchUserProfile]);
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
@@ -92,7 +123,6 @@ function HomePage() {
     }
 
     try {
-      // Get XSRF token
       await fetch(`${API_BASE_URL}/api/abp/application-configuration`, {
         credentials: 'include',
       });
@@ -102,8 +132,7 @@ function HomePage() {
         return;
       }
 
-      // POST request to create a new post
-      const response = await fetch(`${API_BASE_URL}/api/app/post`, { // Use base URL
+      const response = await fetch(`${API_BASE_URL}/api/app/post`, {
         method: 'POST',
         headers: {
           accept: 'application/json',
@@ -113,11 +142,10 @@ function HomePage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          content: newPostContent, // Send content in the expected DTO format
+          content: newPostContent,
         }),
       });
 
-      // Handle unauthorized or redirect
       if (response.status === 401 || response.redirected) {
         navigate('/login');
         return;
@@ -132,41 +160,100 @@ function HomePage() {
         throw new Error(errorMsg + ` (Status: ${response.status})`);
       }
 
-      // Add the newly created post (returned from API) to the top of the list
       const createdPost = await response.json();
-      setPosts((prevPosts) => [createdPost, ...prevPosts]); // Prepend new post
-      setNewPostContent(''); // Clear the input field
+      setPosts((prevPosts) => [createdPost, ...prevPosts]);
+      setNewPostContent('');
     } catch (err) {
       console.error('Create post error:', err);
       setError(err.message);
     }
   };
 
+  // Helper functions for display
+  const getDisplayName = () => {
+    if (userProfile) {
+      if (userProfile.name && userProfile.surname) {
+        return `${userProfile.name} ${userProfile.surname}`;
+      }
+      if (userProfile.userName) {
+        return userProfile.userName;
+      }
+      if (userProfile.name) {
+        return userProfile.name;
+      }
+    }
+    return currentUser?.userName || 'Misafir';
+  };
+
+  const getWelcomeName = () => {
+    if (userProfile?.name) {
+      return userProfile.name;
+    }
+    if (userProfile?.userName) {
+      return userProfile.userName;
+    }
+    return currentUser?.userName || 'Misafir';
+  };
+
+  const getProfileImage = () => {
+    // You can add a profilePictureUrl field to UserProfile if needed
+    // For now, using a default or generated avatar
+    if (userProfile?.profilePictureUrl) {
+      return userProfile.profilePictureUrl;
+    }
+    return currentUser?.profilePictureUrl || '/default-avatar.png';
+  };
+
+  const handleCreateProfile = () => {
+    navigate('/create-profile'); // You'll need to create this route/component
+  };
+
   // Render only if user is authenticated (or during initial load check)
   if (!currentUser && !loading) {
-      // Or return a message, or rely on the redirect effect
       return null;
   }
 
   return (
     <Layout>
       <section className="welcome">
-        {/* Display username from currentUser context */}
-        <h1>Hoş Geldin {currentUser?.userName || 'Misafir'}!</h1>
+        <h1>Hoş Geldin {getWelcomeName()}!</h1>
         <p>Hayallerinize giden yolda ilk kontakt noktanız!</p>
       </section>
       <section className="feed">
         {/* Left Sidebar (Profile Card) */}
         <div className="feed-left">
           <div className="profile-card">
-            <img
-              src={currentUser?.profileImage || 'https://via.placeholder.com/150'}
-              alt="Profile"
-            />
-            {/* Display username from currentUser context */}
-            <h3>{currentUser?.userName || 'Misafir'}</h3>
-            <p>Yazılım Mühendisi</p> {/* Placeholder title */}
-            <button onClick={() => navigate('/profile')}>Profil</button> {/* Example navigation */}
+            {profileLoading ? (
+              <div className="profile-loading">
+                <div className="profile-image-placeholder"></div>
+                <p>Profil yükleniyor...</p>
+              </div>
+            ) : userProfile ? (
+              <>
+                <img
+                  src={getProfileImage()}
+                  alt="Profile"
+                  className="profile-image"
+                />
+                <h3>{getDisplayName()}</h3>
+                <p>{userProfile.address || 'Konum belirtilmemiş'}</p>
+                <p className="profile-email">{userProfile.email || currentUser?.email}</p>
+                <button onClick={() => navigate('/profilepage')}>Profili Düzenle</button>
+              </>
+            ) : (
+              <div className="no-profile">
+                <img
+                  src="/default-avatar.png"
+                  alt="Default Profile"
+                  className="profile-image"
+                />
+                <h3>{currentUser?.userName || 'Misafir'}</h3>
+                <p>Profil oluşturulmamış</p>
+                <button onClick={handleCreateProfile} className="create-profile-btn">
+                  Profil Oluştur
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -175,26 +262,32 @@ function HomePage() {
           {/* Post Creation Form */}
           <div className="post-creation">
             <form onSubmit={handlePostSubmit}>
+              <div className="post-input-container">
+                <img
+                  src={getProfileImage()}
+                  alt="Profile"
+                  className="post-profile-image"
+                />
               <textarea
                 className="post-input"
                 placeholder="Düşüncelerinizi paylaşın..."
                 value={newPostContent}
                 onChange={(e) => setNewPostContent(e.target.value)}
-                disabled={!currentUser} // Disable if not logged in
-                rows={3} // Adjust size
+                  disabled={!currentUser}
+                  rows={3}
               />
+              </div>
               <div className="post-submit">
                 <button
                   type="submit"
                   className="share-post-btn"
-                  disabled={!currentUser || !newPostContent.trim()} // Disable if not logged in or empty
+                  disabled={!currentUser || !newPostContent.trim()}
                 >
                   <Send size={18} />
                   Paylaş
                 </button>
               </div>
             </form>
-            {/* Display errors related to post creation */}
             {error && <div className="error-message">{error}</div>}
           </div>
 
@@ -208,18 +301,18 @@ function HomePage() {
               <Post
                 key={post.id}
                 id={post.id}
-                // Pass props matching the updated Post component's expectations
-                userName={post.userName} // Use userName from fetched post data
+                userName={post.userName}
                 content={post.content}
                 userLikes={post.userLikes}
-                numberOfLikes={post.numberOfLikes} // Pass numberOfLikes
+                numberOfLikes={post.numberOfLikes}
                 userComments={post.userComments}
                 publishDate={post.publishDate}
-                onPostUpdate={fetchPosts} // Pass the fetchPosts function for refreshing
+                onPostUpdate={fetchPosts}
+                profileImage={post.profilePictureUrl}
+                userProfileImage={getProfileImage()}
               />
             ))
           )}
-           {/* Display general fetch errors here if not shown elsewhere */}
            {!loading && error && posts.length === 0 && <div className="error-message">{error}</div>}
         </div>
 

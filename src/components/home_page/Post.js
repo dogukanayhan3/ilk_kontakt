@@ -19,6 +19,8 @@ function Post({
   userComments,
   publishDate,
   onPostUpdate,
+  profileImage,
+  userProfileImage,
 }) {
   // --- Component State ---
   const [isCommenting, setIsCommenting] = useState(false);
@@ -96,14 +98,14 @@ function Post({
 
       // Restore fetch options
       const response = await fetch(endpoint, {
-        method: 'POST', // <<< WAS MISSING
-        headers: { // <<< WAS MISSING
+        method: 'POST',
+        headers: {
           'Content-Type': 'application/json',
           RequestVerificationToken: xsrfToken,
           'X-Requested-With': 'XMLHttpRequest',
         },
         credentials: 'include',
-        body: JSON.stringify({ content: commentText }), // <<< WAS MISSING
+        body: JSON.stringify({ content: commentText }),
       });
 
       if (!response.ok) {
@@ -116,7 +118,7 @@ function Post({
       setCommentText('');
       setIsCommenting(false);
       // Refresh the post data to show the new comment
-      onPostUpdate(); // <<< Keep this for comments
+      onPostUpdate();
 
     } catch (err) {
       setError(err.message);
@@ -129,7 +131,11 @@ function Post({
     <div className="post">
       {/* === Post Header === */}
       <div className="post-header">
-         <img src={`https://i.pravatar.cc/50?u=${id}`} alt="Profile" className="post-avatar"/>
+         <img 
+           src={profileImage || userProfileImage || '/default-avatar.png'} 
+           alt="Profile" 
+           className="post-avatar"
+         />
          <div className="post-header-info">
            <h4 className="post-username">{userName || '<Unknown User>'}</h4>
            <span className="post-timestamp">{publishDate ? new Date(publishDate).toLocaleString() : 'Date unavailable'}</span>
@@ -146,19 +152,68 @@ function Post({
       {/* === Post Actions === */}
       <div className="post-actions">
         <button type="button" className={`action-button like-button ${localHasLiked ? 'liked' : ''}`} onClick={handleLike} disabled={!currentUser} title={!currentUser ? 'Log in to like' : localHasLiked ? 'Unlike' : 'Like'}>
-          {/* Use CSS for fill */}
-          <ThumbsUp size={18} />
+          <ThumbsUp size={18} className={localHasLiked ? 'liked-icon' : ''} />
           <span>{localHasLiked ? 'Liked' : 'Like'}</span>
         </button>
         <button type="button" className="action-button comment-button" onClick={() => setIsCommenting(!isCommenting)} disabled={!currentUser} title={!currentUser ? 'Log in to comment' : 'Comment'}>
           <MessageCircle size={18} />
-          {/* Display static text, count is in stats */}
           <span>Comment</span>
         </button>
       </div>
       {/* === Comment Input & Section === */}
-       {isCommenting && currentUser && ( <div className="comment-input-section"> <img src={`https://i.pravatar.cc/40?u=${currentUser.id}`} alt="Your avatar" className="comment-input-avatar"/> <form onSubmit={handleComment} className="comment-form"> <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write your comment..." rows={2} required className="comment-textarea"/> <button type="submit" disabled={!commentText.trim()} title="Send Comment" className="comment-send-button"> <Send size={18} /> </button> </form> </div> )}
-       {isCommenting && ( <div className="comments-section"> {userComments?.length > 0 ? ( userComments.map((comment) => ( <div key={comment.id} className="comment"> <img src={`https://i.pravatar.cc/40?u=${comment.userId}`} alt="Commenter avatar" className="comment-avatar"/> <div className="comment-body"> <div className="comment-header"><strong className="comment-username">{comment.userName || '<Unknown User>'}</strong></div> <p className="comment-text">{comment.content}</p> <span className="comment-timestamp">{comment.creationTime ? new Date(comment.creationTime).toLocaleString() : ''}</span> </div> </div> )) ) : ( <p className="no-comments-yet">No comments yet.</p> )} </div> )}
+       {isCommenting && currentUser && ( 
+         <div className="comment-input-section"> 
+           <img 
+             src={userProfileImage || '/default-avatar.png'} 
+             alt="Your avatar" 
+             className="comment-input-avatar"
+           /> 
+           <form onSubmit={handleComment} className="comment-form"> 
+             <textarea 
+               value={commentText} 
+               onChange={(e) => setCommentText(e.target.value)} 
+               placeholder="Write your comment..." 
+               rows={2} 
+               required 
+               className="comment-textarea"
+             /> 
+             <button 
+               type="submit" 
+               disabled={!commentText.trim()} 
+               title="Send Comment" 
+               className="comment-send-button"
+             > 
+               <Send size={18} /> 
+             </button> 
+           </form> 
+         </div>
+       )}
+       {isCommenting && ( 
+         <div className="comments-section"> 
+           {userComments?.length > 0 ? ( 
+             userComments.map((comment) => ( 
+               <div key={comment.id} className="comment"> 
+                 <img 
+                   src={comment.profileImage || '/default-avatar.png'} 
+                   alt="Commenter avatar" 
+                   className="comment-avatar"
+                 /> 
+                 <div className="comment-body"> 
+                   <div className="comment-header">
+                     <strong className="comment-username">{comment.userName || '<Unknown User>'}</strong>
+                   </div> 
+                   <p className="comment-text">{comment.content}</p> 
+                   <span className="comment-timestamp">
+                     {comment.creationTime ? new Date(comment.creationTime).toLocaleString() : ''}
+                   </span> 
+                 </div> 
+               </div> 
+             )) 
+           ) : ( 
+             <p className="no-comments-yet">No comments yet.</p> 
+           )} 
+         </div>
+       )}
       {/* === Error Display === */}
        {error && <div className="error-message post-error">{error}</div>}
     </div>
@@ -179,10 +234,13 @@ Post.propTypes = {
         userName: PropTypes.string,
         content: PropTypes.string.isRequired,
         creationTime: PropTypes.string.isRequired,
+        profileImage: PropTypes.string,
         }),
     ),
     publishDate: PropTypes.string.isRequired,
     onPostUpdate: PropTypes.func.isRequired,
+    profileImage: PropTypes.string,
+    userProfileImage: PropTypes.string,
 };
 
 // Default props remain the same
@@ -191,6 +249,8 @@ Post.defaultProps = {
     userLikes: [],
     numberOfLikes: 0,
     userComments: [],
+    profileImage: '/default-avatar.png',
+    userProfileImage: '/default-avatar.png',
 };
 
 export default Post;

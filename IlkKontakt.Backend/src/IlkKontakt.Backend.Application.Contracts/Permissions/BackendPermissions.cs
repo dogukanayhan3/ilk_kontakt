@@ -29,6 +29,15 @@ public static class BackendPermissions
         public const string Delete = Default + ".Delete";
     }
     
+    public static class Connection
+    {
+        public const string Default = GroupName + ".Connection";
+        public const string Create  = Default + ".Create";
+        public const string Update  = Default + ".Update";
+        public const string Delete  = Default + ".Delete";
+        public const string View    = Default + ".View";
+    }
+
     
     //Add your own permission names. Example:
     //public const string MyPermission1 = GroupName + ".MyPermission1";
