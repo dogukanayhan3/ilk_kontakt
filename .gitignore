@@ -77,3 +77,5 @@ IlkKontakt.Backend/angular/src/assets/images/logo/logo-light.svg
 IlkKontakt.Backend/angular/src/environments/environment.prod.ts
 IlkKontakt.Backend/angular/src/environments/environment.ts
 docker-compose.yml
+/package.json
+/package-lock.json
