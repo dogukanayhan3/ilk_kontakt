@@ -103,21 +103,13 @@ public class BackendDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+
         builder.Entity<Book>(b =>
         {
             b.ToTable(BackendConsts.DbTablePrefix + "Books",
                 BackendConsts.DbSchema);
-            b.ConfigureByConvention(); 
+            b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        }
-        
-        builder.Entity<JobListing>(a =>
-        {
-            a.ToTable(BackendConsts.DbTablePrefix + "JobListings",
-                BackendConsts.DbSchema);
-            a.ConfigureByConvention();
-            a.Property(y => y.Name).IsRequired().HasMaxLength(128);
         }
 
         );
@@ -257,7 +249,35 @@ public class BackendDbContext :
                 .HasForeignKey(x => x.ProfileId)
                 .IsRequired();
         });
-        
+
+        builder.Entity<JobListing>(b =>
+        {
+            b.ToTable("JobListings"); // Tablo adý
+            b.ConfigureByConvention();
+
+            b.HasKey(x => x.Id); // Primary key
+
+            b.Property(x => x.Title)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            b.Property(x => x.Company)
+                .IsRequired()
+                .HasMaxLength(128);
+
+            b.Property(x => x.Description)
+                .HasMaxLength(2000);
+
+            b.Property(x => x.Type)
+                .IsRequired();
+
+            b.Property(x => x.Location)
+                .HasMaxLength(128);
+
+            b.Property(x => x.ExperienceLevel)
+                .HasMaxLength(64);
+        });
+
         builder.Entity<Education>(b =>
         {
             b.ToTable("Educations");
