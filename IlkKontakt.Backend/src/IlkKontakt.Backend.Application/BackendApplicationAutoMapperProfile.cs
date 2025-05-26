@@ -4,6 +4,7 @@ using IlkKontakt.Backend.Courses;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 using IlkKontakt.Backend.Connections;
+using IlkKontakt.Backend.JobListings;
 
 namespace IlkKontakt.Backend;
 
@@ -70,5 +71,8 @@ public class BackendApplicationAutoMapperProfile : Profile
 
         CreateMap<Instructor, InstructorDto>();
         CreateMap<CreateUpdateInstructorDto, Instructor>();
+
+        CreateMap<JobListing, JobListingDto>();
+        CreateMap<CreateUpdateJobListingDto, JobListing>();
     }
 }

@@ -103,24 +103,14 @@ public class BackendDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+
         builder.Entity<Book>(b =>
         {
             b.ToTable(BackendConsts.DbTablePrefix + "Books",
                 BackendConsts.DbSchema);
-            b.ConfigureByConvention(); 
+            b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        }
-        
-        builder.Entity<JobListing>(a =>
-        {
-            a.ToTable(BackendConsts.DbTablePrefix + "JobListings",
-                BackendConsts.DbSchema);
-            a.ConfigureByConvention();
-            a.Property(y => y.Name).IsRequired().HasMaxLength(128);
-        }
-
-        );
+        });
         
         /* Configure your own tables/entities inside here */
 
@@ -399,6 +389,18 @@ public class BackendDbContext :
                 .WithMany()
                 .HasForeignKey(x => x.CourseId)
                 .IsRequired();
+        });
+        
+        builder.Entity<JobListing>(a =>
+        {
+            a.ToTable( "JobListings",
+                BackendConsts.DbSchema);
+            a.ConfigureByConvention();
+            a.Property(y => y.Title).IsRequired().HasMaxLength(128);
+            a.Property(y => y.Company).IsRequired().HasMaxLength(128);
+            a.Property(y => y.Description).HasMaxLength(1000);
+            a.Property(y => y.Location).HasMaxLength(256);
+            a.Property(y => y.ExperienceLevel).HasMaxLength(64);
         });
 
     }
