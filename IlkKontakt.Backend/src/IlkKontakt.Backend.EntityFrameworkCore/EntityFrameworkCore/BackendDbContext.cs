@@ -24,6 +24,7 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
+using IlkKontakt.Backend.JobListings;
 
 namespace IlkKontakt.Backend.EntityFrameworkCore;
 
@@ -38,6 +39,7 @@ public class BackendDbContext :
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
 
     public DbSet<Book> Books { get; set; }
+    public DbSet<JobListing> JobListings{ get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
@@ -108,7 +110,17 @@ public class BackendDbContext :
                 BackendConsts.DbSchema);
             b.ConfigureByConvention(); 
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
+        }
+        
+        builder.Entity<JobListing>(a =>
+        {
+            a.ToTable(BackendConsts.DbTablePrefix + "JobListings",
+                BackendConsts.DbSchema);
+            a.ConfigureByConvention();
+            a.Property(y => y.Name).IsRequired().HasMaxLength(128);
+        }
+
+        );
         
         /* Configure your own tables/entities inside here */
 
