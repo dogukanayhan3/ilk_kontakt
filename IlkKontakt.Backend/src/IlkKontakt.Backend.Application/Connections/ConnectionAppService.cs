@@ -100,4 +100,33 @@ public class ConnectionAppService :
 
         return new PagedResultDto<ConnectionDto>(total, dtoList);
     }
+
+    public async Task<PagedResultDto<ConnectionDto>> GetUserConnectionsAsync(
+        PagedAndSortedResultRequestDto input)
+    {
+        var userId = _currentUser.GetId();
+
+        var query = await Repository.GetQueryableAsync();
+        // Get all connections where current user is either sender or receiver
+        query = query.Where(c => c.SenderId == userId || c.ReceiverId == userId);
+
+        var total = await AsyncExecuter.CountAsync(query);
+
+        var pagedQuery = query
+            .OrderBy(input.Sorting ?? "CreationTime desc")
+            .Skip(input.SkipCount)
+            .Take(input.MaxResultCount);
+
+        var entities = await AsyncExecuter.ToListAsync(pagedQuery);
+
+        var dtoList = ObjectMapper.Map<List<Connection>, List<ConnectionDto>>(entities);
+
+        return new PagedResultDto<ConnectionDto>(total, dtoList);
+    }
+    
+    public override async Task DeleteAsync(Guid id)
+    {
+        var entity = await Repository.GetAsync(id);
+        await Repository.DeleteAsync(entity);
+    }
 }
