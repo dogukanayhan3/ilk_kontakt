@@ -149,15 +149,10 @@ function UserCard({ user, onConnect, connectionStatus }) {
                         </div>
                         <div className="section-content">
                             <div className="education-item">
-                                <h5>{user.latestEducation.degree}</h5>
+                                <h5>{user.latestEducation.description}</h5>
                                 <p className="institution-name">
-                                    {user.latestEducation.institution}
+                                    {user.latestEducation.instutionName}
                                 </p>
-                                {user.latestEducation.fieldOfStudy && (
-                                    <p className="field-of-study">
-                                        {user.latestEducation.fieldOfStudy}
-                                    </p>
-                                )}
                                 <div className="education-details">
                                     <span className="duration">
                                         <Calendar size={12} strokeWidth={1.5} />
