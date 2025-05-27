@@ -20,6 +20,8 @@ export const AuthProvider = ({ children }) => {
             // Clear localStorage
             localStorage.removeItem('userData');
             localStorage.removeItem('isAuthenticated');
+            localStorage.removeItem('connectionSuggestions');
+
             
             // Clear current user from context
             setCurrentUser(null);

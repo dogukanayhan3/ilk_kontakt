@@ -14,6 +14,20 @@ function getCookie(name) {
 
 const API_BASE_URL = 'https://localhost:44388';
 
+// Utility to parse Gemini response robustly
+function extractMatchesFromGeminiResponse(data) {
+  try {
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // Remove code block markers if present
+    text = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    return parsed.matches || [];
+  } catch (e) {
+    console.error('Failed to parse Gemini response:', e);
+    return [];
+  }
+}
+
 function HomePage() {
   const [posts, setPosts] = useState([]);
   const [newPostContent, setNewPostContent] = useState('');
@@ -21,6 +35,10 @@ function HomePage() {
   const [error, setError] = useState('');
   const [userProfile, setUserProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [suggestedConnections, setSuggestedConnections] = useState(() => {
+    const stored = localStorage.getItem('connectionSuggestions');
+    return stored ? JSON.parse(stored) : [];
+  });  const [connectionsLoading, setConnectionsLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -33,8 +51,8 @@ function HomePage() {
 
   // Fetch user profile function
   const fetchUserProfile = useCallback(async () => {
-    if (!currentUser) return;
-
+    if (!currentUser) return null;
+    setProfileLoading(true);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/app/user-profile/by-user`,
@@ -46,50 +64,158 @@ function HomePage() {
           }
         }
       );
-
       if (response.ok) {
         const profileData = await response.json();
         setUserProfile(profileData);
+        return profileData;
       } else if (response.status === 404) {
-        // User doesn't have a profile yet
         setUserProfile(null);
+        return null;
       } else {
         console.error('Failed to fetch user profile');
+        return null;
       }
     } catch (err) {
       console.error('Fetch user profile error:', err);
+      return null;
     } finally {
       setProfileLoading(false);
     }
   }, [currentUser]);
 
-  // Fetch posts function using useCallback to stabilize its identity
+  // Fetch all users and their details (profile, education, experience, skills)
+  const fetchAllUserDetails = useCallback(async () => {
+    try {
+      // 1. Fetch all profiles
+      const profilesRes = await fetch(`${API_BASE_URL}/api/app/user-profile`, {
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      });
+      if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
+      const profilesData = await profilesRes.json();
+      const profiles = profilesData.items || [];
+
+      // 2. For each profile, fetch education, experience, skills
+      const userDetails = await Promise.all(
+        profiles.map(async (profile) => {
+          // Fetch education
+          const eduRes = await fetch(
+            `${API_BASE_URL}/api/app/education?ProfileId=${profile.id}`,
+            { credentials: 'include' }
+          );
+          const education = eduRes.ok ? (await eduRes.json()).items || [] : [];
+
+          // Fetch experience
+          const expRes = await fetch(
+            `${API_BASE_URL}/api/app/experience?ProfileId=${profile.id}`,
+            { credentials: 'include' }
+          );
+          const experience = expRes.ok ? (await expRes.json()).items || [] : [];
+
+          // Fetch skills
+          const skillRes = await fetch(
+            `${API_BASE_URL}/api/app/skill?ProfileId=${profile.id}`,
+            { credentials: 'include' }
+          );
+          const skills = skillRes.ok ? (await skillRes.json()).items || [] : [];
+
+          return {
+            ...profile,
+            education,
+            experience,
+            skills,
+          };
+        })
+      );
+      return userDetails;
+    } catch (err) {
+      console.error('Error fetching all user details:', err);
+      return [];
+    }
+  }, []);
+
+  // Gemini API call (with improved prompt)
+  const getConnectionSuggestions = useCallback(
+    async (allUsers, currentUserProfile) => {
+      if (!currentUserProfile || !allUsers.length) return [];
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: 
+                      `
+                        Analyse these users and their skillsets, educational backgrounds, experiences and match 2 of them with ${currentUserProfile.name} ${currentUserProfile.surname}. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
+
+                        Here are all the users data:
+                        ${JSON.stringify(allUsers, null, 2)}
+
+                        Current user to match with:
+                        ${JSON.stringify(currentUserProfile, null, 2)}
+
+                        Please return ONLY the following JSON object, without any code block or extra text:
+                        {
+                          "matches": [
+                            {
+                              "id": "user_profile_id (not UserId)",
+                              "name": "user_name",
+                              "surname": "user_surname",
+                              "profilePictureUrl": "url",
+                              "matchReason": "3-4 word reason, such as 'similar interests' or 'similar experinces'"
+                            }
+                          ]
+                        }
+                      `
+                    }
+                  ]
+                }
+              ]
+            })
+          }
+        );
+        const data = await response.json();
+        return extractMatchesFromGeminiResponse(data);
+      } catch (err) {
+        console.error('Get connection suggestions error:', err);
+        return [];
+      }
+    },
+    []
+  );
+
+  // Fetch posts function
   const fetchPosts = useCallback(async () => {
     setError('');
     if (!currentUser) return;
-
+    setLoading(true);
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/app/post?SkipCount=0&MaxResultCount=20`,
         {
           credentials: 'include',
-        },
+        }
       );
-
       if (response.status === 401 || response.redirected) {
-        console.log('Unauthorized or redirected, navigating to login.');
         navigate('/login');
         return;
       }
-
       if (!response.ok) {
         throw new Error(`Failed to fetch posts (Status: ${response.status})`);
       }
-
       const data = await response.json();
       setPosts(Array.isArray(data.items) ? data.items : []);
     } catch (err) {
-      console.error('Fetch posts error:', err);
       setError(err.message);
       setPosts([]);
     } finally {
@@ -97,18 +223,62 @@ function HomePage() {
     }
   }, [navigate, currentUser]);
 
-  // Initial fetch on component mount if user is logged in
+  // Initial data fetch
   useEffect(() => {
-    if (currentUser) {
+    let isMounted = true;
+    async function fetchData() {
+      if (!currentUser) {
+        setLoading(false);
+        setProfileLoading(false);
+        setConnectionsLoading(false);
+        return;
+      }
       setLoading(true);
       setProfileLoading(true);
-      fetchPosts();
-      fetchUserProfile();
-    } else {
-      setLoading(false);
-      setProfileLoading(false);
+      setConnectionsLoading(true);
+  
+      try {
+        // 1. Fetch current user profile
+        const profileData = await fetchUserProfile();
+        if (!isMounted) return;
+  
+        // 2. Fetch posts
+        await fetchPosts();
+        if (!isMounted) return;
+  
+        // 3. Fetch suggestions only if not already present in localStorage
+        if (profileData && (!suggestedConnections || suggestedConnections.length === 0)) {
+          const allUserData = await fetchAllUserDetails();
+          if (!isMounted) return;
+          const matches = await getConnectionSuggestions(allUserData, profileData);
+          if (isMounted) {
+            setSuggestedConnections(matches);
+            localStorage.setItem('connectionSuggestions', JSON.stringify(matches));
+          }
+        }
+      } catch (err) {
+        if (isMounted) setError('Failed to load connection suggestions');
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          setProfileLoading(false);
+          setConnectionsLoading(false);
+        }
+      }
     }
-  }, [currentUser, fetchPosts, fetchUserProfile]);
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+    // Remove suggestedConnections from deps to avoid refetching
+    // eslint-disable-next-line
+  }, [
+    currentUser,
+    fetchUserProfile,
+    fetchPosts,
+    fetchAllUserDetails,
+    getConnectionSuggestions
+  ]);
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
@@ -196,8 +366,6 @@ function HomePage() {
   };
 
   const getProfileImage = () => {
-    // You can add a profilePictureUrl field to UserProfile if needed
-    // For now, using a default or generated avatar
     if (userProfile?.profilePictureUrl) {
       return userProfile.profilePictureUrl;
     }
@@ -205,12 +373,12 @@ function HomePage() {
   };
 
   const handleCreateProfile = () => {
-    navigate('/create-profile'); // You'll need to create this route/component
+    navigate('/create-profile');
   };
 
   // Render only if user is authenticated (or during initial load check)
   if (!currentUser && !loading) {
-      return null;
+    return null;
   }
 
   return (
@@ -320,8 +488,28 @@ function HomePage() {
         <div className="feed-right">
           <div className="profile-card">
             <h3>Bağlantı Önerileri</h3>
-            <p>Yeni profesyonellerle tanışarak ağınızı genişletin!</p>
-            <button>Bağlantılar</button>
+            {connectionsLoading ? (
+              <p>Bağlantı önerileri yükleniyor...</p>
+            ) : suggestedConnections.length > 0 ? (
+              suggestedConnections.map((suggestion, index) => (
+                <div key={index} className="connection-suggestion">
+                  <img
+                    src={suggestion.profilePictureUrl || '/default-avatar.png'}
+                    alt={suggestion.name}
+                    className="suggestion-profile-image"
+                  />
+                  <div className="suggestion-details">
+                    <h4>{suggestion.name} {suggestion.surname}</h4>
+                    <p className="suggestion-reason">{suggestion.matchReason}</p>
+                    <button onClick={() => navigate(`/profilepage/${suggestion.id}`)}>
+                      Profili Görüntüle
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>Henüz bağlantı önerisi bulunmuyor.</p>
+            )}
           </div>
           <div className="profile-card">
             <h3>Açık Pozisyonlar</h3>
