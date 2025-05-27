@@ -438,7 +438,7 @@ function SocialPage() {
             });
     
             if (!response.ok) {
-                throw new Error(`Failed to send connection request (Status: ${response.status})`);
+                throw new Error(`Bu kullanıcıya daha önce bağlantı isteği gönderdiniz!`);
             }
     
             fetchConnections();

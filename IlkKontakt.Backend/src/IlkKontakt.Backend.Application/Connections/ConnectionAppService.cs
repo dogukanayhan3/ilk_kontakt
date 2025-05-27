@@ -36,15 +36,43 @@ public class ConnectionAppService :
 
     public override async Task<ConnectionDto> CreateAsync(CreateConnectionDto input)
     {
-        var senderId = _currentUser.GetId();
-        if (input.ReceiverId == senderId)
+        var senderId   = _currentUser.GetId();
+        var receiverId = input.ReceiverId;
+
+        if (receiverId == senderId)
         {
             throw new BusinessException("You cannot send a connection to yourself!");
         }
 
-        var entity = new Connection(senderId, input.ReceiverId);
-        await Repository.InsertAsync(entity);
-        return MapToGetOutputDto(entity);
+        // See if there's any pre‐existing row sender→receiver
+        var existing = await Repository.FirstOrDefaultAsync(c =>
+            c.SenderId   == senderId &&
+            c.ReceiverId == receiverId
+        );
+
+        if (existing != null)
+        {
+            switch (existing.Status)
+            {
+                case ConnectionStatus.Pending:
+                    throw new BusinessException("A connection request is already pending.");
+
+                case ConnectionStatus.Accepted:
+                    throw new BusinessException("You are already connected with this user.");
+
+                case ConnectionStatus.Rejected:
+                    // Delete that old rejected row
+                    await Repository.DeleteAsync(existing.Id);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Now insert a brand‐new connection
+        var newConn = new Connection(senderId, receiverId);
+        await Repository.InsertAsync(newConn);
+        return MapToGetOutputDto(newConn);
     }
 
     public override async Task<ConnectionDto> UpdateAsync(Guid id, UpdateConnectionStatusDto input)
