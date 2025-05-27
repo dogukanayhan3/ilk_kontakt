@@ -89,7 +89,12 @@ function UserCard({ user, onConnect, connectionStatus }) {
                     className="user-profile-image"
                 />
                 <div className="user-basic-info">
-                    <h3>{user.userName}</h3>
+                    <h3>{user.name + " " + user.surname}</h3>
+                    {user.userName && (
+                        <div className="user-contact-info">
+                            @<span>{user.userName}</span>
+                        </div>
+                    )}
                     {user.email && (
                         <div className="user-contact-info">
                             <Mail size={14} strokeWidth={1.5} />
@@ -560,7 +565,7 @@ function SocialPage() {
                                             className="request-profile-image"
                                         />
                                         <div className="request-info">
-                                            <h4>{sender.userName}</h4>
+                                            <h4>{sender.name +" "+ sender.surname}</h4>
                                             {sender.latestExperience && (
                                                 <p>
                                                     <Briefcase size={14} strokeWidth={1.5} />
