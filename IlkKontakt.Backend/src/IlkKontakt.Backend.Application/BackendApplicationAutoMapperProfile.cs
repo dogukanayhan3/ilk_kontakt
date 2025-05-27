@@ -53,16 +53,9 @@ public class BackendApplicationAutoMapperProfile : Profile
         CreateMap<CreateUpdateLanguageDto, Language>();
         
         CreateMap<Connection, ConnectionDto>();
-
-        CreateMap<CreateConnectionDto, Connection>()
-            .ForMember(dest => dest.SenderId, opt => opt.Ignore()) // set in service
-            .ForMember(dest => dest.Status,   opt => opt.Ignore());
-
-        CreateMap<UpdateConnectionStatusDto, Connection>()
-            .ForMember(dest => dest.SenderId,   opt => opt.Ignore())
-            .ForMember(dest => dest.ReceiverId, opt => opt.Ignore());
-
-
+        CreateMap<CreateConnectionDto, Connection>();
+        CreateMap<UpdateConnectionStatusDto, Connection>();
+        
         CreateMap<Course, CourseDto>();
         CreateMap<CreateUpdateCourseDto, Course>();
         
