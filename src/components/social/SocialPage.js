@@ -20,6 +20,7 @@ const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`;
 const EDUCATION_ROOT = `${API_BASE}/api/app/education`;
 const PROJECT_ROOT = `${API_BASE}/api/app/project`;
 const CONNECTION_ROOT = `${API_BASE}/api/app/connection`;
+const CONNECTION_USER_ROOT = `${CONNECTION_ROOT}/user-connections`;
 
 function getCookie(name) {
     const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
@@ -368,52 +369,45 @@ function SocialPage() {
     
     async function fetchConnections() {
         try {
-            // Fetch incoming requests
-            const incomingRes = await fetch(`${CONNECTION_ROOT}/incoming-list?SkipCount=0&MaxResultCount=100`, { 
+            console.log('Fetching all user connections for current user:', currentUser.id);
+            
+            // Use the new endpoint to get all connections for the current user
+            const userConnectionsRes = await fetch(`${CONNECTION_USER_ROOT}?SkipCount=0&MaxResultCount=1000`, { 
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
             });
-            if (incomingRes.ok) {
-                const incomingData = await incomingRes.json();
-                setIncomingRequests(incomingData.items || []);
-            }
-        
-            // Fetch outgoing requests
-            const outgoingRes = await fetch(`${CONNECTION_ROOT}/outgoing-list?SkipCount=0&MaxResultCount=100`, { 
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (outgoingRes.ok) {
-                const outgoingData = await outgoingRes.json();
-                setOutgoingRequests(outgoingData.items || []);
-            }
-    
-            // Fetch all connections - this should only return accepted connections
-            const allConnectionsRes = await fetch(`${CONNECTION_ROOT}?SkipCount=0&MaxResultCount=1000`, { 
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (allConnectionsRes.ok) {
-                const allConnectionsData = await allConnectionsRes.json();
-                // Filter to only include accepted connections (status === 1)
-                const acceptedConnections = (allConnectionsData.items || []).filter(c => c.status === 1);
-                setConnections(acceptedConnections);
+            
+            if (userConnectionsRes.ok) {
+                const userConnectionsData = await userConnectionsRes.json();
+                const allUserConnections = userConnectionsData.items || [];
+                console.log('All user connections from API:', allUserConnections);
+                
+                // Separate connections by status and direction
+                const accepted = allUserConnections.filter(c => c.status === 1);
+                const incoming = allUserConnections.filter(c => 
+                    c.receiverId === currentUser.id && c.status === 0
+                );
+                const outgoing = allUserConnections.filter(c => 
+                    c.senderId === currentUser.id && c.status === 0
+                );
+                
+                console.log('Accepted connections:', accepted);
+                console.log('Incoming requests:', incoming);
+                console.log('Outgoing requests:', outgoing);
+                
+                setConnections(accepted);
+                setIncomingRequests(incoming);
+                setOutgoingRequests(outgoing);
+            } else {
+                console.error('Failed to fetch user connections');
             }
         } catch (e) {
             console.error('Failed to fetch connections:', e);
         }
     }
-    
-    
 
     async function sendConnectionRequest(receiverUserId) {
         try {
