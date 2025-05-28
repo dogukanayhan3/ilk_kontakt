@@ -11,7 +11,6 @@ using System.Linq.Dynamic.Core;
 
 namespace IlkKontakt.Backend.ContactUss;
 
-[Authorize(BackendPermissions.ContactUs.Default)]
 public class ContactUsAppService : ApplicationService, IContactUsAppService
 {
     private readonly IRepository<ContactUs, Guid> _repository;
@@ -44,7 +43,6 @@ public class ContactUsAppService : ApplicationService, IContactUsAppService
         );
     }
 
-    [Authorize(BackendPermissions.ContactUs.Create)]
     public async Task<ContactUsDto> CreateAsync(CreateUpdateContactUsDto input)
     {
         var contact = ObjectMapper.Map<CreateUpdateContactUsDto, ContactUs>(input);
@@ -52,7 +50,6 @@ public class ContactUsAppService : ApplicationService, IContactUsAppService
         return ObjectMapper.Map<ContactUs, ContactUsDto>(contact);
     }
 
-    [Authorize(BackendPermissions.ContactUs.Edit)]
     public async Task<ContactUsDto> UpdateAsync(Guid id, CreateUpdateContactUsDto input)
     {
         var contact = await _repository.GetAsync(id);
@@ -61,7 +58,6 @@ public class ContactUsAppService : ApplicationService, IContactUsAppService
         return ObjectMapper.Map<ContactUs, ContactUsDto>(contact);
     }
 
-    [Authorize(BackendPermissions.ContactUs.Delete)]
     public async Task DeleteAsync(Guid id)
     {
         await _repository.DeleteAsync(id);

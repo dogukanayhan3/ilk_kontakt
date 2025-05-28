@@ -1,5 +1,4 @@
-﻿using global::IlkKontakt.Backend.ContactUss;
-using System;
+﻿using System;
 using Volo.Abp.Domain.Entities.Auditing;
 
 namespace IlkKontakt.Backend.ContactUss;
