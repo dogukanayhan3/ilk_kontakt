@@ -25,6 +25,7 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using IlkKontakt.Backend.JobListings;
+using IlkKontakt.Backend.ContactUss;
 
 namespace IlkKontakt.Backend.EntityFrameworkCore;
 
@@ -40,6 +41,7 @@ public class BackendDbContext :
 
     public DbSet<Book> Books { get; set; }
     public DbSet<JobListing> JobListings{ get; set; }
+    public DbSet<ContactUs> ContactUss { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<Experience> Experiences { get; set; }
@@ -111,27 +113,19 @@ public class BackendDbContext :
             b.ConfigureByConvention(); 
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
         }
-        
-        builder.Entity<JobListing>(a =>
-        {
-            a.ToTable(BackendConsts.DbTablePrefix + "JobListings",
-                BackendConsts.DbSchema);
-            a.ConfigureByConvention();
-            a.Property(y => y.Name).IsRequired().HasMaxLength(128);
-        }
-
         );
-        
+
+
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(BackendConsts.DbTablePrefix + "YourEntities", BackendConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
-        
-        builder.Entity<Connection>(b =>
+//builder.Entity<YourEntity>(b =>
+//{
+//    b.ToTable(BackendConsts.DbTablePrefix + "YourEntities", BackendConsts.DbSchema);
+//    b.ConfigureByConvention(); //auto configure for the base class props
+//    //...
+//});
+
+builder.Entity<Connection>(b =>
         {
             b.ToTable("Connections");
             b.ConfigureByConvention(); // id, auditing columns
@@ -399,6 +393,31 @@ public class BackendDbContext :
                 .WithMany()
                 .HasForeignKey(x => x.CourseId)
                 .IsRequired();
+        });
+
+        builder.Entity<ContactUs>(b =>
+        {
+            b.ToTable("ContactUs"); // Tablo adý
+
+            b.HasKey(x => x.Id); // AuditedAggregateRoot<Guid> sýnýfýndan gelir
+
+            b.Property(x => x.contact_id)
+                .IsRequired();
+
+            b.Property(x => x.name)
+                .IsRequired()
+                .HasMaxLength(128);
+
+            b.Property(x => x.email)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            b.Property(x => x.message)
+                .IsRequired()
+                .HasMaxLength(2000); // Uzun mesajlar için yüksek limit
+
+            // Ýndeks eklemek istersen:
+            b.HasIndex(x => x.contact_id).IsUnique(); // Eðer benzersiz olmasýný istiyorsan
         });
 
     }
