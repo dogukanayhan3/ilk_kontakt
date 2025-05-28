@@ -1,7 +1,7 @@
 ﻿using System;
 using Volo.Abp.Application.Dtos;
 
-namespace IlkKontakt.Backend.ContactUs;
+namespace IlkKontakt.Backend.ContactUss;
 
 public class ContactUsDto : AuditedAggregateRoot<Guid>
 {
