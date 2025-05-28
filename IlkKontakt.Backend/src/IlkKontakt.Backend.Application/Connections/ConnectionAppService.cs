@@ -36,15 +36,43 @@ public class ConnectionAppService :
 
     public override async Task<ConnectionDto> CreateAsync(CreateConnectionDto input)
     {
-        var senderId = _currentUser.GetId();
-        if (input.ReceiverId == senderId)
+        var senderId   = _currentUser.GetId();
+        var receiverId = input.ReceiverId;
+
+        if (receiverId == senderId)
         {
             throw new BusinessException("You cannot send a connection to yourself!");
         }
 
-        var entity = new Connection(senderId, input.ReceiverId);
-        await Repository.InsertAsync(entity);
-        return MapToGetOutputDto(entity);
+        // See if there's any pre‐existing row sender→receiver
+        var existing = await Repository.FirstOrDefaultAsync(c =>
+            c.SenderId   == senderId &&
+            c.ReceiverId == receiverId
+        );
+
+        if (existing != null)
+        {
+            switch (existing.Status)
+            {
+                case ConnectionStatus.Pending:
+                    throw new BusinessException("A connection request is already pending.");
+
+                case ConnectionStatus.Accepted:
+                    throw new BusinessException("You are already connected with this user.");
+
+                case ConnectionStatus.Rejected:
+                    // Delete that old rejected row
+                    await Repository.DeleteAsync(existing.Id);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // Now insert a brand‐new connection
+        var newConn = new Connection(senderId, receiverId);
+        await Repository.InsertAsync(newConn);
+        return MapToGetOutputDto(newConn);
     }
 
     public override async Task<ConnectionDto> UpdateAsync(Guid id, UpdateConnectionStatusDto input)
@@ -99,5 +127,34 @@ public class ConnectionAppService :
         var dtoList = ObjectMapper.Map<List<Connection>, List<ConnectionDto>>(entities);
 
         return new PagedResultDto<ConnectionDto>(total, dtoList);
+    }
+
+    public async Task<PagedResultDto<ConnectionDto>> GetUserConnectionsAsync(
+        PagedAndSortedResultRequestDto input)
+    {
+        var userId = _currentUser.GetId();
+
+        var query = await Repository.GetQueryableAsync();
+        // Get all connections where current user is either sender or receiver
+        query = query.Where(c => c.SenderId == userId || c.ReceiverId == userId);
+
+        var total = await AsyncExecuter.CountAsync(query);
+
+        var pagedQuery = query
+            .OrderBy(input.Sorting ?? "CreationTime desc")
+            .Skip(input.SkipCount)
+            .Take(input.MaxResultCount);
+
+        var entities = await AsyncExecuter.ToListAsync(pagedQuery);
+
+        var dtoList = ObjectMapper.Map<List<Connection>, List<ConnectionDto>>(entities);
+
+        return new PagedResultDto<ConnectionDto>(total, dtoList);
+    }
+    
+    public override async Task DeleteAsync(Guid id)
+    {
+        var entity = await Repository.GetAsync(id);
+        await Repository.DeleteAsync(entity);
     }
 }

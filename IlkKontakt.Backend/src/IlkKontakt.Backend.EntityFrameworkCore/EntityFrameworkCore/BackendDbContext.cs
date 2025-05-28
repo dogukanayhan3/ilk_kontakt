@@ -105,17 +105,13 @@ public class BackendDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+
         builder.Entity<Book>(b =>
         {
             b.ToTable(BackendConsts.DbTablePrefix + "Books",
                 BackendConsts.DbSchema);
-            b.ConfigureByConvention(); 
+            b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        }
-        );
-
-
         /* Configure your own tables/entities inside here */
 
 //builder.Entity<YourEntity>(b =>
@@ -394,30 +390,17 @@ builder.Entity<Connection>(b =>
                 .HasForeignKey(x => x.CourseId)
                 .IsRequired();
         });
-
-        builder.Entity<ContactUs>(b =>
+        
+        builder.Entity<JobListing>(a =>
         {
-            b.ToTable("ContactUs"); // Tablo adý
-
-            b.HasKey(x => x.Id); // AuditedAggregateRoot<Guid> sýnýfýndan gelir
-
-            b.Property(x => x.contact_id)
-                .IsRequired();
-
-            b.Property(x => x.name)
-                .IsRequired()
-                .HasMaxLength(128);
-
-            b.Property(x => x.email)
-                .IsRequired()
-                .HasMaxLength(64);
-
-            b.Property(x => x.message)
-                .IsRequired()
-                .HasMaxLength(2000); // Uzun mesajlar için yüksek limit
-
-            // Ýndeks eklemek istersen:
-            b.HasIndex(x => x.contact_id).IsUnique(); // Eðer benzersiz olmasýný istiyorsan
+            a.ToTable( "JobListings",
+                BackendConsts.DbSchema);
+            a.ConfigureByConvention();
+            a.Property(y => y.Title).IsRequired().HasMaxLength(128);
+            a.Property(y => y.Company).IsRequired().HasMaxLength(128);
+            a.Property(y => y.Description).HasMaxLength(1000);
+            a.Property(y => y.Location).HasMaxLength(256);
+            a.Property(y => y.ExperienceLevel).HasMaxLength(64);
         });
 
     }

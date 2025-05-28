@@ -3,7 +3,7 @@ using Volo.Abp.Domain.Entities.Auditing;
 
 namespace IlkKontakt.Backend.JobListings;
 
-public class JobListing : AuditedEntity<Guid>
+public class JobListing : AuditedAggregateRoot<Guid>
 {
     public string Title { get; set; }
     public string Company { get; set; }
