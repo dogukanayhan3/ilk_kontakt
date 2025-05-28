@@ -2,7 +2,7 @@
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
-namespace IlkKontakt.Backend.ContactUss;
+namespace IlkKontakt.Backend.Contact;
 
 public interface IContactUsAppService :
     ICrudAppService< // CRUD metotlarını tanımlar

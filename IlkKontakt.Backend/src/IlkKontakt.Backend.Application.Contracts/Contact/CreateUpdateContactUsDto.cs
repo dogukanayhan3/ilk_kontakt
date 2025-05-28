@@ -1,24 +1,21 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace IlkKontakt.Backend.ContactUss;
+namespace IlkKontakt.Backend.Contact;
 
 public class CreateUpdateContactUsDto
 {
     [Required]
-    public Guid contact_id { get; set; }
-
-    [Required]
     [MaxLength(128)]
-    public string name { get; set; }
+    public string Name { get; set; }
 
     [Required]
     [EmailAddress]
     [MaxLength(64)]
-    public string email { get; set; }
+    public string Email { get; set; }
 
     [Required]
     [MaxLength(2000)]
-    public string message { get; set; }
+    public string Message { get; set; }
 }
 

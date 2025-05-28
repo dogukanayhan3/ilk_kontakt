@@ -1,14 +1,13 @@
 ﻿using System;
 using Volo.Abp.Domain.Entities.Auditing;
 
-namespace IlkKontakt.Backend.ContactUss;
+namespace IlkKontakt.Backend.Contact;
 
 public class ContactUs : AuditedAggregateRoot<Guid>
 {
-    public Guid contact_id { get; set; }
-    public string name { get; set; }
+    public string Name { get; set; }
 
-    public string email { get; set; }
+    public string Email { get; set; }
 
-    public string message { get; set; }
+    public string Message { get; set; }
 }

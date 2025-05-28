@@ -1,9 +1,9 @@
 ﻿using System;
 using Volo.Abp.Application.Dtos;
 
-namespace IlkKontakt.Backend.ContactUss;
+namespace IlkKontakt.Backend.Contact;
 
-public class ContactUsDto : AuditedAggregateRoot<Guid>
+public class ContactUsDto : AuditedEntityDto<Guid>
 {
     public string Name { get; set; }
     public string Email { get; set; }

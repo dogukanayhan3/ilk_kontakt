@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using IlkKontakt.Backend.Permissions;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using System.Linq.Dynamic.Core;
 
-namespace IlkKontakt.Backend.ContactUss;
+namespace IlkKontakt.Backend.Contact;
 
 public class ContactUsAppService : ApplicationService, IContactUsAppService
 {
