@@ -13,15 +13,15 @@ public class CreateUpdateJobListingDto
     [StringLength(128)]
     public string Company { get; set; }
 
-    [StringLength(1000)]
-    public string Description { get; set; }
+    [StringLength(2000)]
+    public string? Description { get; set; }
     
     public ExperienceLevel ExperienceLevel { get; set; } 
     
     public WorkType WorkType { get; set; }
 
     [StringLength(256)]
-    public string Location { get; set; }
+    public string? Location { get; set; }
     
-    public string ExternalUrl { get; set; }
+    public string? ExternalUrl { get; set; }
 }

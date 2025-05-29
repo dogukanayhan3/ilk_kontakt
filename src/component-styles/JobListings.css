@@ -577,3 +577,63 @@
     }
   }
   
+  /* Form row for side-by-side inputs */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  
+  .form-help {
+    color: #4a5568;
+    font-size: 0.8em;
+    margin-top: 4px;
+    display: block;
+  }
+  
+  /* External link styling in job details */
+  .job-detail-item a {
+    color: #5fbcee;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  
+  .job-detail-item a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Work type specific styling */
+  .work-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+  }
+  
+  .experience-level-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+  }
+  
+  /* Responsive adjustments for form rows */
+  @media screen and (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+  }
+  

@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Briefcase } from 'lucide-react';
+import { X, Save, Briefcase, ExternalLink } from 'lucide-react';
 import "../../component-styles/JobListings.css";
 
-const JOB_TYPES = [
-    { value: 0, label: 'Tam Zamanlı' },
-    { value: 1, label: 'Yarı Zamanlı' },
-    { value: 2, label: 'Sözleşmeli' },
-    { value: 3, label: 'Staj' },
-    { value: 4, label: 'Uzaktan' }
+const WORK_TYPES = [
+    { value: 0, label: 'Ofiste' },
+    { value: 1, label: 'Uzaktan' },
+    { value: 2, label: 'Hibrit' }
+];
+
+const EXPERIENCE_LEVELS = [
+    { value: 0, label: 'Staj' },
+    { value: 1, label: 'Giriş Seviyesi' },
+    { value: 2, label: 'Orta Seviye' },
+    { value: 3, label: 'Üst Seviye' },
+    { value: 4, label: 'Direktör' },
+    { value: 5, label: 'Yönetici' }
 ];
 
 function JobForm({ job, onSubmit, onClose }) {
@@ -15,9 +22,10 @@ function JobForm({ job, onSubmit, onClose }) {
         title: '',
         company: '',
         description: '',
-        type: 0,
+        workType: 0,
+        experienceLevel: 1,
         location: '',
-        experienceLevel: ''
+        externalUrl: ''
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -28,9 +36,10 @@ function JobForm({ job, onSubmit, onClose }) {
                 title: job.title || '',
                 company: job.company || '',
                 description: job.description || '',
-                type: job.type || 0,
+                workType: job.workType !== undefined ? job.workType : 0,
+                experienceLevel: job.experienceLevel !== undefined ? job.experienceLevel : 1,
                 location: job.location || '',
-                experienceLevel: job.experienceLevel || ''
+                externalUrl: job.externalUrl || ''
             });
         }
     }, [job]);
@@ -58,8 +67,12 @@ function JobForm({ job, onSubmit, onClose }) {
             newErrors.location = 'Konum 256 karakterden uzun olamaz';
         }
 
-        if (formData.experienceLevel && formData.experienceLevel.length > 64) {
-            newErrors.experienceLevel = 'Deneyim seviyesi 64 karakterden uzun olamaz';
+        if (formData.externalUrl) {
+            try {
+                new URL(formData.externalUrl);
+            } catch {
+                newErrors.externalUrl = 'Geçerli bir URL giriniz (örn: https://example.com)';
+            }
         }
 
         setErrors(newErrors);
@@ -87,7 +100,7 @@ function JobForm({ job, onSubmit, onClose }) {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'type' ? parseInt(value) : value
+            [name]: (name === 'workType' || name === 'experienceLevel') ? parseInt(value) : value
         }));
         
         // Clear error when user starts typing
@@ -113,48 +126,70 @@ function JobForm({ job, onSubmit, onClose }) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="job-form">
-                    <div className="form-group">
-                        <label htmlFor="title">İş Başlığı *</label>
-                        <input
-                            type="text"
-                            id="title"
-                            name="title"
-                            value={formData.title}
-                            onChange={handleChange}
-                            maxLength={128}
-                            className={errors.title ? 'error' : ''}
-                        />
-                        {errors.title && <span className="error-text">{errors.title}</span>}
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="title">İş Başlığı *</label>
+                            <input
+                                type="text"
+                                id="title"
+                                name="title"
+                                value={formData.title}
+                                onChange={handleChange}
+                                maxLength={128}
+                                className={errors.title ? 'error' : ''}
+                                placeholder="Örn: Frontend Developer"
+                            />
+                            {errors.title && <span className="error-text">{errors.title}</span>}
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="company">Şirket *</label>
+                            <input
+                                type="text"
+                                id="company"
+                                name="company"
+                                value={formData.company}
+                                onChange={handleChange}
+                                maxLength={128}
+                                className={errors.company ? 'error' : ''}
+                                placeholder="Şirket adı"
+                            />
+                            {errors.company && <span className="error-text">{errors.company}</span>}
+                        </div>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="company">Şirket *</label>
-                        <input
-                            type="text"
-                            id="company"
-                            name="company"
-                            value={formData.company}
-                            onChange={handleChange}
-                            maxLength={128}
-                            className={errors.company ? 'error' : ''}
-                        />
-                        {errors.company && <span className="error-text">{errors.company}</span>}
-                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label htmlFor="workType">Çalışma Türü</label>
+                            <select
+                                id="workType"
+                                name="workType"
+                                value={formData.workType}
+                                onChange={handleChange}
+                            >
+                                {WORK_TYPES.map(type => (
+                                    <option key={type.value} value={type.value}>
+                                        {type.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                    <div className="form-group">
-                        <label htmlFor="type">İş Türü</label>
-                        <select
-                            id="type"
-                            name="type"
-                            value={formData.type}
-                            onChange={handleChange}
-                        >
-                            {JOB_TYPES.map(type => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="form-group">
+                            <label htmlFor="experienceLevel">Deneyim Seviyesi</label>
+                            <select
+                                id="experienceLevel"
+                                name="experienceLevel"
+                                value={formData.experienceLevel}
+                                onChange={handleChange}
+                            >
+                                {EXPERIENCE_LEVELS.map(level => (
+                                    <option key={level.value} value={level.value}>
+                                        {level.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="form-group">
@@ -167,23 +202,29 @@ function JobForm({ job, onSubmit, onClose }) {
                             onChange={handleChange}
                             maxLength={256}
                             className={errors.location ? 'error' : ''}
+                            placeholder="Örn: İstanbul, Türkiye"
                         />
                         {errors.location && <span className="error-text">{errors.location}</span>}
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="experienceLevel">Deneyim Seviyesi</label>
+                        <label htmlFor="externalUrl">
+                            <ExternalLink size={16} strokeWidth={1.5} />
+                            Harici Başvuru URL'si
+                        </label>
                         <input
-                            type="text"
-                            id="experienceLevel"
-                            name="experienceLevel"
-                            value={formData.experienceLevel}
+                            type="url"
+                            id="externalUrl"
+                            name="externalUrl"
+                            value={formData.externalUrl}
                             onChange={handleChange}
-                            maxLength={64}
-                            placeholder="Örn: Junior, Mid-level, Senior"
-                            className={errors.experienceLevel ? 'error' : ''}
+                            className={errors.externalUrl ? 'error' : ''}
+                            placeholder="https://example.com/careers/job-id"
                         />
-                        {errors.experienceLevel && <span className="error-text">{errors.experienceLevel}</span>}
+                        {errors.externalUrl && <span className="error-text">{errors.externalUrl}</span>}
+                        <small className="form-help">
+                            Başvuruların harici bir sitede yapılması durumunda bu alanı doldurun
+                        </small>
                     </div>
 
                     <div className="form-group">

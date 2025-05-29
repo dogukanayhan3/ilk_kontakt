@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using IlkKontakt.Backend.Books;
+using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 using Volo.Abp.Data;
@@ -18,6 +19,7 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
     private readonly IRepository<UserProfile, Guid> _profileRepository;
     private readonly IRepository<Experience, Guid> _experienceRepository;
     private readonly IRepository<Education, Guid> _educationRepository;
+    private readonly IRepository<JobListing, Guid> _joblistingRepository;
 
     public BackendDataSeederContributor(
         IRepository<Book, Guid> bookRepository,
@@ -25,7 +27,8 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
         IRepository<IdentityUser, Guid> userRepository,
         IRepository<UserProfile, Guid> profileRepository,
         IRepository<Experience, Guid> experienceRepository,
-        IRepository<Education, Guid> educationRepository)
+        IRepository<Education, Guid> educationRepository,
+        IRepository<JobListing, Guid> joblistingRepository)
     {
         _bookRepository = bookRepository;
         _postRepository = postRepository;
@@ -33,6 +36,7 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
         _profileRepository = profileRepository;
         _experienceRepository = experienceRepository;
         _educationRepository = educationRepository;
+        _joblistingRepository = joblistingRepository;
     }
 
     public async Task SeedAsync(DataSeedContext context)
@@ -65,6 +69,124 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
 
         // Seed Profile and Experience
         await SeedProfileAndExperienceAsync();
+
+        await SeedJobListingsAsync();
+    }
+
+    private async Task SeedJobListingsAsync()
+    {
+        if (await _joblistingRepository.GetCountAsync() > 0)
+        {
+            return;
+        }
+        
+        var jobListings = new[]
+            {
+                new JobListing
+                {
+                    Title = "Senior Frontend Developer",
+                    Company = "TechCorp İstanbul",
+                    Description = @"Dinamik ve yenilikçi ekibimize katılacak deneyimli bir Senior Frontend Developer arıyoruz. 
+
+                        Aranan Nitelikler:
+                        • 5+ yıl React.js deneyimi
+                        • TypeScript ile güçlü deneyim
+                        • Modern CSS framework'leri (Tailwind, Styled Components)
+                        • RESTful API entegrasyonu deneyimi
+                        • Git ve Agile metodolojileri bilgisi
+                        • Responsive ve mobile-first tasarım anlayışı
+
+                        Sunduklarımız:
+                        • Rekabetçi maaş paketi
+                        • Esnek çalışma saatleri
+                        • Uzaktan çalışma imkanı
+                        • Kişisel gelişim bütçesi
+                        • Sağlık sigortası
+                        • Modern ofis ortamı
+
+                        Projelerimizde React, TypeScript, Next.js ve modern frontend teknolojilerini kullanıyoruz. Kullanıcı deneyimini ön planda tutan, performans odaklı uygulamalar geliştiriyoruz.",
+                    ExperienceLevel = ExperienceLevel.SeniorLevel,
+                    WorkType = WorkType.Hybrid,
+                    Location = "İstanbul, Türkiye",
+                    ExternalUrl = "https://techcorp.com/careers/senior-frontend-developer"
+                },
+                
+                new JobListing
+                {
+                    Title = "Backend Developer (Node.js)",
+                    Company = "StartupHub Ankara",
+                    Description = @"Hızla büyüyen fintech startup'ımızda backend geliştirme ekibimizi güçlendirmek için Backend Developer arıyoruz.
+
+                        Aranan Nitelikler:
+                        • 3+ yıl Node.js deneyimi
+                        • Express.js framework bilgisi
+                        • MongoDB veya PostgreSQL deneyimi
+                        • RESTful API tasarımı ve geliştirimi
+                        • Docker ve containerization bilgisi
+                        • AWS veya Azure cloud platformları deneyimi
+                        • Mikroservis mimarisi anlayışı
+
+                        Artı Değer:
+                        • GraphQL deneyimi
+                        • Redis cache sistemleri
+                        • CI/CD pipeline kurulumu
+                        • Kubernetes bilgisi
+
+                        Sunduklarımız:
+                        • Startup equity programı
+                        • Tam uzaktan çalışma
+                        • Teknoloji konferansları için destek
+                        • Ücretsiz öğle yemeği (ofiste)
+                        • Oyun odası ve dinlenme alanları
+
+                        Finansal teknoloji alanında yenilikçi çözümler geliştiren ekibimizle birlikte çalışma fırsatı!",
+                    ExperienceLevel = ExperienceLevel.MidLevel,
+                    WorkType = WorkType.Remote,
+                    Location = "Ankara, Türkiye",
+                    ExternalUrl = ""
+                },
+                
+                new JobListing
+                {
+                    Title = "Software Engineering Intern",
+                    Company = "Global Tech Solutions",
+                    Description = @"Yazılım geliştirme alanında kariyer yapmak isteyen üniversite öğrencileri için staj programımız başlıyor!
+
+                            Program Detayları:
+                            • 6 aylık tam zamanlı staj programı
+                            • Mentörlük desteği
+                            • Gerçek projelerde çalışma fırsatı
+                            • Eğitim ve workshop'lar
+                            • Staj sonrası tam zamanlı iş fırsatı
+
+                            Aranan Nitelikler:
+                            • Bilgisayar Mühendisliği veya ilgili bölüm öğrencisi
+                            • En az 2. sınıf öğrencisi
+                            • Temel programlama bilgisi (Java, C#, Python, JavaScript)
+                            • Nesne yönelimli programlama kavramları
+                            • Veritabanı temel bilgisi
+                            • İngilizce okuma-yazma yetisi
+                            • Takım çalışmasına yatkınlık
+
+                            Staj Sürecinde Öğrenecekleriniz:
+                            • Modern web teknolojileri
+                            • Agile/Scrum metodolojileri
+                            • Version control sistemleri (Git)
+                            • Test-driven development
+                            • Code review süreçleri
+                            • Proje yönetimi araçları
+
+                            Staj ücreti: Aylık 8.000 TL
+                            Lokasyon: İzmir Teknokent
+                            Başlangıç: Haziran 2025",
+                    ExperienceLevel = ExperienceLevel.Internship,
+                    WorkType = WorkType.OnSite,
+                    Location = "İzmir, Türkiye",
+                    ExternalUrl = "https://globaltechsolutions.com/internship-program"
+                }
+            };
+
+        await _joblistingRepository.InsertManyAsync(jobListings, autoSave: true);
     }
 
     private async Task SeedProfileAndExperienceAsync()

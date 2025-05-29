@@ -367,11 +367,10 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<int>("ExperienceLevel")
-                        .HasMaxLength(64)
                         .HasColumnType("integer");
 
                     b.Property<string>("ExternalUrl")

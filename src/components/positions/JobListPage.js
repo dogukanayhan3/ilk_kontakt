@@ -21,7 +21,8 @@ function JobListPage() {
     const [showJobForm, setShowJobForm] = useState(false);
     const [editingJob, setEditingJob] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState('');
+    const [filterWorkType, setFilterWorkType] = useState('');
+    const [filterExperienceLevel, setFilterExperienceLevel] = useState('');
     const [filterLocation, setFilterLocation] = useState('');
     const { currentUser } = useAuth();
 
@@ -168,13 +169,14 @@ function JobListPage() {
     const filteredJobs = jobListings.filter(job => {
         const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            job.description.toLowerCase().includes(searchTerm.toLowerCase());
+                            (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase()));
         
-        const matchesType = !filterType || job.type.toString() === filterType;
+        const matchesWorkType = !filterWorkType || job.workType.toString() === filterWorkType;
+        const matchesExperienceLevel = !filterExperienceLevel || job.experienceLevel.toString() === filterExperienceLevel;
         const matchesLocation = !filterLocation || 
-                              job.location.toLowerCase().includes(filterLocation.toLowerCase());
+                              (job.location && job.location.toLowerCase().includes(filterLocation.toLowerCase()));
 
-        return matchesSearch && matchesType && matchesLocation;
+        return matchesSearch && matchesWorkType && matchesExperienceLevel && matchesLocation;
     });
 
     if (loading) return (
@@ -218,15 +220,29 @@ function JobListPage() {
                             <div className="filter-group">
                                 <Filter size={16} strokeWidth={1.5} />
                                 <select
-                                    value={filterType}
-                                    onChange={(e) => setFilterType(e.target.value)}
+                                    value={filterWorkType}
+                                    onChange={(e) => setFilterWorkType(e.target.value)}
                                 >
-                                    <option value="">Tüm Türler</option>
-                                    <option value="0">Tam Zamanlı</option>
-                                    <option value="1">Yarı Zamanlı</option>
-                                    <option value="2">Sözleşmeli</option>
-                                    <option value="3">Staj</option>
-                                    <option value="4">Uzaktan</option>
+                                    <option value="">Tüm Çalışma Türleri</option>
+                                    <option value="0">Ofiste</option>
+                                    <option value="1">Uzaktan</option>
+                                    <option value="2">Hibrit</option>
+                                </select>
+                            </div>
+                            
+                            <div className="filter-group">
+                                <Filter size={16} strokeWidth={1.5} />
+                                <select
+                                    value={filterExperienceLevel}
+                                    onChange={(e) => setFilterExperienceLevel(e.target.value)}
+                                >
+                                    <option value="">Tüm Deneyim Seviyeleri</option>
+                                    <option value="0">Staj</option>
+                                    <option value="1">Giriş Seviyesi</option>
+                                    <option value="2">Orta Seviye</option>
+                                    <option value="3">Üst Seviye</option>
+                                    <option value="4">Direktör</option>
+                                    <option value="5">Yönetici</option>
                                 </select>
                             </div>
                             
@@ -257,7 +273,12 @@ function JobListPage() {
                     <div className="job-listings-grid">
                         {filteredJobs.length === 0 ? (
                             <div className="no-jobs-message">
-                                <p>Henüz iş ilanı bulunmuyor.</p>
+                                <p>
+                                    {searchTerm || filterWorkType || filterExperienceLevel || filterLocation
+                                        ? 'Arama kriterlerinize uygun iş ilanı bulunamadı.'
+                                        : 'Henüz iş ilanı bulunmuyor.'
+                                    }
+                                </p>
                             </div>
                         ) : (
                             filteredJobs.map((job) => (
