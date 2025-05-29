@@ -11,4 +11,5 @@ public class JobListingDto : AuditedEntityDto<Guid>
     public ExperienceLevel ExperienceLevel { get; set; } 
     public WorkType WorkType { get; set; }
     public string Location { get; set; }
+    public string ExternalUrl { get; set; }
 }

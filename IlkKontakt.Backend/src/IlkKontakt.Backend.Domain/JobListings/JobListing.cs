@@ -11,6 +11,8 @@ public class JobListing : AuditedAggregateRoot<Guid>
     public ExperienceLevel ExperienceLevel { get; set; } 
     public WorkType WorkType { get; set; }
     public string Location { get; set; }
+    public string ExternalUrl { get; set; }
+    // public Guid HiringManager { get; set; }
 }
 
 

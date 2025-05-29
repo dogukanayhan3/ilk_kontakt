@@ -22,4 +22,7 @@ public class CreateUpdateJobListingDto
 
     [StringLength(256)]
     public string Location { get; set; }
+    
+    public string ExternalUrl { get; set; }
+
 }
