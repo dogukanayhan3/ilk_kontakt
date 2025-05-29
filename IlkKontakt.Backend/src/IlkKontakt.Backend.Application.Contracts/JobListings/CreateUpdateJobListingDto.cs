@@ -24,5 +24,4 @@ public class CreateUpdateJobListingDto
     public string Location { get; set; }
     
     public string ExternalUrl { get; set; }
-
 }
