@@ -7,7 +7,6 @@ import EducationPage from "./components/education/EducationPage";
 import CreateCoursePage from "./components/education/CreateCoursePage";
 import ProfilePage from "./components/profile/ProfilePage";
 import SocialPage from "./components/social/SocialPage";
-import NotificationsPage from "./components/notifications/NotificationsPage";
 import "./component-styles/global.css";
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -76,14 +75,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/notificationspage" 
-            element={
-              <ProtectedRoute>
-                <NotificationsPage />
               </ProtectedRoute>
             } 
           />
