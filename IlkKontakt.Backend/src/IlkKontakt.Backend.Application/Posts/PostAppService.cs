@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IlkKontakt.Backend.Notifications;
 using IlkKontakt.Backend.Permissions; // Assuming this namespace exists
 using Microsoft.AspNetCore.Authorization;
 using Volo.Abp;
@@ -25,17 +26,20 @@ namespace IlkKontakt.Backend.Posts // Match your namespace
         private readonly IGuidGenerator _guidGenerator;
         private readonly IRepository<IdentityUser, Guid> _userRepository;
         private readonly IClock _clock;
-
+        private readonly INotificationAppService _notificationAppService;
+        
         public PostAppService(
             IRepository<Post, Guid> repository,
             IRepository<IdentityUser, Guid> userRepository,
             IGuidGenerator guidGenerator,
-            IClock clock)
+            IClock clock,
+            INotificationAppService notificationAppService)  // Add this
         {
             _repository = repository;
             _guidGenerator = guidGenerator;
             _userRepository = userRepository;
             _clock = clock;
+            _notificationAppService = notificationAppService;    // Assign here
         }
 
         public async Task<PostDto> GetAsync(Guid id)
@@ -224,8 +228,25 @@ namespace IlkKontakt.Backend.Posts // Match your namespace
         public async Task LikeAsync(Guid postId, LikePostDto input)
         {
             var post = await _repository.GetAsync(postId);
-            post.AddLike(CurrentUser.GetId());
+            var currentUserId = CurrentUser.GetId();
+            var postCreatorUserId = post.CreatorUserId;
+
+            post.AddLike(currentUserId);
             await _repository.UpdateAsync(post, autoSave: true);
+
+            // Send notification if the liker is not the owner
+            if (postCreatorUserId != currentUserId)
+            {
+                var message = $"{CurrentUser.UserName} liked your post.";
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = postCreatorUserId,
+                    Message = message,
+                    Type = NotificationType.PostLiked
+                };
+                await _notificationAppService.CreateAsync(notificationDto);
+            }
+            
         }
 
         // UnlikeAsync remains the same
@@ -242,8 +263,24 @@ namespace IlkKontakt.Backend.Posts // Match your namespace
             AddCommentDto input)
         {
             var post = await _repository.GetAsync(postId);
+            var currentUserId = CurrentUser.GetId();
+            var postCreatorUserId = post.CreatorUserId;
+            
             var comment = post.AddComment(CurrentUser.GetId(), input.Content, _guidGenerator);
             await _repository.UpdateAsync(post, autoSave: true);
+            
+            if (postCreatorUserId != currentUserId)
+            {
+                var message = $"{CurrentUser.UserName} commented on your post.";
+                var notificationDto = new CreateNotificationDto
+                {
+                    UserId = postCreatorUserId,
+                    Message = message,
+                    Type = NotificationType.PostCommented
+                };
+                await _notificationAppService.CreateAsync(notificationDto);
+            }
+            
             var commentDto = ObjectMapper.Map<Comment, CommentDto>(comment);
             commentDto.UserName = CurrentUser.UserName;
             return commentDto;

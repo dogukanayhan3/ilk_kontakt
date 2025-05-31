@@ -26,6 +26,7 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Contact;
+using IlkKontakt.Backend.Notifications;
 
 namespace IlkKontakt.Backend.EntityFrameworkCore;
 
@@ -53,6 +54,8 @@ public class BackendDbContext :
     public DbSet<Instructor> Instructors { get; set; }
     public DbSet<Enrollment> Enrollments { get; set; }
     public DbSet<Connection> Connections { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+
 
     
     #region Entities from the modules
@@ -102,7 +105,15 @@ public class BackendDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
         });
+        
+        builder.Entity<Notification>(b =>
+        {
+            b.ToTable("Notifications");
+            b.ConfigureByConvention();
+            b.Property(n => n.Message).IsRequired().HasMaxLength(512);
+        });
 
+        
         builder.Entity<Connection>(b =>
         {
                 b.ToTable("Connections");

@@ -9,6 +9,7 @@ using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using IlkKontakt.Backend.Notifications;
 using Volo.Abp;
 using Volo.Abp.Authorization;
 
@@ -25,13 +26,16 @@ public class ConnectionAppService :
     IConnectionAppService
 {
     private readonly ICurrentUser _currentUser;
+    private readonly INotificationAppService _notificationAppService;
 
     public ConnectionAppService(
         IRepository<Connection, Guid> repository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        INotificationAppService notificationAppService)
         : base(repository)
     {
         _currentUser = currentUser;
+        _notificationAppService = notificationAppService;
     }
 
     public override async Task<ConnectionDto> CreateAsync(CreateConnectionDto input)
@@ -72,18 +76,44 @@ public class ConnectionAppService :
         // Now insert a brand‐new connection
         var newConn = new Connection(senderId, receiverId);
         await Repository.InsertAsync(newConn);
+        
+        // ✅ Send notification to receiver
+        await _notificationAppService.CreateAsync(new CreateNotificationDto
+        {
+            UserId = receiverId,
+            Message = "You have a new connection request.",
+            Type = NotificationType.ConnectionRequest // Define this in your enum
+        });
+        
         return MapToGetOutputDto(newConn);
     }
 
     public override async Task<ConnectionDto> UpdateAsync(Guid id, UpdateConnectionStatusDto input)
     {
         var entity = await Repository.GetAsync(id);
-        if (input.Status == ConnectionStatus.Accepted) entity.Accept();
-        else if (input.Status == ConnectionStatus.Rejected) entity.Reject();
+
+        if (input.Status == ConnectionStatus.Accepted)
+        {
+            entity.Accept();
+
+            // ✅ Notify the original sender that the request was accepted
+            await _notificationAppService.CreateAsync(new CreateNotificationDto
+            {
+                UserId = entity.SenderId,
+                Message = "Your connection request has been accepted.",
+                Type = NotificationType.ConnectionAccepted // Add to enum
+            });
+        }
+        else if (input.Status == ConnectionStatus.Rejected)
+        {
+            entity.Reject();
+            // (Optional) notify sender about rejection if you want
+        }
 
         await Repository.UpdateAsync(entity);
         return MapToGetOutputDto(entity);
     }
+
     
     public async Task<PagedResultDto<ConnectionDto>> GetIncomingListAsync(
         PagedAndSortedResultRequestDto input)
