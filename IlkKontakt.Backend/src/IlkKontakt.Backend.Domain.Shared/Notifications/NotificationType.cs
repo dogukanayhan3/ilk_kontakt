@@ -4,5 +4,7 @@ public enum NotificationType
 {
     General,
     ConnectionRequest,
-    ConnectionAccepted
+    ConnectionAccepted,
+    PostLiked,
+    PostCommented
 }
