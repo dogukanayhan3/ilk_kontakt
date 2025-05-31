@@ -32,10 +32,8 @@ public class NotificationAppService :
 
     public override async Task<NotificationDto> CreateAsync(CreateNotificationDto input)
     {
-        var userId = _currentUser.GetId();
-
         // Create the entity using its constructor
-        var entity = new Notification(userId, input.Message, input.Type);
+        var entity = new Notification(input.UserId, input.Message, input.Type);
 
         // ID will be set by ABP automatically
         await Repository.InsertAsync(entity, autoSave: true);
