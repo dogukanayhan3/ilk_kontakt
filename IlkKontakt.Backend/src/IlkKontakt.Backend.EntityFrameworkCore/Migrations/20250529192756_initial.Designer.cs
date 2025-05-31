@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250528221204_initial")]
+    [Migration("20250529192756_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -370,13 +370,15 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
-                    b.Property<string>("ExperienceLevel")
+                    b.Property<int>("ExperienceLevel")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ExternalUrl")
                         .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("text");
 
                     b.Property<string>("ExtraProperties")
                         .IsRequired()
@@ -401,7 +403,7 @@ namespace IlkKontakt.Backend.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<int>("Type")
+                    b.Property<int>("WorkType")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

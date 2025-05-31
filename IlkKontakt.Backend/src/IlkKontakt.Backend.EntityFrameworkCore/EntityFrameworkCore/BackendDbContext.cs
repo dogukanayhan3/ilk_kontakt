@@ -381,9 +381,8 @@ public class BackendDbContext :
                 a.ConfigureByConvention();
                 a.Property(y => y.Title).IsRequired().HasMaxLength(128);
                 a.Property(y => y.Company).IsRequired().HasMaxLength(128);
-                a.Property(y => y.Description).HasMaxLength(1000);
+                a.Property(y => y.Description).HasMaxLength(2000);
                 a.Property(y => y.Location).HasMaxLength(256);
-                a.Property(y => y.ExperienceLevel).HasMaxLength(64);
             });
 
             builder.Entity<ContactUs>(b =>

@@ -106,10 +106,10 @@ function ContactPage() {
                     <div className="contact-info">
                         <h3>İletişim Bilgilerimiz</h3>
                         <p>
-                            <strong>Adres:</strong> Mutlukent Mah. 1986.Sokak. No:8 Çankaya – ANKARA/TURKIYE
+                            <strong>Adres:</strong> Çankaya, Ankara, Türkiye
                         </p>
                         <p>
-                            <strong>Telefon:</strong> +90 123 456 7890
+                            <strong>Telefon:</strong> +90 543 543 56 56
                         </p>
                         <p>
                             <strong>E-posta:</strong> info@ilkkontakt.com
