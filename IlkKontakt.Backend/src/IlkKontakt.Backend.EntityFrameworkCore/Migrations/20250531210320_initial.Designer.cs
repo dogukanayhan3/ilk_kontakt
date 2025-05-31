@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250529192756_initial")]
+    [Migration("20250531210320_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -409,6 +409,33 @@ namespace IlkKontakt.Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("JobListings", (string)null);
+                });
+
+            modelBuilder.Entity("IlkKontakt.Backend.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("IlkKontakt.Backend.Posts.Post", b =>
