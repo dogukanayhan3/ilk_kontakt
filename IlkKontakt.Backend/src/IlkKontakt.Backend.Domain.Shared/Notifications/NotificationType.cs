@@ -6,5 +6,6 @@ public enum NotificationType
     ConnectionRequest,
     ConnectionAccepted,
     PostLiked,
-    PostCommented
+    PostCommented,
+    NewEnrollment
 }

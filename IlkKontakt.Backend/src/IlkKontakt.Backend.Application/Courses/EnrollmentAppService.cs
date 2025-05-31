@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
+using IlkKontakt.Backend.Notifications;
 using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -18,13 +19,16 @@ namespace IlkKontakt.Backend.Courses
   {
     private readonly IRepository<Enrollment, Guid> _enrollmentRepository;
     private readonly IRepository<Course, Guid> _courseRepository;
+    private readonly INotificationAppService _notificationAppService;
 
     public EnrollmentAppService(
       IRepository<Enrollment, Guid> enrollmentRepository,
-      IRepository<Course, Guid> courseRepository)
+      IRepository<Course, Guid> courseRepository,
+      INotificationAppService notificationAppService)
     {
       _enrollmentRepository = enrollmentRepository;
       _courseRepository     = courseRepository;
+      _notificationAppService = notificationAppService;
     }
 
     public async Task<EnrollmentDto> GetAsync(Guid id)
@@ -102,6 +106,18 @@ namespace IlkKontakt.Backend.Courses
         enrollment,
         autoSave: true
       );
+      
+      // 🆕 Notify Instructor
+      var course = await _courseRepository.GetAsync(input.CourseId);
+      if (course.InstructorId != userId)
+      {
+        await _notificationAppService.CreateAsync(new CreateNotificationDto
+        {
+          UserId = course.InstructorId,
+          Message = "A new student has enrolled in your course.",
+          Type = NotificationType.NewEnrollment
+        });
+      }
 
       return ObjectMapper.Map<Enrollment, EnrollmentDto>(
         enrollment
