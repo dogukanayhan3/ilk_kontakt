@@ -20,15 +20,18 @@ namespace IlkKontakt.Backend.Courses
     private readonly IRepository<Enrollment, Guid> _enrollmentRepository;
     private readonly IRepository<Course, Guid> _courseRepository;
     private readonly INotificationAppService _notificationAppService;
+    private readonly IRepository<Instructor, Guid> _instructorRepository;
 
     public EnrollmentAppService(
       IRepository<Enrollment, Guid> enrollmentRepository,
       IRepository<Course, Guid> courseRepository,
-      INotificationAppService notificationAppService)
+      INotificationAppService notificationAppService,
+      IRepository<Instructor, Guid> instructorRepository)
     {
       _enrollmentRepository = enrollmentRepository;
       _courseRepository     = courseRepository;
       _notificationAppService = notificationAppService;
+      _instructorRepository  = instructorRepository;
     }
 
     public async Task<EnrollmentDto> GetAsync(Guid id)
@@ -109,11 +112,12 @@ namespace IlkKontakt.Backend.Courses
       
       // 🆕 Notify Instructor
       var course = await _courseRepository.GetAsync(input.CourseId);
-      if (course.InstructorId != userId)
+      var instructor = await _instructorRepository.GetAsync(course.InstructorId);
+      if (instructor.UserId != userId)
       {
         await _notificationAppService.CreateAsync(new CreateNotificationDto
         {
-          UserId = course.InstructorId,
+          UserId = instructor.UserId,
           Message = "A new student has enrolled in your course.",
           Type = NotificationType.NewEnrollment
         });
