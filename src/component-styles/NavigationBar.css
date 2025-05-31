@@ -60,3 +60,84 @@ header.navbar ul li a.nav-item.active .nav-icon,
 header.navbar ul li a.nav-item:hover .nav-icon {
     color: var(--active-color);
 }
+
+/* New styles for navbar right section */
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Notification button styles in navbar */
+.navbar-right .notification-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.navbar-right .notification-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FF6600;
+}
+
+.navbar-right .notification-button-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 0.7em;
+    font-weight: 600;
+    min-width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+    header.navbar {
+        padding: 10px 15px;
+    }
+    
+    header.navbar ul {
+        gap: 20px;
+    }
+    
+    header.navbar ul li a.nav-item span {
+        display: none;
+    }
+    
+    .navbar-right {
+        gap: 10px;
+    }
+    
+    header.navbar .logo,
+    header.navbar .exit {
+        font-size: 1em;
+        padding: 8px 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    header.navbar ul {
+        gap: 15px;
+    }
+    
+    .navbar-right .notification-button {
+        padding: 8px;
+    }
+}

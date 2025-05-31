@@ -2,6 +2,7 @@ import "../../component-styles/NavigationBar.css";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, User, BriefcaseBusiness, Globe, Bell, Library } from 'lucide-react';
+import NotificationButton from '../notifications/NotificationButton';
 
 function NavigationBar() {
     const navigate = useNavigate();
@@ -43,13 +44,6 @@ function NavigationBar() {
             label: 'Profil', 
             icon: User,
             activeColor: '#05E25D'
-        },
-        { 
-            name: 'notificationspage', 
-            path: '/notificationspage', 
-            label: 'Bildirimler', 
-            icon: Bell,
-            activeColor: '#FF6600'
         }
     ];
 
@@ -88,7 +82,10 @@ function NavigationBar() {
                 })}
                 </ul>
             </nav>
-            <Link to="/" onClick={handleLogout} className="exit">Çıkış Yap</Link>
+            <div className="navbar-right">
+                <NotificationButton />
+                <Link to="/" onClick={handleLogout} className="exit">Çıkış Yap</Link>
+            </div>
         </header>
     );
 }
