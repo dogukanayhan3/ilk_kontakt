@@ -257,7 +257,7 @@ function JobListPage() {
                         </div>
                     </div>
 
-                    {currentUser && (
+                    {currentUser && currentUser.isCompanyProfile && (
                         <button
                             className="create-job-btn"
                             onClick={() => setShowJobForm(true)}

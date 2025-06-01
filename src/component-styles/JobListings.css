@@ -585,7 +585,7 @@
   }
   
   .form-help {
-    color: #4a5568;
+    color: #718096;
     font-size: 0.8em;
     margin-top: 4px;
     display: block;
@@ -635,5 +635,19 @@
       grid-template-columns: 1fr;
       gap: 12px;
     }
+  }
+  
+  .form-group input.auto-filled,
+  .form-group input.auto-filled:disabled {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+    color: #4a5568;
+    cursor: not-allowed;
+  }
+
+  .form-group input.auto-filled:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: #e2e8f0;
   }
   

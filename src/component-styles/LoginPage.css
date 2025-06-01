@@ -206,3 +206,54 @@ html, body {
         display: block;
     }
 }
+
+/* Account Type Selector */
+.account-type-selector {
+    grid-column: 1 / -1 !important;
+    margin-bottom: 20px;
+  }
+  
+  .account-type-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .account-type-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: 2px solid #5fbcee;
+    background: white;
+    color: #5fbcee;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    flex: 1;
+    max-width: 180px;
+  }
+  
+  .account-type-btn:hover {
+    background: #f0f8ff;
+    transform: translateY(-2px);
+  }
+  
+  .account-type-btn.active {
+    background: #5fbcee;
+    color: white;
+    box-shadow: 0 4px 12px rgba(95, 188, 238, 0.3);
+  }
+  
+  /* Responsive adjustments for account type buttons */
+  @media (max-width: 600px) {
+    .account-type-buttons {
+      flex-direction: column;
+    }
+    
+    .account-type-btn {
+      max-width: none;
+    }
+  }
