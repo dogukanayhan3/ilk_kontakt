@@ -113,7 +113,7 @@ public class BackendDataSeederContributor : IDataSeedContributor, ITransientDepe
             user.SetEmailConfirmed(true);
 
             // Create user with password
-            var result = await _userManager.CreateAsync(user, "Test123!");
+            var result = await _userManager.CreateAsync(user, "123456");
 
             if (result.Succeeded)
             {
