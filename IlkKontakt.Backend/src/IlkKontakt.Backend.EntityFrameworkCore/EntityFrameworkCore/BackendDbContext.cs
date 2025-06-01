@@ -98,14 +98,6 @@ public class BackendDbContext :
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
 
-        builder.Entity<Book>(b =>
-        {
-            b.ToTable(BackendConsts.DbTablePrefix + "Books",
-                BackendConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
-        
         builder.Entity<Notification>(b =>
         {
             b.ToTable("Notifications");
