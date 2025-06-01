@@ -156,7 +156,7 @@ function HomePage() {
                     {
                       text: 
                       `
-                        Analyse these users and their skillsets, educational backgrounds, experiences and match 2 of them with ${currentUserProfile.name} ${currentUserProfile.surname}. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
+                        Analyse these users and their companies & positions they worked at or still currently working at, the skills they have, and match 2 of them with ${currentUserProfile.name} ${currentUserProfile.surname}. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
 
                         Here are all the users data:
                         ${JSON.stringify(allUsers, null, 2)}
@@ -172,7 +172,7 @@ function HomePage() {
                               "name": "user_name",
                               "surname": "user_surname",
                               "profilePictureUrl": "url",
-                              "matchReason": "3-4 word reason, such as 'similar interests' or 'similar experinces'"
+                              "matchReason": "5-6 words reason why they should connect"
                             }
                           ]
                         }
