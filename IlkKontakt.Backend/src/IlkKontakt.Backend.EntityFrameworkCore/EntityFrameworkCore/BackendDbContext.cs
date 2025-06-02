@@ -101,15 +101,7 @@ public class BackendDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-
-        builder.Entity<Book>(b =>
-        {
-            b.ToTable(BackendConsts.DbTablePrefix + "Books",
-                BackendConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
-
+        
         builder.Entity<ChatSession>(b =>
         {
             b.ToTable("ChatSessions");
@@ -124,7 +116,6 @@ public class BackendDbContext :
             b.Property(x => x.StartedAt)
                 .IsRequired();
 
-            // Eðer IdentityUser kullanýlacaksa:
             b.HasOne<IdentityUser>()
                 .WithMany()
                 .HasForeignKey(x => x.User1Id)
@@ -151,15 +142,13 @@ public class BackendDbContext :
                 .IsRequired()
                 .HasMaxLength(1000); // Opsiyonel: Maksimum uzunluk limiti
 
-            b.HasOne<ChatSession>()
-                .WithMany(x => x.Messages)
-                .HasForeignKey(x => x.ChatSessionId)
-                .IsRequired();
+            /*b.HasOne<ChatSession>()
+                .WithMany()
+                .HasForeignKey(x => x.ChatSessionId);*/
 
             b.HasOne<IdentityUser>()
                 .WithMany()
-                .HasForeignKey(x => x.SenderId)
-                .IsRequired();
+                .HasForeignKey(x => x.SenderId);
         });
 
 

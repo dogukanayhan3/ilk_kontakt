@@ -12,7 +12,6 @@ public class CreateUpdateChatSessionDto
     public Guid User2Id { get; set; }
 
     [Required]
-    [DataType(DataType.DateTime)]
     public DateTime StartedAt { get; set; } = DateTime.Now;
 }
 
