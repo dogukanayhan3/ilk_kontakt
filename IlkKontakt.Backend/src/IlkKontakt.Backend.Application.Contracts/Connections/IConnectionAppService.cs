@@ -17,5 +17,9 @@ public interface IConnectionAppService :
     Task<PagedResultDto<ConnectionDto>> GetIncomingListAsync(PagedAndSortedResultRequestDto input);
     Task<PagedResultDto<ConnectionDto>> GetOutgoingListAsync(PagedAndSortedResultRequestDto input);
     Task<PagedResultDto<ConnectionDto>> GetUserConnectionsAsync(PagedAndSortedResultRequestDto input);
+    // IConnectionAppService.cs
+    Task<PagedResultDto<ConnectionDto>> GetAcceptedConnectionsAsync(
+        Guid userId,
+        PagedAndSortedResultRequestDto input);
 }
 
