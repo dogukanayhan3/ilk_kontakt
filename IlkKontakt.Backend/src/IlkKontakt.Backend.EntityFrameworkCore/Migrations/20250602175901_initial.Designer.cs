@@ -13,8 +13,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250602011627_Job_App_Fix_2")]
-    partial class Job_App_Fix_2
+    [Migration("20250602175901_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -62,8 +62,7 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("character varying(128)");
+                        .HasColumnType("text");
 
                     b.Property<float>("Price")
                         .HasColumnType("real");
@@ -76,7 +75,7 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppBooks", (string)null);
+                    b.ToTable("Books");
                 });
 
             modelBuilder.Entity("IlkKontakt.Backend.Connections.Connection", b =>
@@ -387,11 +386,7 @@ namespace IlkKontakt.Backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicantId");
-
-                    b.HasIndex("JobListingId");
-
-                    b.ToTable("JobApplications", (string)null);
+                    b.ToTable("JobApplications");
                 });
 
             modelBuilder.Entity("IlkKontakt.Backend.JobListings.JobListing", b =>
@@ -1738,6 +1733,12 @@ namespace IlkKontakt.Backend.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsCompanyProfile")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("IsCompanyProfile");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

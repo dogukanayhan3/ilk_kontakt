@@ -99,6 +99,13 @@ public class BackendDbContext :
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
         
+        builder.Entity<IdentityUser>(b =>
+        {
+            b.Property<bool>("IsCompanyProfile")
+                .HasColumnName("IsCompanyProfile")
+                .IsRequired()
+                .HasDefaultValue(false);
+        });
 
         builder.Entity<Notification>(b =>
         {
