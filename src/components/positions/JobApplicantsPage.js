@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Filter, ArrowLeft, User, Mail, Phone, Briefcase, GraduationCap } from 'lucide-react';
 import '../../component-styles/JobApplicantsPage.css';
+import Layout from "../page_layout/Layout";
 
 const API_BASE = 'https://localhost:44388';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const APPLICATION_ROOT = `${API_BASE}/api/app/job-application`;
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCGsj7ia3gcCamolOyeUB4Vyir790GSR8c';
 
 function JobApplicantsPage() {
     const { jobId } = useParams();
@@ -35,18 +37,19 @@ function JobApplicantsPage() {
             const jobData = await jobResponse.json();
             setJob(jobData);
 
-            // Fetch applicants
-            const applicantsResponse = await fetch(`${API_BASE}/api/app/job-application/by-job/${jobId}`, {
-                credentials: 'include'
-            });
-
-            if (!applicantsResponse.ok) {
+            const applicantsResponse = await fetch(
+                `${APPLICATION_ROOT}/by-job-id/${jobId}`
+                + `?SkipCount=0&MaxResultCount=1000`,
+                { credentials: 'include' }
+              );
+              if (!applicantsResponse.ok) {
                 throw new Error('Failed to fetch applicants');
-            }
+              }
+              const dto = await applicantsResponse.json();
+              const applicantsData = dto.items;   // <-- our new DTOs
+              setApplicants(applicantsData);
+              setFilteredApplicants(applicantsData);
 
-            const applicantsData = await applicantsResponse.json();
-            setApplicants(applicantsData);
-            setFilteredApplicants(applicantsData);
         } catch (err) {
             setError('Failed to load data. Please try again.');
             console.error('Error:', err);
@@ -58,44 +61,48 @@ function JobApplicantsPage() {
     const handleSearch = async (e) => {
         e.preventDefault();
         if (!searchQuery.trim()) {
-            setFilteredApplicants(applicants);
-            return;
+          setFilteredApplicants(applicants);
+          return;
         }
-
         setIsFiltering(true);
+        setError('');
         try {
-            const response = await fetch(GEMINI_API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${process.env.REACT_APP_GEMINI_API_KEY}`
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `Given these job applicants' profiles: ${JSON.stringify(applicants)}, 
-                                  find the best matches for this search query: "${searchQuery}". 
-                                  Return only the IDs of matching applicants in a JSON array.`
-                        }]
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to filter applicants');
-            }
-
-            const data = await response.json();
-            const matchingIds = JSON.parse(data.candidates[0].content.parts[0].text);
-            const filtered = applicants.filter(applicant => matchingIds.includes(applicant.id));
-            setFilteredApplicants(filtered);
+          const response = await fetch(GEMINI_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `Given these job applicants' profiles: ${JSON.stringify(applicants)}, 
+                         find the best matches for this search query: "${searchQuery}". 
+                         Return only the IDs of matching applicants in a JSON array.`
+                }]
+              }]
+            })
+          });
+          if (!response.ok) {
+            throw new Error('Failed to filter applicants');
+          }
+          const data = await response.json();
+          // grab the raw LLM text
+          let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          // strip code fences
+          raw = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+          // parse the JSON array
+          const matchingIds = JSON.parse(raw);
+          // build matched + rest
+          const matched = applicants.filter(a => matchingIds.includes(a.id));
+          const others  = applicants.filter(a => !matchingIds.includes(a.id));
+          setFilteredApplicants([...matched, ...others]);
         } catch (err) {
-            console.error('Error filtering applicants:', err);
-            setError('Failed to filter applicants. Please try again.');
+          console.error('Error filtering applicants:', err);
+          setError('Failed to filter applicants. Please try again.');
         } finally {
-            setIsFiltering(false);
+          setIsFiltering(false);
         }
-    };
+      };
 
     if (isLoading) {
         return (
@@ -106,6 +113,7 @@ function JobApplicantsPage() {
     }
 
     return (
+        <Layout>
         <div className="job-applicants-page">
             <div className="page-header">
                 <button className="back-btn" onClick={() => navigate(-1)}>
@@ -140,45 +148,47 @@ function JobApplicantsPage() {
                     <div className="no-applicants">
                         {searchQuery ? 'No matching applicants found.' : 'No applicants yet.'}
                     </div>
-                ) : (
-                    filteredApplicants.map(applicant => (
-                        <div key={applicant.id} className="applicant-card">
-                            <div className="applicant-header">
-                                <User size={20} />
-                                <h3>{applicant.userName}</h3>
-                            </div>
-                            <div className="applicant-details">
-                                <div className="detail-item">
-                                    <Mail size={16} />
-                                    <span>{applicant.email}</span>
-                                </div>
-                                {applicant.phoneNumber && (
-                                    <div className="detail-item">
-                                        <Phone size={16} />
-                                        <span>{applicant.phoneNumber}</span>
-                                    </div>
-                                )}
-                                {applicant.experience && (
-                                    <div className="detail-item">
-                                        <Briefcase size={16} />
-                                        <span>{applicant.experience}</span>
-                                    </div>
-                                )}
-                                {applicant.education && (
-                                    <div className="detail-item">
-                                        <GraduationCap size={16} />
-                                        <span>{applicant.education}</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="application-date">
-                                Applied on: {new Date(applicant.creationTime).toLocaleDateString()}
-                            </div>
+                ) : (  filteredApplicants.map(a => (
+                        <div key={a.applicationId} className="applicant-card">
+                        <div className="applicant-header">
+                        <User size={20} />
+                        <h3>{a.userName}</h3>
                         </div>
-                    ))
-                )}
+                        <div className="applicant-details">
+                        <div className="detail-item">
+                            <Mail size={16} /><span>{a.email}</span>
+                        </div>
+                        {a.phoneNumber && (
+                            <div className="detail-item">
+                            <Phone size={16} /><span>{a.phoneNumber}</span>
+                            </div>
+                        )}
+                        {a.latestExperience && (
+                            <div className="detail-item">
+                            <Briefcase size={16} />
+                            <span>
+                                {a.latestExperience.title} @ {a.latestExperience.companyName}
+                            </span>
+                            </div>
+                        )}
+                        {a.latestEducation && (
+                            <div className="detail-item">
+                            <GraduationCap size={16} />
+                            <span>
+                                {a.latestEducation.degree} @ {a.latestEducation.institution}
+                            </span>
+                            </div>
+                        )}
+                        </div>
+                        <div className="application-date">
+                        Applied on: {new Date(a.creationTime).toLocaleDateString()}
+                        </div>
+                    </div>
+                        ))
+                    )}
             </div>
         </div>
+        </Layout>
     );
 }
 
