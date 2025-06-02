@@ -109,9 +109,47 @@ export default function ProfilePage() {
   const [connectionsLoading, setConnectionsLoading] = useState(false);
   const [connectionsError, setConnectionsError] = useState('');
   const [showConnections, setShowConnections] = useState(false);
-  const navigateToProfile = (userId) => {
-    navigate(`/profilepage/${userId}`);
-  };
+// Updated navigateToProfile function
+
+ // Updated navigateToProfile function
+ const navigateToProfile = async (userId) => {
+  try {
+    console.log('⭐ Fetching profile data for user ID:', userId);
+   
+    // First fetch the user's profile data using the by-user-id endpoint
+    const res = await fetch(`${PROFILE_BY_USER_ID}/${userId}`, {
+      credentials: 'include',
+    });
+   
+    if (!res.ok) {
+      console.error('❌ Failed to fetch profile for navigation:', res.status, res.statusText);
+      return; // Don't navigate if we can't get the profile
+    }
+   
+    // Extract the profile data which contains the ID we need
+    const profileData = await res.json();
+    console.log('📊 Got profile data for navigation:', profileData);
+   
+    if (!profileData.id) {
+      console.error('❌ No profile ID found in response');
+      return;
+    }
+
+    // Check if trying to navigate to current user's profile
+    if (res.userId === currentUser.Id) {
+      console.log('🔄 Navigating to own profile');
+      navigate('/profilepage');
+      return;
+    }
+   
+    // Navigate to profile page using the profile ID
+    console.log('🔄 Navigating to profile ID:', profileData.id);
+    navigate(`/profilepage/${profileData.id}`);
+   
+  } catch (error) {
+    console.error('❌ Error navigating to profile:', error);
+  }
+};
 
   // EXPERIENCES
   const [experiences, setExperiences] = useState([])
@@ -1010,8 +1048,7 @@ async function fetchConnections(userId) {
         <p>Profesyonel profilinizi yönetin ve kendinizi tanıtın</p>
       </section>
       <div className="profile-connections-container">
-      {/* PROFILE CARD - Left Side */}
-        {/* PROFILE CARD */}
+        {/* PROFILE CARD - Left Side */}
         <section className="profile-section">
           <div className="profile-card">
             {error && (
@@ -1155,70 +1192,77 @@ async function fetchConnections(userId) {
                     </span>
                   </div>
                 </div>
-                {isOwnProfile && (
-                  <div className="profile-actions">
+                <div className="profile-actions">
+                  <button 
+                    className="show-connections-btn"
+                    onClick={() => setShowConnections(true)}
+                  >
+                    Bağlantıları Göster
+                  </button>
+                  {isOwnProfile && (
                     <button id="edit-profile-btn" onClick={handleEdit}>
                       <Edit size={18} /> Düzenle
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             )}
           </div>
         </section>
-      
 
-      {/* **NEW CONNECTIONS SECTION** */}
-      {/* CONNECTIONS SECTION - Right Side */}
-  <section className="connections-section">
-    <div className="section-header">
-      <h2>Bağlantılar</h2>
-      <button 
-        className="show-connections-btn"
-        onClick={() => setShowConnections(!showConnections)}
-      >
-        {showConnections ? 'Bağlantıları Gizle' : 'Bağlantıları Göster'}
-      </button>
-    </div>
-    
-    {connectionsError && <div className="error-message">{connectionsError}</div>}
-    
-    {connectionsLoading ? (
-      <div>Bağlantılar yükleniyor...</div>
-    ) : showConnections ? (
-      <div className="connections-grid">
-        {connections.length === 0 ? (
-          <p>Bağlantı bulunamadı.</p>
-        ) : (
-          connections.map((connection) => {
-            // Determine the other user's ID for navigation
-            const otherUserId = String(connection.senderId) === String(profile?.userId)
-              ? connection.receiverId
-              : connection.senderId;
-              
-            return (
-              <div 
-                className="connection-card" 
-                key={connection.id}
-                onClick={() => navigateToProfile(otherUserId)}
-                style={{ cursor: 'pointer' }}
-              >
-                <img
-                  src={connection.profilePictureUrl || '/default-avatar.png'}
-                  alt={connection.name}
-                  className="connection-avatar"
-                />
-                <p>{connection.name || 'Bilinmeyen Kullanıcı'}</p>
-                <p>@{connection.userName}</p>
+        {/* CONNECTIONS MODAL */}
+        {showConnections && (
+          <div className="connections-modal-overlay" onClick={() => setShowConnections(false)}>
+            <div className="connections-modal" onClick={e => e.stopPropagation()}>
+              <div className="connections-modal-header">
+                <h2>Bağlantılar</h2>
+                <button 
+                  className="connections-modal-close"
+                  onClick={() => setShowConnections(false)}
+                >
+                  <X size={24} />
+                </button>
               </div>
-            );
-          })
+              
+              {connectionsError && <div className="error-message">{connectionsError}</div>}
+              
+              {connectionsLoading ? (
+                <div className="loading-message">Bağlantılar yükleniyor...</div>
+              ) : (
+                <div className="connections-grid">
+                  {connections.length === 0 ? (
+                    <p className="no-connections">Henüz bağlantı bulunmuyor.</p>
+                  ) : (
+                    connections.map((connection) => {
+                      const otherUserId = String(connection.senderId) === String(profile?.userId)
+                        ? connection.receiverId
+                        : connection.senderId;
+                        
+                      return (
+                        <div 
+                          className="connection-card" 
+                          key={connection.id}
+                          onClick={() => {
+                            navigateToProfile(otherUserId);
+                            setShowConnections(false);
+                          }}
+                        >
+                          <img
+                            src={connection.profilePictureUrl || '/default-avatar.png'}
+                            alt={connection.name}
+                            className="connection-avatar"
+                          />
+                          <p>{connection.name || 'Bilinmeyen Kullanıcı'}</p>
+                          <p>@{connection.userName}</p>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         )}
-      </div>
-    ) : (
-      <p>Bağlantıları görmek için "Bağlantıları Göster" butonuna tıklayın.</p>
-    )}
-  </section>
       </div>
 
       {/* Two Column Layout Container */}
