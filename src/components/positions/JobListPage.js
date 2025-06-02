@@ -5,6 +5,7 @@ import Job from "./Job";
 import JobForm from "./JobForm";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/JobListings.css";
+import { useNavigate } from 'react-router-dom';
 
 const API_BASE = 'https://localhost:44388';
 const JOB_LISTINGS_ROOT = `${API_BASE}/api/app/job-listing`;
@@ -18,6 +19,7 @@ function getCookie(name) {
 
 function JobListPage() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   const [jobListings, setJobListings] = useState([]);
   const [companyJobs, setCompanyJobs] = useState([]);
@@ -188,6 +190,10 @@ function JobListPage() {
     setEditingJob(null);
   };
 
+  const handleJobClick = (jobId) => {
+    navigate(`/job-applicants/${jobId}`);
+  };
+
   const filteredJobs = jobListings.filter((job) => {
     const lower = (s = '') => s.toLowerCase();
     const matchesSearch =
@@ -261,12 +267,15 @@ function JobListPage() {
             ) : (
               <div className="company-jobs-row">
                 {companyJobs.map((job) => (
-                  <div key={job.id} className="company-job-card">
+                  <div 
+                    key={job.id} 
+                    className="company-job-card"
+                    onClick={() => handleJobClick(job.id)}
+                  >
                     <div className="company-job-content">
                       <div className="company-job-info">
                         <h3>{job.title}</h3>
-                        <p className="company-job-meta">
-                          {job.location && <span>{job.location}</span>}
+                        <div className="company-job-meta">
                           <span className="work-type">
                             {job.workType === 0
                               ? 'Ofiste'
@@ -274,7 +283,8 @@ function JobListPage() {
                               ? 'Uzaktan'
                               : 'Hibrit'}
                           </span>
-                        </p>
+                          <span>{job.location}</span>
+                        </div>
                         <p className="company-job-description">
                           {job.description
                             ? job.description.length > 100
@@ -286,14 +296,20 @@ function JobListPage() {
                       <div className="company-job-actions">
                         <button
                           className="edit-job-btn"
-                          onClick={() => handleEditJob(job)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditJob(job);
+                          }}
                           title="Düzenle"
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           className="delete-job-btn"
-                          onClick={() => deleteJobListing(job.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteJobListing(job.id);
+                          }}
                           title="Sil"
                         >
                           <Trash2 size={16} />
