@@ -827,3 +827,70 @@
       align-items: stretch;
   }
 }
+
+/* Job Application Status */
+.apply-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.application-error,
+.application-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    animation: slideIn 0.3s ease-out;
+}
+
+.application-error {
+    background-color: #FEE2E2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+
+.application-success {
+    background-color: #DCFCE7;
+    color: #16A34A;
+    border: 1px solid #BBF7D0;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading state for apply button */
+.apply-btn.loading {
+    position: relative;
+    color: transparent;
+}
+
+.apply-btn.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: button-loading 0.8s infinite linear;
+}
+
+@keyframes button-loading {
+    to {
+        transform: rotate(360deg);
+    }
+}
