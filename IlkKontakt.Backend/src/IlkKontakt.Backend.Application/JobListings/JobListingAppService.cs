@@ -60,5 +60,23 @@ namespace IlkKontakt.Backend.JobListings
         {
             await _repository.DeleteAsync(id);
         }
+        
+        public async Task<PagedResultDto<JobListingDto>> GetListByCreatorAsync(PagedAndSortedResultRequestDto input)
+        {
+            var queryable = await _repository.GetQueryableAsync();
+            var query = queryable
+                .Where(x => x.CreatorId == CurrentUser.Id)
+                .OrderBy(input.Sorting.IsNullOrWhiteSpace() ? "Title" : input.Sorting)
+                .Skip(input.SkipCount)
+                .Take(input.MaxResultCount);
+
+            var jobListings = await AsyncExecuter.ToListAsync(query);
+            var totalCount = await AsyncExecuter.CountAsync(queryable.Where(x => x.CreatorId == CurrentUser.Id));
+
+            return new PagedResultDto<JobListingDto>(
+                totalCount,
+                ObjectMapper.Map<List<JobListing>, List<JobListingDto>>(jobListings)
+            );
+        }
     }
 }

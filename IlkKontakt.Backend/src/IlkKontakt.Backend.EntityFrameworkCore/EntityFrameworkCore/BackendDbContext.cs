@@ -98,26 +98,8 @@ public class BackendDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-
-        builder.Entity<Book>(b =>
-        {
-            b.ToTable(BackendConsts.DbTablePrefix + "Books",
-                BackendConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
         
-        builder.Entity<JobApplication>(b =>
-        {
-            b.ToTable("JobApplications");
 
-            b.ConfigureByConvention(); // sets up auditing fields
-
-            b.HasIndex(x => x.ApplicantId);
-            b.HasIndex(x => x.JobListingId);
-            b.Property(x => x.Status);
-        });
-        
         builder.Entity<Notification>(b =>
         {
             b.ToTable("Notifications");

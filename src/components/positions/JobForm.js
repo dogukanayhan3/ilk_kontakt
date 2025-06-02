@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Briefcase, ExternalLink } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import "../../component-styles/JobListings.css";
+
+const API_BASE = 'https://localhost:44388';
+const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`;
 
 const WORK_TYPES = [
     { value: 0, label: 'Ofiste' },
@@ -18,6 +22,7 @@ const EXPERIENCE_LEVELS = [
 ];
 
 function JobForm({ job, onSubmit, onClose }) {
+    const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
         title: '',
         company: '',
@@ -41,8 +46,34 @@ function JobForm({ job, onSubmit, onClose }) {
                 location: job.location || '',
                 externalUrl: job.externalUrl || ''
             });
+        } else {
+            // For new job listings, fetch user profile to auto-fill company name and address
+            const fetchUserProfile = async () => {
+                try {
+                    const response = await fetch(PROFILE_BY_USER, {
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const profile = await response.json();
+                        setFormData(prev => ({
+                            ...prev,
+                            company: profile.name+profile.surname || '',
+                            location: profile.address || ''
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                }
+            };
+
+            fetchUserProfile();
         }
-    }, [job]);
+    }, [job, currentUser]);
 
     const validateForm = () => {
         const newErrors = {};
@@ -151,10 +182,12 @@ function JobForm({ job, onSubmit, onClose }) {
                                 value={formData.company}
                                 onChange={handleChange}
                                 maxLength={128}
-                                className={errors.company ? 'error' : ''}
+                                className={`${errors.company ? 'error' : ''} ${!job ? 'auto-filled' : ''}`}
                                 placeholder="Şirket adı"
+                                disabled={!job}
                             />
                             {errors.company && <span className="error-text">{errors.company}</span>}
+                            {!job && <small className="form-help">Otomatik dolduruldu</small>}
                         </div>
                     </div>
 
@@ -201,10 +234,12 @@ function JobForm({ job, onSubmit, onClose }) {
                             value={formData.location}
                             onChange={handleChange}
                             maxLength={256}
-                            className={errors.location ? 'error' : ''}
+                            className={`${errors.location ? 'error' : ''} ${!job ? 'auto-filled' : ''}`}
                             placeholder="Örn: İstanbul, Türkiye"
+                            disabled={!job}
                         />
                         {errors.location && <span className="error-text">{errors.location}</span>}
+                        {!job && <small className="form-help">Otomatik dolduruldu</small>}
                     </div>
 
                     <div className="form-group">
