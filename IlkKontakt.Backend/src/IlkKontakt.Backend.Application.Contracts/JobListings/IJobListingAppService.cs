@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 
@@ -11,5 +12,5 @@ public interface IJobListingAppService :
         PagedAndSortedResultRequestDto, // Used for paging/sorting
         CreateUpdateJobListingDto> // Used to create/update a job listing
 {
-
+    Task<PagedResultDto<JobListingDto>> GetListByCreatorAsync(PagedAndSortedResultRequestDto input);
 }

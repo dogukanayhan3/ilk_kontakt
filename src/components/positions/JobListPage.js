@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
 import Layout from "../page_layout/Layout";
 import Job from "./Job";
 import JobForm from "./JobForm";
@@ -16,7 +16,9 @@ function getCookie(name) {
 
 function JobListPage() {
     const [jobListings, setJobListings] = useState([]);
+    const [companyJobs, setCompanyJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [companyJobsLoading, setCompanyJobsLoading] = useState(false);
     const [error, setError] = useState('');
     const [showJobForm, setShowJobForm] = useState(false);
     const [editingJob, setEditingJob] = useState(null);
@@ -26,9 +28,70 @@ function JobListPage() {
     const [filterLocation, setFilterLocation] = useState('');
     const { currentUser } = useAuth();
 
+    // Helper function for authenticated requests
+    async function makeAuthenticatedRequest(url, options = {}) {
+        // Get XSRF token
+        await fetch(`${API_BASE}/api/abp/application-configuration`, {
+            credentials: 'include',
+        });
+        const xsrfToken = getCookie('XSRF-TOKEN');
+        
+        if (!xsrfToken) {
+            throw new Error('XSRF token bulunamadı');
+        }
+
+        // Merge headers
+        const defaultHeaders = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': xsrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+
+        const mergedOptions = {
+            credentials: 'include',
+            ...options,
+            headers: {
+                ...defaultHeaders,
+                ...options.headers
+            }
+        };
+
+        return fetch(url, mergedOptions);
+    }
+
+    const fetchCompanyJobs = useCallback(async () => {
+        if (!currentUser?.id) return;
+        
+        setCompanyJobsLoading(true);
+        try {
+            const response = await makeAuthenticatedRequest(
+                `${JOB_LISTINGS_ROOT}/by-creator`
+            );
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error('Şirket iş ilanları yüklenemedi');
+            }
+
+            const data = await response.json();
+            console.log('Company jobs fetched:', data);
+            setCompanyJobs(data.items || []);
+        } catch (e) {
+            console.error('Error fetching company jobs:', e);
+            setCompanyJobs([]);
+        } finally {
+            setCompanyJobsLoading(false);
+        }
+    }, [currentUser?.id]);
+
     useEffect(() => {
         fetchJobListings();
-    }, []);
+        if (currentUser?.isCompanyProfile && currentUser?.id) {
+            fetchCompanyJobs();
+        }
+    }, [currentUser, fetchCompanyJobs]);
 
     async function fetchJobListings() {
         setLoading(true);
@@ -57,22 +120,8 @@ function JobListPage() {
 
     async function createJobListing(jobData) {
         try {
-            await fetch(`${API_BASE}/api/abp/application-configuration`, {
-                credentials: 'include',
-            });
-            const xsrfToken = getCookie('XSRF-TOKEN');
-            if (!xsrfToken) {
-                throw new Error('XSRF token bulunamadı');
-            }
-
-            const response = await fetch(JOB_LISTINGS_ROOT, {
+            const response = await makeAuthenticatedRequest(JOB_LISTINGS_ROOT, {
                 method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': xsrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
                 body: JSON.stringify(jobData),
             });
 
@@ -80,7 +129,11 @@ function JobListPage() {
                 throw new Error('İş ilanı oluşturulamadı');
             }
 
+            // Refresh both lists
             await fetchJobListings();
+            if (currentUser?.isCompanyProfile) {
+                await fetchCompanyJobs();
+            }
             setShowJobForm(false);
         } catch (err) {
             console.error('Create job listing error:', err);
@@ -90,22 +143,8 @@ function JobListPage() {
 
     async function updateJobListing(id, jobData) {
         try {
-            await fetch(`${API_BASE}/api/abp/application-configuration`, {
-                credentials: 'include',
-            });
-            const xsrfToken = getCookie('XSRF-TOKEN');
-            if (!xsrfToken) {
-                throw new Error('XSRF token bulunamadı');
-            }
-
-            const response = await fetch(`${JOB_LISTINGS_ROOT}/${id}`, {
+            const response = await makeAuthenticatedRequest(`${JOB_LISTINGS_ROOT}/${id}`, {
                 method: 'PUT',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': xsrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
                 body: JSON.stringify(jobData),
             });
 
@@ -113,7 +152,11 @@ function JobListPage() {
                 throw new Error('İş ilanı güncellenemedi');
             }
 
+            // Refresh both lists
             await fetchJobListings();
+            if (currentUser?.isCompanyProfile) {
+                await fetchCompanyJobs();
+            }
             setEditingJob(null);
             setShowJobForm(false);
         } catch (err) {
@@ -128,28 +171,19 @@ function JobListPage() {
         }
 
         try {
-            await fetch(`${API_BASE}/api/abp/application-configuration`, {
-                credentials: 'include',
-            });
-            const xsrfToken = getCookie('XSRF-TOKEN');
-            if (!xsrfToken) {
-                throw new Error('XSRF token bulunamadı');
-            }
-
-            const response = await fetch(`${JOB_LISTINGS_ROOT}/${id}`, {
+            const response = await makeAuthenticatedRequest(`${JOB_LISTINGS_ROOT}/${id}`, {
                 method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'RequestVerificationToken': xsrfToken,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
             });
 
             if (!response.ok) {
                 throw new Error('İş ilanı silinemedi');
             }
 
+            // Refresh both lists
             await fetchJobListings();
+            if (currentUser?.isCompanyProfile) {
+                await fetchCompanyJobs();
+            }
         } catch (err) {
             console.error('Delete job listing error:', err);
             setError(err.message);
@@ -166,6 +200,7 @@ function JobListPage() {
         setEditingJob(null);
     };
 
+    // Filter all jobs for the main listing
     const filteredJobs = jobListings.filter(job => {
         const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,6 +238,80 @@ function JobListPage() {
             </section>
 
             <div className="job-listings-page-container">
+                {/* Company's Own Listings Section */}
+                {currentUser?.isCompanyProfile && (
+                    <section className="company-listings-section">
+                        <div className="section-header">
+                            <h2>İlanlarım ({companyJobs.length})</h2>
+                            <button
+                                className="create-job-btn"
+                                onClick={() => setShowJobForm(true)}
+                            >
+                                <Plus size={20} strokeWidth={2} />
+                                Yeni İlan Ekle
+                            </button>
+                        </div>
+                        
+                        {companyJobsLoading ? (
+                            <div className="loading-message">Şirket ilanları yükleniyor...</div>
+                        ) : companyJobs.length === 0 ? (
+                            <div className="no-company-jobs">
+                                <p>Henüz iş ilanınız bulunmuyor.</p>
+                                <button
+                                    className="create-first-job-btn"
+                                    onClick={() => setShowJobForm(true)}
+                                >
+                                    İlk İlanınızı Oluşturun
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="company-jobs-row">
+                                {companyJobs.map(job => (
+                                    <div key={job.id} className="company-job-card">
+                                        <div className="company-job-content">
+                                            <div className="company-job-info">
+                                                <h3>{job.title}</h3>
+                                                <p className="company-job-meta">
+                                                    {job.location && <span>{job.location}</span>}
+                                                    <span className="work-type">
+                                                        {job.workType === 0 ? 'Ofiste' : 
+                                                         job.workType === 1 ? 'Uzaktan' : 'Hibrit'}
+                                                    </span>
+                                                </p>
+                                                <p className="company-job-description">
+                                                    {job.description ? 
+                                                        (job.description.length > 100 ? 
+                                                            job.description.substring(0, 100) + '...' : 
+                                                            job.description
+                                                        ) : 
+                                                        'Açıklama bulunmuyor'
+                                                    }
+                                                </p>
+                                            </div>
+                                            <div className="company-job-actions">
+                                                <button
+                                                    className="edit-job-btn"
+                                                    onClick={() => handleEditJob(job)}
+                                                    title="Düzenle"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    className="delete-job-btn"
+                                                    onClick={() => deleteJobListing(job.id)}
+                                                    title="Sil"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
+
                 {/* Controls Section */}
                 <div className="job-controls-section">
                     <div className="search-filter-container">
@@ -247,6 +356,7 @@ function JobListPage() {
                             </div>
                             
                             <div className="filter-group">
+                                <Filter size={16} strokeWidth={1.5} />
                                 <input
                                     type="text"
                                     placeholder="Konum filtrele..."
@@ -256,20 +366,11 @@ function JobListPage() {
                             </div>
                         </div>
                     </div>
-
-                    {currentUser && currentUser.isCompanyProfile && (
-                        <button
-                            className="create-job-btn"
-                            onClick={() => setShowJobForm(true)}
-                        >
-                            <Plus size={20} strokeWidth={2} />
-                            Yeni İlan Ekle
-                        </button>
-                    )}
                 </div>
 
-                {/* Job Listings */}
-                <section className="job-listings-container">
+                {/* All Job Listings */}
+                <section className="all-listings-section">
+                    <h2>Tüm İlanlar</h2>
                     <div className="job-listings-grid">
                         {filteredJobs.length === 0 ? (
                             <div className="no-jobs-message">
