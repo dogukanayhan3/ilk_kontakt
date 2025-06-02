@@ -26,6 +26,7 @@ using Volo.Abp.TenantManagement;
 using Volo.Abp.TenantManagement.EntityFrameworkCore;
 using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Contact;
+using IlkKontakt.Backend.JobApplications;
 using IlkKontakt.Backend.Notifications;
 
 namespace IlkKontakt.Backend.EntityFrameworkCore;
@@ -55,7 +56,7 @@ public class BackendDbContext :
     public DbSet<Enrollment> Enrollments { get; set; }
     public DbSet<Connection> Connections { get; set; }
     public DbSet<Notification> Notifications { get; set; }
-
+    public DbSet<JobApplication> JobApplications { get; set; }
 
     
     #region Entities from the modules
@@ -97,6 +98,7 @@ public class BackendDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
+        
 
         builder.Entity<Notification>(b =>
         {
