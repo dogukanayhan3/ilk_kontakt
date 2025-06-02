@@ -13,4 +13,5 @@ public interface IUserProfileAppService :
         CreateUpdateUserProfileDto>
 {
     Task<UserProfileDto> GetByUserAsync();
+    Task<UserProfileDto> GetByUserIdAsync(Guid userId);
 }
