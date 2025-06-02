@@ -1,6 +1,7 @@
 import NavigationBar from './NavigationBar';
 import Footer from "./Footer";
 import ChatButton from '../chat/ChatButton';
+import DMButton from '../dm/DMButton';
 
 function Layout({ children }) {
     return (
@@ -10,6 +11,7 @@ function Layout({ children }) {
                 {children}
             </main>
             <Footer />
+            <DMButton />
             <ChatButton />
         </>
     );
