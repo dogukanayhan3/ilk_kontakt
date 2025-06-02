@@ -28,6 +28,7 @@ using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Contact;
 using IlkKontakt.Backend.JobApplications;
 using IlkKontakt.Backend.Notifications;
+using IlkKontakt.Backend.Chat;
 
 namespace IlkKontakt.Backend.EntityFrameworkCore;
 
@@ -57,6 +58,8 @@ public class BackendDbContext :
     public DbSet<Connection> Connections { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<JobApplication> JobApplications { get; set; }
+    public DbSet<ChatSession> ChatSessions { get; set; }
+    public DbSet<Message> Messages { get; set; }
 
     
     #region Entities from the modules
@@ -99,14 +102,67 @@ public class BackendDbContext :
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
         
-        builder.Entity<IdentityUser>(b =>
+        builder.Entity<ChatSession>(b =>
         {
-            b.Property<bool>("IsCompanyProfile")
-                .HasColumnName("IsCompanyProfile")
-                .IsRequired()
-                .HasDefaultValue(false);
+            b.ToTable("ChatSessions");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.User1Id)
+                .IsRequired();
+
+            b.Property(x => x.User2Id)
+                .IsRequired();
+
+            b.Property(x => x.StartedAt)
+                .IsRequired();
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.User1Id)
+                .IsRequired();
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.User2Id)
+                .IsRequired();
         });
 
+        builder.Entity<Message>(b =>
+        {
+            b.ToTable("Messages");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.ChatSessionId)
+                .IsRequired();
+
+            b.Property(x => x.SenderId)
+                .IsRequired();
+
+            b.Property(x => x.Content)
+                .IsRequired()
+                .HasMaxLength(1000); // Opsiyonel: Maksimum uzunluk limiti
+
+            /*b.HasOne<ChatSession>()
+                .WithMany()
+                .HasForeignKey(x => x.ChatSessionId);*/
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.SenderId);
+        });
+
+
+        builder.Entity<JobApplication>(b =>
+        {
+            b.ToTable("JobApplications");
+
+            b.ConfigureByConvention(); // sets up auditing fields
+
+            b.HasIndex(x => x.ApplicantId);
+            b.HasIndex(x => x.JobListingId);
+            b.Property(x => x.Status);
+        });
+        
         builder.Entity<Notification>(b =>
         {
             b.ToTable("Notifications");
