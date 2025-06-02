@@ -28,6 +28,7 @@ using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Contact;
 using IlkKontakt.Backend.JobApplications;
 using IlkKontakt.Backend.Notifications;
+using IlkKontakt.Backend.Chat;
 
 namespace IlkKontakt.Backend.EntityFrameworkCore;
 
@@ -57,6 +58,8 @@ public class BackendDbContext :
     public DbSet<Connection> Connections { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<JobApplication> JobApplications { get; set; }
+    public DbSet<ChatSession> ChatSessions { get; set; }
+    public DbSet<Message> Messages { get; set; }
 
     
     #region Entities from the modules
@@ -106,7 +109,60 @@ public class BackendDbContext :
             b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
         });
-        
+
+        builder.Entity<ChatSession>(b =>
+        {
+            b.ToTable("ChatSessions");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.User1Id)
+                .IsRequired();
+
+            b.Property(x => x.User2Id)
+                .IsRequired();
+
+            b.Property(x => x.StartedAt)
+                .IsRequired();
+
+            // Eðer IdentityUser kullanýlacaksa:
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.User1Id)
+                .IsRequired();
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.User2Id)
+                .IsRequired();
+        });
+
+        builder.Entity<Message>(b =>
+        {
+            b.ToTable("Messages");
+            b.ConfigureByConvention();
+
+            b.Property(x => x.ChatSessionId)
+                .IsRequired();
+
+            b.Property(x => x.SenderId)
+                .IsRequired();
+
+            b.Property(x => x.Content)
+                .IsRequired()
+                .HasMaxLength(1000); // Opsiyonel: Maksimum uzunluk limiti
+
+            b.HasOne<ChatSession>()
+                .WithMany(x => x.Messages)
+                .HasForeignKey(x => x.ChatSessionId)
+                .IsRequired();
+
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(x => x.SenderId)
+                .IsRequired();
+        });
+
+
         builder.Entity<JobApplication>(b =>
         {
             b.ToTable("JobApplications");
