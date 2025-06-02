@@ -7,8 +7,11 @@ using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Users;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Notifications;
+using IlkKontakt.Backend.UserProfiles;
+using Volo.Abp.Authorization;
 
 
 namespace IlkKontakt.Backend.JobApplications;
@@ -25,18 +28,27 @@ public class JobApplicationAppService :
     private readonly ICurrentUser _currentUser;
     private readonly INotificationAppService _notificationAppService;
     private readonly IRepository<JobListing, Guid> _jobListingRepository;
+    private readonly IRepository<UserProfile, Guid> _profileRepo;
+    private readonly IRepository<Experience, Guid> _expRepo;
+    private readonly IRepository<Education, Guid> _eduRepo;
 
     public JobApplicationAppService(
         IRepository<JobApplication, Guid> repository,
         ICurrentUser currentUser,
         INotificationAppService notificationAppService,
-        IRepository<JobListing, Guid> jobListingRepository
+        IRepository<JobListing, Guid> jobListingRepository,
+        IRepository<UserProfile, Guid> profileRepo,
+        IRepository<Experience, Guid> expRepo,
+        IRepository<Education, Guid> eduRepo
         ) 
         : base(repository)
     {
         _currentUser = currentUser;
         _notificationAppService = notificationAppService;
         _jobListingRepository = jobListingRepository;
+        _profileRepo = profileRepo;
+        _expRepo = expRepo;
+        _eduRepo = eduRepo;
     }
 
     public override async Task<JobApplicationDto> CreateAsync(CreateJobApplicationDto input)
@@ -87,7 +99,58 @@ public class JobApplicationAppService :
         return MapToGetOutputDto(entity);
     }
 
+    
+    public async Task<PagedResultDto<JobApplicationWithProfileDto>> GetByJobIdAsync(Guid jobId, PagedAndSortedResultRequestDto input)
+    {
+        var me = _currentUser?.GetId() ?? throw new AbpAuthorizationException();
 
+        var job = await _jobListingRepository.GetAsync(jobId);
+        if (job.CreatorId != me)
+            throw new AbpAuthorizationException("Not allowed");
+
+        var q     = (await Repository.GetQueryableAsync())
+                      .Where(x => x.JobListingId == jobId);
+        var total = await AsyncExecuter.CountAsync(q);
+        var apps  = await AsyncExecuter.ToListAsync(
+                       q.OrderBy(input.Sorting ?? "CreationTime desc")
+                        .Skip(input.SkipCount)
+                        .Take(input.MaxResultCount)
+                   );
+
+        var dtos = new List<JobApplicationWithProfileDto>(apps.Count);
+        foreach (var a in apps)
+        {
+            // 1) Map the base JobApplication → JobApplicationWithProfileDto:
+            var dto = ObjectMapper.Map<JobApplication, JobApplicationWithProfileDto>(a);
+
+            // 2) Fill in the profile fields:
+            var profile = await _profileRepo.FirstAsync(p => p.UserId == a.ApplicantId);
+            dto.UserName    = profile.UserName;
+            dto.Email       = profile.Email;
+            dto.PhoneNumber = profile.PhoneNumber;
+
+            // 3) Latest experience
+            var latestExp = (await _expRepo.GetListAsync(e => e.ProfileId == profile.Id))
+                                .OrderByDescending(e => e.StartDate)
+                                .FirstOrDefault();
+            dto.LatestExperience = latestExp == null
+                ? null
+                : ObjectMapper.Map<Experience, ExperienceDto>(latestExp);
+
+            // 4) Latest education
+            var latestEdu = (await _eduRepo.GetListAsync(e => e.ProfileId == profile.Id))
+                                .OrderByDescending(e => e.StartDate)
+                                .FirstOrDefault();
+            dto.LatestEducation = latestEdu == null
+                ? null
+                : ObjectMapper.Map<Education, EducationDto>(latestEdu);
+
+            dtos.Add(dto);
+        }
+
+        return new PagedResultDto<JobApplicationWithProfileDto>(total, dtos);
+    }
+    
     public async Task<List<JobApplicationDto>> GetMyApplicationsAsync()
     {
         var userId = _currentUser.Id;
