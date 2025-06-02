@@ -24,6 +24,7 @@ function getCookie(name) {
 export default function LoginPage() {
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [isCompanySignup, setIsCompanySignup] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -61,6 +62,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
     try {
       // Boot XSRF cookie
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
@@ -115,6 +117,8 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err)
       setError('Giriş başarısız: ' + err.message)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -122,15 +126,18 @@ export default function LoginPage() {
   const handleSignup = async (e) => {
     e.preventDefault()
     setError('')
+    setIsLoading(true)
 
     if (formData.password !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor!')
+      setIsLoading(false)
       return
     }
 
     // For company signup, validate company name
     if (isCompanySignup && !formData.companyName.trim()) {
       setError('Şirket adı gereklidir!')
+      setIsLoading(false)
       return
     }
 
@@ -215,6 +222,8 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err)
       setError('Kayıt Hatası: ' + err.message)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -301,8 +310,12 @@ export default function LoginPage() {
         />
       </div>
 
-      <button type="submit" className="login-button">
-        {isCompanySignup ? 'Şirket Hesabı Oluştur' : 'Bireysel Hesap Oluştur'}
+      <button 
+        type="submit" 
+        className={`login-button ${isLoading ? 'loading' : ''}`}
+        disabled={isLoading}
+      >
+        {isLoading ? '' : (isCompanySignup ? 'Şirket Hesabı Oluştur' : 'Bireysel Hesap Oluştur')}
       </button>
 
       <p className="toggle-text">
@@ -362,8 +375,12 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <button type="submit" className="login-button">
-              Giriş Yap
+            <button 
+              type="submit" 
+              className={`login-button ${isLoading ? 'loading' : ''}`}
+              disabled={isLoading}
+            >
+              {isLoading ? '' : 'Giriş Yap'}
             </button>
             <p className="toggle-text">
               Henüz bizi tanımıyor musunuz?{' '}
