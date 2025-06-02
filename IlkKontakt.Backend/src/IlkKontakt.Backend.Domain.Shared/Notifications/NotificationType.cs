@@ -7,5 +7,8 @@ public enum NotificationType
     ConnectionAccepted,
     PostLiked,
     PostCommented,
-    NewEnrollment
+    NewEnrollment,
+    JobApplicationReceived,
+    JobApplicationAccepted,
+    JobApplicationRejected
 }

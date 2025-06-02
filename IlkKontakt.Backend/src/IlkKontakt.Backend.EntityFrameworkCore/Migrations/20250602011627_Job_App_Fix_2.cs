@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IlkKontakt.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Job_App_Fix_2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -468,6 +468,26 @@ namespace IlkKontakt.Backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_ContactUs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "JobApplications",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    JobListingId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ApplicantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
+                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_JobApplications", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -1499,6 +1519,16 @@ namespace IlkKontakt.Backend.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_JobApplications_ApplicantId",
+                table: "JobApplications",
+                column: "ApplicantId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobApplications_JobListingId",
+                table: "JobApplications",
+                column: "JobListingId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Languages_ProfileId",
                 table: "Languages",
                 column: "ProfileId");
@@ -1650,6 +1680,9 @@ namespace IlkKontakt.Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Experiences");
+
+            migrationBuilder.DropTable(
+                name: "JobApplications");
 
             migrationBuilder.DropTable(
                 name: "JobListings");

@@ -5,6 +5,7 @@ using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
 using IlkKontakt.Backend.Connections;
 using IlkKontakt.Backend.Contact;
+using IlkKontakt.Backend.JobApplications;
 using IlkKontakt.Backend.JobListings;
 using IlkKontakt.Backend.Notifications;
 
@@ -75,6 +76,10 @@ public class BackendApplicationAutoMapperProfile : Profile
         
         CreateMap<Notification, NotificationDto>();
         CreateMap<CreateNotificationDto, Notification>();
+        
+        CreateMap<JobApplication, JobApplicationDto>();
+        CreateMap<CreateJobApplicationDto, JobApplication>();
+        CreateMap<UpdateJobApplicationStatusDto, JobApplication>();
 
     }
 }

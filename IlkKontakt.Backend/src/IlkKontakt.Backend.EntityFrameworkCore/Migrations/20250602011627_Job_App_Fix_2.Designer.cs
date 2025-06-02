@@ -13,8 +13,8 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250531210320_initial")]
-    partial class initial
+    [Migration("20250602011627_Job_App_Fix_2")]
+    partial class Job_App_Fix_2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -341,6 +341,57 @@ namespace IlkKontakt.Backend.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Instructors", (string)null);
+                });
+
+            modelBuilder.Entity("IlkKontakt.Backend.JobApplications.JobApplication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ApplicantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("ConcurrencyStamp");
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("CreationTime");
+
+                    b.Property<Guid?>("CreatorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("CreatorId");
+
+                    b.Property<string>("ExtraProperties")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ExtraProperties");
+
+                    b.Property<Guid>("JobListingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("LastModificationTime");
+
+                    b.Property<Guid?>("LastModifierId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("LastModifierId");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicantId");
+
+                    b.HasIndex("JobListingId");
+
+                    b.ToTable("JobApplications", (string)null);
                 });
 
             modelBuilder.Entity("IlkKontakt.Backend.JobListings.JobListing", b =>
