@@ -136,7 +136,7 @@ export default function ProfilePage() {
     }
 
     // Check if trying to navigate to current user's profile
-    if (res.userId === currentUser.Id) {
+    if (profileData.userName === currentUser.userName) {
       console.log('🔄 Navigating to own profile');
       navigate('/profilepage');
       return;
