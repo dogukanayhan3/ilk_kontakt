@@ -7,6 +7,7 @@ import EducationPage from "./components/education/EducationPage";
 import CreateCoursePage from "./components/education/CreateCoursePage";
 import ProfilePage from "./components/profile/ProfilePage";
 import SocialPage from "./components/social/SocialPage";
+import JobApplicantsPage from './components/positions/JobApplicantsPage';
 import "./component-styles/global.css";
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -86,6 +87,7 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/job-applicants/:jobId" element={<JobApplicantsPage />} />
         </Routes>
       </Router>
     </AuthProvider>

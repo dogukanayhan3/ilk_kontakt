@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     Computer, 
     MapPin, 
@@ -10,9 +10,14 @@ import {
     ExternalLink,
     Home,
     Wifi,
-    Building
+    Building,
+    CheckCircle2,
+    XCircle
 } from 'lucide-react';
 import "../../component-styles/JobListings.css";
+
+const API_BASE = 'https://localhost:44388';
+const JOB_APPLICATIONS_ROOT = `${API_BASE}/api/app/job-application`;
 
 const WORK_TYPE_LABELS = {
     0: 'Ofiste',
@@ -36,6 +41,10 @@ const EXPERIENCE_LEVEL_LABELS = {
 };
 
 function Job({ job, onEdit, onDelete, currentUser }) {
+    const [isApplying, setIsApplying] = useState(false);
+    const [applicationStatus, setApplicationStatus] = useState(null);
+    const [error, setError] = useState('');
+
     const formatDate = (dateString) => {
         if (!dateString) return '';
         const date = new Date(dateString);
@@ -56,13 +65,60 @@ function Job({ job, onEdit, onDelete, currentUser }) {
         onDelete(job.id);
     };
 
-    const handleApply = (e) => {
+    const handleApply = async (e) => {
         e.stopPropagation();
+        setError('');
+        
         if (job.externalUrl) {
             window.open(job.externalUrl, '_blank', 'noopener,noreferrer');
-        } else {
-            // Handle internal application logic here
-            alert('Başvuru sistemi yakında aktif olacak!');
+            return;
+        }
+
+        if (!currentUser) {
+            alert('Başvuru yapabilmek için giriş yapmalısınız!');
+            return;
+        }
+
+        setIsApplying(true);
+        try {
+            // 1) Get XSRF token
+            await fetch(`${API_BASE}/api/abp/application-configuration`, {
+                credentials: 'include'
+            });
+            const xsrf = document.cookie.match('(^|;)\\s*XSRF-TOKEN\\s*=\\s*([^;]+)')?.pop() || '';
+            
+            // 2) Create job application
+            const response = await fetch(JOB_APPLICATIONS_ROOT, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': xsrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    jobListingId: job.id
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || 'Başvuru yapılırken bir hata oluştu.');
+            }
+
+            setApplicationStatus('success');
+            setTimeout(() => {
+                setApplicationStatus(null);
+            }, 3000);
+        } catch (err) {
+            console.error('Application error:', err);
+            setError(err.message);
+            setTimeout(() => {
+                setError('');
+            }, 3000);
+        } finally {
+            setIsApplying(false);
         }
     };
 
@@ -145,13 +201,34 @@ function Job({ job, onEdit, onDelete, currentUser }) {
             </div>
 
             <div className="job-footer">
-                <button className="apply-btn" onClick={handleApply}>
-                    {job.externalUrl ? 'Başvuru Sayfasına Git' : 'Şimdi Başvur!'}
-                    {job.externalUrl ? 
-                        <ExternalLink size={16} strokeWidth={2} /> : 
-                        <ChevronRight size={16} strokeWidth={2} />
-                    }
-                </button>
+                {!currentUser?.isCompanyProfile && (
+                    <div className="apply-section">
+                        {error && (
+                            <div className="application-error">
+                                <XCircle size={16} />
+                                {error}
+                            </div>
+                        )}
+                        {applicationStatus === 'success' && (
+                            <div className="application-success">
+                                <CheckCircle2 size={16} />
+                                Başvurunuz başarıyla alındı!
+                            </div>
+                        )}
+                        <button 
+                            className={`apply-btn ${isApplying ? 'loading' : ''}`}
+                            onClick={handleApply}
+                            disabled={isApplying}
+                        >
+                            {isApplying ? 'Başvuru Yapılıyor...' : 
+                             job.externalUrl ? 'Başvuru Sayfasına Git' : 'Şimdi Başvur!'}
+                            {!isApplying && (job.externalUrl ? 
+                                <ExternalLink size={16} strokeWidth={2} /> : 
+                                <ChevronRight size={16} strokeWidth={2} />
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

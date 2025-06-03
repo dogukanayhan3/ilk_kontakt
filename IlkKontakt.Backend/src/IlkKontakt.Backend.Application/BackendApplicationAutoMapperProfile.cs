@@ -81,6 +81,7 @@ public class BackendApplicationAutoMapperProfile : Profile
         CreateMap<JobApplication, JobApplicationDto>();
         CreateMap<CreateJobApplicationDto, JobApplication>();
         CreateMap<UpdateJobApplicationStatusDto, JobApplication>();
+        CreateMap<JobApplication, JobApplicationWithProfileDto>();
         
         CreateMap<ChatSession, ChatSessionDto>();
         CreateMap<CreateUpdateChatSessionDto, ChatSession>();

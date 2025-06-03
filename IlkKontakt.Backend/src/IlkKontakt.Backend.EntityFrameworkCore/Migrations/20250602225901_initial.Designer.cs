@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250602220926_initial")]
+    [Migration("20250602225901_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -1829,6 +1829,9 @@ namespace IlkKontakt.Backend.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean")
                         .HasColumnName("IsActive");
+
+                    b.Property<bool>("IsCompanyProfile")
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

@@ -14,4 +14,5 @@ public interface IJobApplicationAppService : ICrudAppService<
 {
     Task<List<JobApplicationDto>> GetMyApplicationsAsync();
     
+    Task<PagedResultDto<JobApplicationWithProfileDto>> GetByJobIdAsync(Guid jobId, PagedAndSortedResultRequestDto input);
 }
