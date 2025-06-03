@@ -18,6 +18,8 @@ import ProfileImage from './Profile-img'
 import '../../component-styles/ProfilePage.css'
 
 const API_BASE = 'https://localhost:44388'
+const CONNECTIONS_ENDPOINT = `${API_BASE}/api/app/connection/accepted-connections`;
+const PROFILE_BY_USER_ID = `${API_BASE}/api/app/user-profile/by-user-id` // Added new endpoint
 const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`
 const PROFILE_ROOT = `${API_BASE}/api/app/user-profile`
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`
@@ -102,6 +104,52 @@ export default function ProfilePage() {
   const [error, setError] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [isOwnProfile, setIsOwnProfile] = useState(true)
+
+  const [connections, setConnections] = useState([]);
+  const [connectionsLoading, setConnectionsLoading] = useState(false);
+  const [connectionsError, setConnectionsError] = useState('');
+  const [showConnections, setShowConnections] = useState(false);
+// Updated navigateToProfile function
+
+ // Updated navigateToProfile function
+ const navigateToProfile = async (userId) => {
+  try {
+    console.log('⭐ Fetching profile data for user ID:', userId);
+   
+    // First fetch the user's profile data using the by-user-id endpoint
+    const res = await fetch(`${PROFILE_BY_USER_ID}/${userId}`, {
+      credentials: 'include',
+    });
+   
+    if (!res.ok) {
+      console.error('❌ Failed to fetch profile for navigation:', res.status, res.statusText);
+      return; // Don't navigate if we can't get the profile
+    }
+   
+    // Extract the profile data which contains the ID we need
+    const profileData = await res.json();
+    console.log('📊 Got profile data for navigation:', profileData);
+   
+    if (!profileData.id) {
+      console.error('❌ No profile ID found in response');
+      return;
+    }
+
+    // Check if trying to navigate to current user's profile
+    if (profileData.userName === currentUser.userName) {
+      console.log('🔄 Navigating to own profile');
+      navigate('/profilepage');
+      return;
+    }
+   
+    // Navigate to profile page using the profile ID
+    console.log('🔄 Navigating to profile ID:', profileData.id);
+    navigate(`/profilepage/${profileData.id}`);
+   
+  } catch (error) {
+    console.error('❌ Error navigating to profile:', error);
+  }
+};
 
   // EXPERIENCES
   const [experiences, setExperiences] = useState([])
@@ -211,6 +259,8 @@ export default function ProfilePage() {
         })
         // Set isOwnProfile based on whether we're viewing our own profile
         setIsOwnProfile(!userId || userId === currentUser.id);
+        fetchConnections(dto.id);
+
       } else if (res.status === 404) {
         setProfile(null)
         setForm({
@@ -225,6 +275,7 @@ export default function ProfilePage() {
           userName: currentUser.userName || ''
         })
         setIsOwnProfile(true);
+        fetchConnections(currentUser.id); // Add this line here
       } else {
         throw new Error('Profil yüklenemedi: ' + res.status)
       }
@@ -235,17 +286,114 @@ export default function ProfilePage() {
     }
   }
 
+  // **NEW FUNCTION TO FETCH CONNECTIONS**
+  // Updated fetchConnections function
+async function fetchConnections(userId) {
+  setConnectionsLoading(true);
+  setConnectionsError('');
+  console.log('⭐ Fetching connections for user ID:', userId);
+  
+  try {
+    // Use userId instead of profileId
+    const res = await fetch(`${CONNECTIONS_ENDPOINT}/${userId}`, {
+      credentials: 'include',
+    });
+    
+    if (!res.ok) {
+      console.error('❌ Failed to fetch connections:', res.status, res.statusText);
+      throw new Error(`Bağlantılar yüklenemedi: ${res.status}`);
+    }
+    
+    const data = await res.json();
+    console.log('📊 Raw connections response:', data);
+    
+    const connections = data.items || [];
+    console.log('🔗 Connections count:', connections.length);
+    
+    if (connections.length === 0) {
+      console.log('ℹ️ No connections found for this user');
+      setConnections([]);
+      setConnectionsLoading(false);
+      return;
+    }
+    
+    // 2. For each connection, fetch the other user's profile
+    const connectionPromises = connections.map(async (connection) => {
+      try {
+        // Inside fetchConnections function
+        const otherUserId = String(connection.senderId) === String(userId)
+          ? connection.receiverId
+          : connection.senderId;
+
+        console.log(`🧩 Processing connection: ${connection.id}, otherUserId: ${otherUserId}`);
+        console.log(`   - sender: ${connection.senderId}, receiver: ${connection.receiverId}`);
+
+        // Updated to use the new by-user-id endpoint
+        const userRes = await fetch(`${PROFILE_BY_USER_ID}/${otherUserId}`, {
+          credentials: 'include',
+        });
+        
+        if (!userRes.ok) {
+          console.error(`❌ Failed to fetch profile for user ${otherUserId}: ${userRes.status}`);
+          return {
+            ...connection,
+            name: "Unknown User",
+            profilePictureUrl: "/default-avatar.png",
+            userName: "unknown"
+          };
+        }
+        
+        const userData = await userRes.json();
+        console.log(`👤 User profile for ${otherUserId}:`, userData);
+        
+        // Return connection with user profile data
+        return {
+          ...connection,
+          name: `${userData.name || ''} ${userData.surname || ''}`.trim() || 'Unknown User',
+          profilePictureUrl: userData.profilePictureUrl || '/default-avatar.png',
+          userName: userData.userName || 'unknown'
+        };
+      } catch (error) {
+        console.error(`❌ Error processing connection ${connection.id}:`, error);
+        return {
+          ...connection,
+          name: "Unknown User",
+          profilePictureUrl: "/default-avatar.png",
+          userName: "unknown"
+        };
+      }
+    });
+    
+    // Process all connections and update state
+    const connectionsWithProfiles = await Promise.all(connectionPromises);
+    console.log('✅ Final connections with profiles:', connectionsWithProfiles);
+    setConnections(connectionsWithProfiles);
+    
+  } catch (error) {
+    console.error("❌ Error fetching connections:", error);
+    setConnectionsError(error.message);
+    setConnections([]);
+  } finally {
+    setConnectionsLoading(false);
+  }
+}
+
   // when we have a profile, fetch experiences & educations
+  // Update useEffect to use profile.userId
   useEffect(() => {
-    if (profile && profile.id) {
-      fetchExperiences()
-      fetchEducations()
-      fetchLanguages()
-      fetchProjects()
-      fetchSkills()
+    if (profile && profile.userId) {
+      console.log('🔄 Profile loaded, fetching related data for userId:', profile.userId);
+      fetchExperiences();
+      fetchEducations();
+      fetchLanguages();
+      fetchProjects();
+      fetchSkills();
+      
+      // Use userId instead of id
+      fetchConnections(profile.userId);
     }
     // eslint-disable-next-line
-  }, [profile])
+  }, [profile]);
 
   // --- SKILLS HANDLERS ---
 
@@ -899,170 +1047,231 @@ export default function ProfilePage() {
         <h1>Profil Sayfası</h1>
         <p>Profesyonel profilinizi yönetin ve kendinizi tanıtın</p>
       </section>
+      <div className="profile-connections-container">
+        {/* PROFILE CARD - Left Side */}
+        <section className="profile-section">
+          <div className="profile-card">
+            {error && (
+              <div className="error-message">{error}</div>
+            )}
 
-      {/* PROFILE CARD */}
-      <section className="profile-section">
-        <div className="profile-card">
-          {error && (
-            <div className="error-message">{error}</div>
-          )}
+            <div className="profile-image-container">
+              <ProfileImage src={form.profilePictureUrl} />
+              {(isEditing || !profile) && isOwnProfile && (
+                <>
+                  <button
+                    className="change-photo-btn"
+                    onClick={() => fileInputRef.current.click()}
+                  >
+                    <Camera size={20} strokeWidth={1.5} />
+                  </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                </>
+              )}
+            </div>
 
-          <div className="profile-image-container">
-            <ProfileImage src={form.profilePictureUrl} />
-            {(isEditing || !profile) && isOwnProfile && (
-              <>
-                <button
-                  className="change-photo-btn"
-                  onClick={() => fileInputRef.current.click()}
-                >
-                  <Camera size={20} strokeWidth={1.5} />
-                </button>
+            {(isEditing || !profile) && isOwnProfile ? (
+              <div className="profile-edit-form">
                 <input
-                  type="file"
-                  accept="image/*"
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  onChange={handleFileChange}
+                  type="text"
+                  name="userName"
+                  placeholder="Kullanıcı Adı"
+                  value={form.userName}
+                  onChange={handleChange}
                 />
+                <input
+                  type="text"
+                  name="name"
+                  placeholder={currentUser?.isCompanyProfile ? "Şirket Adı" : "Ad"}
+                  value={form.name}
+                  onChange={handleChange}
+                />
+                {!currentUser?.isCompanyProfile && (
+                  <input
+                    type="text"
+                    name="surname"
+                    placeholder="Soyad"
+                    value={form.surname}
+                    onChange={handleChange}
+                  />
+                )}
+                <textarea
+                  name="about"
+                  placeholder="Hakkında"
+                  value={form.about}
+                  onChange={handleChange}
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="E-posta"
+                  value={form.email}
+                  onChange={handleChange}
+                />
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  placeholder="Telefon"
+                  value={form.phoneNumber}
+                  onChange={handleChange}
+                />
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Adres"
+                  value={form.address}
+                  onChange={handleChange}
+                />
+                <input
+                  type="text"
+                  name="profilePictureUrl"
+                  placeholder="Profil Fotoğrafı URL"
+                  value={form.profilePictureUrl}
+                  onChange={handleChange}
+                />
+                {!currentUser?.isCompanyProfile && (
+                  <div className="date-input-group">
+                    <Calendar size={18} />
+                    <input
+                      type="date"
+                      name="birthday"
+                      value={form.birthday}
+                      onChange={handleChange}
+                    />
+                  </div>
+                )}
+                <div className="profile-actions">
+                  <button
+                    className="save-profile-btn"
+                    onClick={handleSave}
+                  >
+                    <Save size={18} /> Kaydet
+                  </button>
+                  {profile && (
+                    <button
+                      onClick={handleCancel}
+                      style={{ marginLeft: 8 }}
+                    >
+                      <X size={18} /> Vazgeç
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3 id="profile-name">{profile?.userName}</h3>
+                <div className="profile-info-list">
+                  <div>
+                    <Info size={20} />
+                    <span>
+                      {currentUser?.isCompanyProfile 
+                        ? profile?.name 
+                        : `${profile?.name} ${profile?.surname}`}
+                    </span>
+                  </div>
+                  <div>
+                    <Info size={20} />
+                    <span>{profile?.about}</span>
+                  </div>
+                  <div>
+                    <Mail size={20} />
+                    <span>{profile?.email}</span>
+                  </div>
+                  <div>
+                    <Phone size={20} />
+                    <span>{profile?.phoneNumber}</span>
+                  </div>
+                  <div>
+                    <MapPin size={20} />
+                    <span>{profile?.address}</span>
+                  </div>
+                  {!currentUser?.isCompanyProfile && profile?.birthday && (
+                    <div>
+                      <Calendar size={20} />
+                      <span>
+                        {new Date(profile.birthday).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="profile-actions">
+                  <button 
+                    className="show-connections-btn"
+                    onClick={() => setShowConnections(true)}
+                  >
+                    Bağlantıları Göster
+                  </button>
+                  {isOwnProfile && (
+                    <button id="edit-profile-btn" onClick={handleEdit}>
+                      <Edit size={18} /> Düzenle
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
+        </section>
 
-          {(isEditing || !profile) && isOwnProfile ? (
-            <div className="profile-edit-form">
-              <input
-                type="text"
-                name="userName"
-                placeholder="Kullanıcı Adı"
-                value={form.userName}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="name"
-                placeholder={currentUser?.isCompanyProfile ? "Şirket Adı" : "Ad"}
-                value={form.name}
-                onChange={handleChange}
-              />
-              {!currentUser?.isCompanyProfile && (
-                <input
-                  type="text"
-                  name="surname"
-                  placeholder="Soyad"
-                  value={form.surname}
-                  onChange={handleChange}
-                />
-              )}
-              <textarea
-                name="about"
-                placeholder="Hakkında"
-                value={form.about}
-                onChange={handleChange}
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="E-posta"
-                value={form.email}
-                onChange={handleChange}
-              />
-              <input
-                type="tel"
-                name="phoneNumber"
-                placeholder="Telefon"
-                value={form.phoneNumber}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="address"
-                placeholder="Adres"
-                value={form.address}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="profilePictureUrl"
-                placeholder="Profil Fotoğrafı URL"
-                value={form.profilePictureUrl}
-                onChange={handleChange}
-              />
-              {!currentUser?.isCompanyProfile && (
-                <div className="date-input-group">
-                  <Calendar size={18} />
-                  <input
-                    type="date"
-                    name="birthday"
-                    value={form.birthday}
-                    onChange={handleChange}
-                  />
-                </div>
-              )}
-              <div className="profile-actions">
-                <button
-                  className="save-profile-btn"
-                  onClick={handleSave}
+        {/* CONNECTIONS MODAL */}
+        {showConnections && (
+          <div className="connections-modal-overlay" onClick={() => setShowConnections(false)}>
+            <div className="connections-modal" onClick={e => e.stopPropagation()}>
+              <div className="connections-modal-header">
+                <h2>Bağlantılar</h2>
+                <button 
+                  className="connections-modal-close"
+                  onClick={() => setShowConnections(false)}
                 >
-                  <Save size={18} /> Kaydet
+                  <X size={24} />
                 </button>
-                {profile && (
-                  <button
-                    onClick={handleCancel}
-                    style={{ marginLeft: 8 }}
-                  >
-                    <X size={18} /> Vazgeç
-                  </button>
-                )}
               </div>
-            </div>
-          ) : (
-            <>
-              <h3 id="profile-name">{profile?.userName}</h3>
-              <div className="profile-info-list">
-                <div>
-                  <Info size={20} />
-                  <span>
-                    {currentUser?.isCompanyProfile 
-                      ? profile?.name 
-                      : `${profile?.name} ${profile?.surname}`}
-                  </span>
-                </div>
-                <div>
-                  <Info size={20} />
-                  <span>{profile?.about}</span>
-                </div>
-                <div>
-                  <Mail size={20} />
-                  <span>{profile?.email}</span>
-                </div>
-                <div>
-                  <Phone size={20} />
-                  <span>{profile?.phoneNumber}</span>
-                </div>
-                <div>
-                  <MapPin size={20} />
-                  <span>{profile?.address}</span>
-                </div>
-                {!currentUser?.isCompanyProfile && profile?.birthday && (
-                  <div>
-                    <Calendar size={20} />
-                    <span>
-                      {new Date(profile.birthday).toLocaleDateString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-              {isOwnProfile && (
-                <div className="profile-actions">
-                  <button id="edit-profile-btn" onClick={handleEdit}>
-                    <Edit size={18} /> Düzenle
-                  </button>
+              
+              {connectionsError && <div className="error-message">{connectionsError}</div>}
+              
+              {connectionsLoading ? (
+                <div className="loading-message">Bağlantılar yükleniyor...</div>
+              ) : (
+                <div className="connections-grid">
+                  {connections.length === 0 ? (
+                    <p className="no-connections">Henüz bağlantı bulunmuyor.</p>
+                  ) : (
+                    connections.map((connection) => {
+                      const otherUserId = String(connection.senderId) === String(profile?.userId)
+                        ? connection.receiverId
+                        : connection.senderId;
+                        
+                      return (
+                        <div 
+                          className="connection-card" 
+                          key={connection.id}
+                          onClick={() => {
+                            navigateToProfile(otherUserId);
+                            setShowConnections(false);
+                          }}
+                        >
+                          <img
+                            src={connection.profilePictureUrl || '/default-avatar.png'}
+                            alt={connection.name}
+                            className="connection-avatar"
+                          />
+                          <p>{connection.name || 'Bilinmeyen Kullanıcı'}</p>
+                          <p>@{connection.userName}</p>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               )}
-            </>
-          )}
-        </div>
-      </section>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Two Column Layout Container */}
       <div className="two-column-container">

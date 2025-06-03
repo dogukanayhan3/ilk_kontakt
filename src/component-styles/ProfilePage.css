@@ -127,19 +127,31 @@
 /* 6. Profile Actions             */
 /* ------------------------------ */
 .profile-actions {
-  display: flex; justify-content: center; gap: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
   margin-top: 20px;
 }
+
 #edit-profile-btn,
-.save-profile-btn {
-  display: inline-flex; align-items: center; gap: 8px;
+.save-profile-btn,
+.show-connections-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
-  color: #fff; border: none; padding: 10px 20px;
-  border-radius: 25px; font-weight: 600; cursor: pointer;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
+
 #edit-profile-btn:hover,
-.save-profile-btn:hover {
+.save-profile-btn:hover,
+.show-connections-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(50,69,241,0.3);
 }
@@ -416,7 +428,7 @@
   margin-top: 4px;
 }
 
-/* Skill-Level Selector (in the “Yeni Yetenek Ekle” modal) */
+/* Skill-Level Selector (in the "Yeni Yetenek Ekle" modal) */
 .skill-proficiency-selector {
   display: flex;
   flex-direction: column;
@@ -482,7 +494,6 @@
   margin-top: 4px;
 }
 
-
 /* ------------------------------ */
 /* 16. Responsive Tweaks          */
 /* ------------------------------ */
@@ -499,5 +510,197 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+}
+
+/* ------------------------------ */
+/* 17. Connections Section        */
+/* ------------------------------ */
+.profile-connections-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.profile-section {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Connections Modal */
+.connections-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.connections-modal {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(50, 69, 241, 0.2);
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+  position: relative;
+}
+
+.connections-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f3ff;
+}
+
+.connections-modal-header h2 {
+  font-size: 1.5em;
+  color: #3245f1;
+  margin: 0;
+}
+
+.connections-modal-close {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.connections-modal-close:hover {
+  background: #f0f3ff;
+  color: #3245f1;
+}
+
+.connections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.connection-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.connection-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(50, 69, 241, 0.1);
+}
+
+.connection-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 8px rgba(50, 69, 241, 0.1);
+}
+
+.connection-card p {
+  margin: 4px 0;
+  color: #2c3e50;
+}
+
+.connection-card p:first-of-type {
+  font-weight: 600;
+  color: #3245f1;
+}
+
+.connection-card p:last-of-type {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.loading-message,
+.no-connections,
+.connections-prompt {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.loading-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-message::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid #3245f1;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.no-connections {
+  font-style: italic;
+  color: #666;
+}
+
+.connections-prompt {
+  color: #3245f1;
+  font-weight: 500;
+}
+
+@media screen and (max-width: 1024px) {
+  .profile-connections-container {
+    flex-direction: column;
+  }
+  
+  .profile-section,
+  .connections-section {
+    flex: 0 0 100%;
+  }
+  
+  .connections-section {
+    margin-top: 20px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .connections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  
+  .connection-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .connections-modal {
+    width: 95%;
+    padding: 16px;
   }
 }

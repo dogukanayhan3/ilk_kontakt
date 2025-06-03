@@ -198,6 +198,21 @@ namespace IlkKontakt.Backend.UserProfiles
             return ObjectMapper.Map<UserProfile, UserProfileDto>(profile);
         }
 
+        // *** ADDED ***
+        public async Task<UserProfileDto> GetByUserIdAsync(Guid userId)
+        {
+            // 1) Load the profile whose UserId equals the parameter
+            var profile = await _repository.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (profile == null)
+                throw new EntityNotFoundException(typeof(UserProfile), userId);
+
+            // 2) Map the entity to your DTO
+            var dto = ObjectMapper.Map<UserProfile, UserProfileDto>(profile);
+
+            return dto;
+        }
+
+
         // Additional method to search by UserName
         public async Task<UserProfileDto> GetByUserNameAsync(string userName)
         {
