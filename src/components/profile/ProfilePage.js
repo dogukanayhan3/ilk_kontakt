@@ -1092,43 +1092,61 @@ async function fetchConnections(userId) {
 
             {/* Always render the view mode of profile info */}
               <>
-                {/* Profile name/username display */}
-                <h3 id="profile-name">{profile?.userName}</h3>
-                {/* Profile info list */}
-                <div className="profile-info-list">
-                  <div>
-                    <Info size={20} />
-                    <span>
-                      {currentUser?.isCompanyProfile
-                        ? profile?.name
-                        : `${profile?.name} ${profile?.surname}`}
-                    </span>
+
+                {/* NEW: Prominent Actual Name/Company Name with Username below */} 
+                {(profile?.name || profile?.surname || profile?.userName) && ( // Show this section if name or username exists
+                   <div className="profile-actual-name"> {/* Keep existing class */}
+                     {(profile?.name || profile?.surname) && !currentUser?.isCompanyProfile && ( // Show individual name if exists and not company
+                        <span>{`${profile?.name || ''} ${profile?.surname || ''}`.trim()}</span>
+                     )}
+                      {(profile?.name) && currentUser?.isCompanyProfile && ( // Show company name if exists and is company
+                        <span>{profile?.name}</span> // Keep span for consistent styling hook
+                     )}
+                     {/* Move username display here, below the name */} 
+                     <h3 id="profile-name">@{profile?.userName}</h3>
+                   </div>
+                )}
+
+                {/* NEW: Prominent About section */}
+                {profile?.about && ( // Only show if about exists
+                  <div className="profile-about-section"> {/* New class for styling */}
+                    <h4>Hakkında</h4> {/* Section title */}
+                    <p>{profile.about}</p>
                   </div>
-                  {profile?.about && (
-                  <div>
-                    <Info size={20} />
-                    <span>{profile?.about}</span>
+                )}
+
+                {/* NEW: Prominent Contact section */} 
+                {(profile?.email || profile?.phoneNumber || profile?.address) && ( // Only show if any contact info exists
+                  <div className="profile-contact-section"> {/* New class for styling */}
+                    <h4>İletişim Bilgileri</h4> {/* Section title */}
+                    <div className="contact-info-list"> {/* Inner container for consistent layout */}
+                      {profile?.email && ( // Email
+                        <div>
+                          <Mail size={20} />
+                          <span>{profile?.email}</span>
+                        </div>
+                      )}
+                      {profile?.phoneNumber && ( // Phone Number
+                        <div>
+                          <Phone size={20} />
+                          <span>{profile?.phoneNumber}</span>
+                        </div>
+                      )}
+                      {profile?.address && ( // Address
+                        <div>
+                          <MapPin size={20} />
+                          <span>{profile?.address}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  )}
-                  {profile?.email && (
-                  <div>
-                    <Mail size={20} />
-                    <span>{profile?.email}</span>
-                  </div>
-                  )}
-                  {profile?.phoneNumber && (
-                  <div>
-                    <Phone size={20} />
-                    <span>{profile?.phoneNumber}</span>
-                  </div>
-                  )}
-                  {profile?.address && (
-                  <div>
-                    <MapPin size={20} />
-                    <span>{profile?.address}</span>
-                  </div>
-                  )}
-                  {!currentUser?.isCompanyProfile && profile?.birthday && (
+                )}
+
+                {/* Profile info list (remaining less prominent info, like birthday) */}
+                <div className="profile-info-list"> {/* Keep existing class */}
+                  {/* Email, phone, address, and name/surname moved out of here */}
+
+                  {!currentUser?.isCompanyProfile && profile?.birthday && ( // Keep birthday here
                     <div>
                       <Calendar size={20} />
                       <span>
@@ -1136,6 +1154,7 @@ async function fetchConnections(userId) {
                       </span>
                     </div>
                   )}
+
                 </div>
                 {/* Profile actions (buttons) */}
                 <div className="profile-actions">

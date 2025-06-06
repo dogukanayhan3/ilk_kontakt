@@ -101,13 +101,55 @@
   min-height: 80px;
 }
 
+/* NEW: Prominent Actual Name/Company Name Styling */
+.profile-actual-name {
+  /* Changed to flexbox for vertical alignment */
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  align-items: center; /* Center content horizontally */
+  /* Removed text-align: center; as align-items handles centering */
+
+  margin: 10px auto 20px; /* Space below and above */
+  padding: 15px 20px; /* Adjust padding */
+  background: #eef2ff; /* Light background color (e.g., light blue) */
+  border-radius: 8px; /* Rounded corners */
+  border: 1px solid #dadaff; /* Subtle border */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Soft shadow */
+  max-width: fit-content; /* Adjust width to content */
+}
+
+.profile-actual-name span {
+    /* Style the actual name text */
+    font-size: 1.5em; /* Keep larger font size for name */
+    font-weight: 700; /* Keep bold font weight for name */
+    color: #2c3e50; /* Darker color for emphasis */
+    margin-bottom: 5px; /* Space below the name */
+}
+
+.profile-actual-name h3 {
+    /* Style the username */
+    font-size: 1em; /* Smaller font size for username */
+    font-weight: 400; /* Normal font weight */
+    color: #666; /* Grey color for username */
+    margin: 0; /* Remove default h3 margin */
+    padding: 0; /* Remove default h3 padding */
+}
+
+.profile-actual-name.company { /* Optional: specific styles for company name if needed */
+  /* Example: */
+  /* color: #3245f1; */
+  /* border-color: #3245f1; */
+}
+
 /* ------------------------------ */
 /* 5. Profile Info (view mode)    */
 /* ------------------------------ */
 .profile-info-list {
   text-align: left;
   max-width: 600px;
-  margin: 20px auto 0;
+  margin: 20px auto 0; /* Adjusted top margin */
+  padding-top: 15px; /* Add some space after previous section */
+  border-top: 1px solid #eee; /* Add a separator line */
 }
 .profile-info-list div {
   display: flex; align-items: center; gap: 12px;
@@ -121,6 +163,75 @@
 }
 .profile-info-list span {
   color: #2c3e50; font-size: 1em;
+}
+
+/* NEW: Prominent About Section Styling */
+.profile-about-section {
+  text-align: left; /* Align text left */
+  max-width: 600px; /* Match info list width */
+  margin: 20px auto; /* Space above and below */
+  padding: 20px; /* Add padding */
+  background: #f0f3ff; /* Light background color */
+  border-radius: 12px; /* Rounded corners */
+  border: 1px solid #d0daff; /* Subtle border */
+  box-shadow: 0 4px 10px rgba(50, 69, 241, 0.08); /* Soft shadow */
+}
+
+.profile-about-section h4 {
+  font-size: 1.2em;
+  color: #3245f1;
+  margin-top: 0;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #5fbcee;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+.profile-about-section p {
+  font-size: 1em;
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* NEW: Prominent Contact Section Styling */
+.profile-contact-section {
+  text-align: left; /* Align text left */
+  max-width: 600px; /* Match other prominent sections */
+  margin: 20px auto; /* Space above and below */
+  padding: 20px; /* Add padding */
+  background: #e8f5e9; /* Different light background color (e.g., light green) */
+  border-radius: 12px; /* Rounded corners */
+  border: 1px solid #c8e6c9; /* Subtle border */
+  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.08); /* Soft shadow */
+}
+
+.profile-contact-section h4 {
+  font-size: 1.2em;
+  color: #4caf50;
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #81c784;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+.profile-contact-section .contact-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-contact-section .contact-info-list div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1em;
+  color: #333;
+}
+
+.profile-contact-section .contact-info-list div svg {
+  color: #4caf50;
 }
 
 /* ------------------------------ */
@@ -223,22 +334,23 @@
 .skill-card,
 .language-card,
 .project-card {
-  background: #fff;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid #e0e0e0;
 }
 .experience-card:hover,
 .education-card:hover,
 .skill-card:hover,
 .language-card:hover,
 .project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 18px rgba(0,0,0,0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
 }
 
 /* ------------------------------ */
@@ -249,14 +361,15 @@
 .skill-card-header,
 .language-card-header,
 .project-card-header {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px;
 }
 .experience-title,
 .education-title,
 .skill-name,
 .language-name,
 .project-name {
-  font-size: 1em; font-weight: 600; color: #3245f1;
+  font-size: 1.1em; font-weight: 700; color: #3245f1;
 }
 .edit-btn {
   margin-left: auto;
