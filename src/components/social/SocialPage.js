@@ -81,8 +81,14 @@ function UserCard({ user, onConnect, connectionStatus }) {
     };
 
     return (
-        <div className="user-card" onClick={handleCardClick}>
+        <div className={`user-card ${user.isCompanyProfile ? 'company-profile' : ''}`} onClick={handleCardClick}>
             <div className="user-card-header">
+                {user.isCompanyProfile && (
+                    <div className="company-badge">
+                        <Briefcase size={14} strokeWidth={2} />
+                        <span>Şirket</span>
+                    </div>
+                )}
                 <img
                     src={user.profilePictureUrl || '/default-avatar.png'}
                     alt={user.userName}
@@ -258,6 +264,7 @@ function SocialPage() {
     const [connections, setConnections] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(4);
+    const [profileTypeFilter, setProfileTypeFilter] = useState('all');
     const [suggestedConnections, setSuggestedConnections] = useState(() => {
         const stored = localStorage.getItem('socialConnectionSuggestions');
         return stored ? JSON.parse(stored) : [];
@@ -456,139 +463,168 @@ function SocialPage() {
     }, [users, fetchAllUserDetails, getConnectionSuggestions]);
 
     async function fetchAllUsers() {
-    setLoading(true);
-    setError('');
-    try {
-        // Get a large number of users (adjust as needed)
-        const profilesRes = await fetch(
-            `${PROFILE_ROOT}?SkipCount=0&MaxResultCount=1000`, 
-            { 
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+        setLoading(true);
+        setError('');
+        try {
+            // First fetch user profiles
+            const profilesRes = await fetch(
+                `${PROFILE_ROOT}?SkipCount=0&MaxResultCount=1000`, 
+                { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
                 }
-            }
-        );
-        
-        if (!profilesRes.ok) {
-            throw new Error('Failed to fetch profiles');
-        }
-        
-        const profilesData = await profilesRes.json();
-        
-        // Filter out current user
-        const profiles = (profilesData.items || []).filter(profile => {
-            const isCurrentUser = 
-                profile.userId === currentUser.id || 
-                profile.userId === currentUser.userId ||
-                profile.id === currentUser.id ||
-                profile.id === currentUser.userId ||
-                profile.userName === currentUser.userName ||
-                profile.email === currentUser.email;
+            );
             
-            return !isCurrentUser;
-        });
-
-        const usersWithDetails = await Promise.all(
-            profiles.map(async (profile) => {
-                // Fetch experiences
-                const expRes = await fetch(
-                    `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
-                    { 
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        }
+            if (!profilesRes.ok) {
+                throw new Error('Failed to fetch profiles');
+            }
+            
+            const profilesData = await profilesRes.json();
+            
+            // Then fetch identity users to get isCompanyProfile data
+            const identityRes = await fetch(
+                `${API_BASE}/api/identity/users?SkipCount=0&MaxResultCount=1000`,
+                {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     }
-                );
+                }
+            );
+
+            if (!identityRes.ok) {
+                throw new Error('Failed to fetch identity users');
+            }
+
+            const identityData = await identityRes.json();
+            
+            // Create a map of userId to isCompanyProfile
+            const companyProfileMap = new Map(
+                identityData.items.map(user => [
+                    user.id,
+                    user.extraProperties?.IsCompanyProfile || false
+                ])
+            );
+            
+            // Filter out current user and add isCompanyProfile data
+            const profiles = (profilesData.items || []).filter(profile => {
+                const isCurrentUser = 
+                    profile.userId === currentUser.id || 
+                    profile.userId === currentUser.userId ||
+                    profile.id === currentUser.id ||
+                    profile.id === currentUser.userId ||
+                    profile.userName === currentUser.userName ||
+                    profile.email === currentUser.email;
                 
-                let latestExperience = null;
-                if (expRes.ok) {
-                    const expData = await expRes.json();
-                    const experiences = expData.items || [];
-                    latestExperience = experiences.sort((a, b) => 
-                        new Date(b.startDate) - new Date(a.startDate)
-                    )[0];
-                }
+                return !isCurrentUser;
+            }).map(profile => ({
+                ...profile,
+                isCompanyProfile: companyProfileMap.get(profile.userId) || false
+            }));
 
-                // Fetch education
-                const eduRes = await fetch(
-                    `${EDUCATION_ROOT}?ProfileId=${profile.id}`,
-                    { 
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
+            const usersWithDetails = await Promise.all(
+                profiles.map(async (profile) => {
+                    // Fetch experiences
+                    const expRes = await fetch(
+                        `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
+                        { 
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
                         }
+                    );
+                    
+                    let latestExperience = null;
+                    if (expRes.ok) {
+                        const expData = await expRes.json();
+                        const experiences = expData.items || [];
+                        latestExperience = experiences.sort((a, b) => 
+                            new Date(b.startDate) - new Date(a.startDate)
+                        )[0];
                     }
-                );
-                
-                let latestEducation = null;
-                if (eduRes.ok) {
-                    const eduData = await eduRes.json();
-                    const educations = eduData.items || [];
-                    latestEducation = educations.sort((a, b) => 
-                        new Date(b.startDate) - new Date(a.startDate)
-                    )[0];
-                }
 
-                // Fetch projects
-                const projRes = await fetch(
-                    `${PROJECT_ROOT}?ProfileId=${profile.id}`,
-                    { 
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
+                    // Fetch education
+                    const eduRes = await fetch(
+                        `${EDUCATION_ROOT}?ProfileId=${profile.id}`,
+                        { 
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
                         }
+                    );
+                    
+                    let latestEducation = null;
+                    if (eduRes.ok) {
+                        const eduData = await eduRes.json();
+                        const educations = eduData.items || [];
+                        latestEducation = educations.sort((a, b) => 
+                            new Date(b.startDate) - new Date(a.startDate)
+                        )[0];
                     }
-                );
-                
-                let projects = [];
-                if (projRes.ok) {
-                    const projData = await projRes.json();
-                    projects = projData.items || [];
-                }
 
-                // Add this code here - Skills fetch
-                const skillRes = await fetch(
-                    `${API_BASE}/api/app/skill?ProfileId=${profile.id}`,
-                    { 
-                        credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
+                    // Fetch projects
+                    const projRes = await fetch(
+                        `${PROJECT_ROOT}?ProfileId=${profile.id}`,
+                        { 
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
                         }
+                    );
+                    
+                    let projects = [];
+                    if (projRes.ok) {
+                        const projData = await projRes.json();
+                        projects = projData.items || [];
                     }
-                );
 
-                let skills = [];
-                if (skillRes.ok) {
-                    const skillData = await skillRes.json();
-                    skills = skillData.items || [];
-                }
+                    // Add this code here - Skills fetch
+                    const skillRes = await fetch(
+                        `${API_BASE}/api/app/skill?ProfileId=${profile.id}`,
+                        { 
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
 
-                return {
-                    ...profile,
-                    latestExperience,
-                    latestEducation,
-                    projects,
-                    skills,
-                };
-            })
-        );
+                    let skills = [];
+                    if (skillRes.ok) {
+                        const skillData = await skillRes.json();
+                        skills = skillData.items || [];
+                    }
 
-        setUsers(usersWithDetails);
-        
-        console.log('All users fetched:', usersWithDetails.length);
-    } catch (e) {
-        setError(e.message);
-    } finally {
-        setLoading(false);
+                    return {
+                        ...profile,
+                        latestExperience,
+                        latestEducation,
+                        projects,
+                        skills,
+                    };
+                })
+            );
+
+            setUsers(usersWithDetails);
+            
+            console.log('All users fetched:', usersWithDetails.length);
+        } catch (e) {
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
     }
-}
     
     async function fetchConnections() {
         setConnectionsLoading(true); // Set to true when starting
@@ -747,6 +783,25 @@ function SocialPage() {
         return 'none';
     }
 
+    // Add this function after fetchAllUsers
+    const getFilteredUsers = () => {
+        switch (profileTypeFilter) {
+            case 'company':
+                return users.filter(user => user.isCompanyProfile);
+            case 'individual':
+                return users.filter(user => !user.isCompanyProfile);
+            default:
+                return users;
+        }
+    };
+
+    // Modify the pagination section to use filtered users
+    const filteredUsers = getFilteredUsers();
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
     if (loading) return (
         <Layout>
             <div className="loading-container">
@@ -764,15 +819,6 @@ function SocialPage() {
     );
 
     const pendingIncomingRequests = incomingRequests.filter(req => req.status === 0);
-
-    // Then in your render function:
-    // Apply client-side pagination
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
-
-    // Calculate total pages based on all users
-    const totalPages = Math.ceil(users.length / usersPerPage);
 
     const handlePreviousPage = () => {
         setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
@@ -792,6 +838,31 @@ function SocialPage() {
         <div className="social-page-container">
             {/* Left Column */}
             <div className="social-sidebar">
+                {/* Profile Type Filter */}
+                <section className="profile-filter-section">
+                    <h2>Profil Türü</h2>
+                    <div className="profile-filter-options">
+                        <button
+                            className={`filter-btn ${profileTypeFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setProfileTypeFilter('all')}
+                        >
+                            Tümü
+                        </button>
+                        <button
+                            className={`filter-btn ${profileTypeFilter === 'individual' ? 'active' : ''}`}
+                            onClick={() => setProfileTypeFilter('individual')}
+                        >
+                            Bireysel
+                        </button>
+                        <button
+                            className={`filter-btn ${profileTypeFilter === 'company' ? 'active' : ''}`}
+                            onClick={() => setProfileTypeFilter('company')}
+                        >
+                            Şirket
+                        </button>
+                    </div>
+                </section>
+
                 {/* Incoming Requests Section */}
                 <section className="incoming-requests-section">
                     <h2>Gelen Bağlantı İstekleri ({pendingIncomingRequests.length || 0})</h2>
@@ -840,36 +911,55 @@ function SocialPage() {
                 </section>
 
                 {/* Connection Recommendations Section (Placeholder) */}
-                {/* Connection Recommendations Section */}
                 <section className="recommendations-section">
                 <h2>Bağlantı Önerileri</h2>
                 <div className="recommendations-list">
                     {connectionsLoading ? (
                     <div className="loading-recommendations">Öneriler yükleniyor...</div>
                     ) : suggestedConnections.length > 0 ? (
-                    suggestedConnections.map((suggestion) => (
-                        <div key={suggestion.id} className="recommendation-card">
-                        <img
-                            src={suggestion.profilePictureUrl || '/default-avatar.png'}
-                            alt={suggestion.name}
-                            className="recommendation-profile-image"
-                        />
-                        <div className="recommendation-info">
-                            <h4>{suggestion.name} {suggestion.surname}</h4>
-                            <p className="match-reason">{suggestion.matchReason}</p>
-                        </div>
-                        <div className="recommendation-actions">
-                            <button
-                            className="connect-btn"
-                            onClick={() => sendConnectionRequest(
-                                users.find(u => u.id === suggestion.id)?.userId
-                            )}
-                            >
-                            Bağlantı Kur
-                            </button>
-                        </div>
-                        </div>
-                    ))
+                    suggestedConnections.map((suggestion) => {
+                        // Find the full user object for this suggestion
+                        const suggestedUser = users.find(u => u.id === suggestion.id);
+                        if (!suggestedUser) return null;
+
+                        // Get connection status for this user
+                        const connectionStatus = getConnectionStatus(suggestedUser.userId);
+
+                        return (
+                            <div key={suggestion.id} className="recommendation-card">
+                                <img
+                                    src={suggestion.profilePictureUrl || '/default-avatar.png'}
+                                    alt={suggestion.name}
+                                    className="recommendation-profile-image"
+                                />
+                                <div className="recommendation-info">
+                                    <h4>{suggestion.name} {suggestion.surname}</h4>
+                                    <p className="match-reason">{suggestion.matchReason}</p>
+                                </div>
+                                <div className="recommendation-actions">
+                                    {connectionStatus === 'connected' ? (
+                                        <span className="connection-badge connected">
+                                            Bağlantı kuruldu
+                                        </span>
+                                    ) : connectionStatus === 'pending-outgoing' ? (
+                                        <span className="connection-badge pending">
+                                            Beklemede
+                                        </span>
+                                    ) : (
+                                        <button
+                                            className="connect-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                sendConnectionRequest(suggestedUser.userId);
+                                            }}
+                                        >
+                                            Bağlantı Kur
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })
                     ) : (
                     <p className="no-recommendations-message">
                         Şu anda mevcut bağlantı önerisi bulunamadı.
@@ -882,7 +972,11 @@ function SocialPage() {
             {/* Right Column - User Grid with Pagination */}
             <div className="users-main-content">
                 <section className="users-grid-container">
-                    <h2>Tüm Kullanıcılar</h2>
+                    <h2>
+                        {profileTypeFilter === 'all' ? 'Tüm Kullanıcılar' :
+                         profileTypeFilter === 'company' ? 'Şirket Profilleri' :
+                         'Bireysel Profiller'}
+                    </h2>
                     <div className="users-grid">
                         {currentUsers.map(user => (
                             <UserCard
