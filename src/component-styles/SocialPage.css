@@ -599,3 +599,161 @@
     font-size: 1rem;
     font-weight: bold;
 }
+
+/* Maximize container width to use available space */
+.social-page-container {
+  display: flex;
+  gap: 24px;
+  margin: 20px auto;
+  max-width: 1400px; /* Increased from default */
+  width: 95%; /* Use most of the available width */
+}
+
+/* Increase left sidebar size */
+.social-sidebar {
+  flex: 0 0 380px; /* Increased from 320px */
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Make the users grid area responsive */
+.users-main-content {
+  flex: 1;
+  min-width: 0; /* Prevents overflow issues */
+}
+
+/* Make connection request cards larger */
+.incoming-request-card {
+  padding: 16px; /* Increased padding */
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.incoming-request-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Larger profile images for connection requests */
+.request-profile-image {
+  width: 70px; /* Increased from 50px */
+  height: 70px; /* Increased from 50px */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Improve connection request info */
+.request-info {
+  flex: 1;
+}
+
+.request-info h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+}
+
+.request-info p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/* Better action buttons */
+.request-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.accept-btn, .reject-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+/* Fix user grid to show two columns */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* Make user cards more compact */
+.user-card {
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.user-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* More compact content in user cards */
+.user-card-content {
+  flex: 1;
+}
+
+.user-section {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+}
+
+.section-header {
+  margin-bottom: 6px;
+}
+
+.section-header h4 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.section-content h5 {
+  font-size: 0.9rem;
+  margin: 0 0 4px 0;
+}
+
+.section-content p {
+  font-size: 0.85rem;
+  margin: 0 0 4px 0;
+}
+
+/* Media query for narrower screens */
+@media (max-width: 1100px) {
+  .users-grid {
+    grid-template-columns: 1fr; /* Switch to one column */
+  }
+}
+
+@media (max-width: 800px) {
+  .social-page-container {
+    flex-direction: column;
+  }
+  
+  .social-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+}

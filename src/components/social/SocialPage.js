@@ -243,7 +243,7 @@ function SocialPage() {
     const [outgoingRequests, setOutgoingRequests] = useState([]);
     const [connections, setConnections] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage] = useState(12);
+    const [usersPerPage] = useState(4);
 
     // Modified useEffect
     useEffect(() => {
@@ -569,19 +569,21 @@ function SocialPage() {
     };
 
     return (
-        <Layout>
-            <section className="welcome">
-                <h1>Profesyonel Ağ</h1>
-                <p>Alanınızdaki profesyonelleri keşfedin ve bağlantı kurun!</p>
-            </section>
+    <Layout>
+        <section className="welcome">
+            <h1>Profesyonel Ağ</h1>
+            <p>Alanınızdaki profesyonelleri keşfedin ve bağlantı kurun!</p>
+        </section>
 
-            <div className="social-page-container">
+        <div className="social-page-container">
+            {/* Left Column */}
+            <div className="social-sidebar">
                 {/* Incoming Requests Section */}
-                {pendingIncomingRequests.length > 0 && (
-                    <section className="incoming-requests-section">
-                        <h2>Gelen Bağlantı İstekleri ({pendingIncomingRequests.length})</h2>
-                        <div className="incoming-requests-list">
-                            {pendingIncomingRequests.map(req => {
+                <section className="incoming-requests-section">
+                    <h2>Gelen Bağlantı İstekleri ({pendingIncomingRequests.length || 0})</h2>
+                    <div className="incoming-requests-list">
+                        {pendingIncomingRequests.length > 0 ? (
+                            pendingIncomingRequests.map(req => {
                                 const sender = users.find(u => u.userId === req.senderId);
                                 if (!sender) return null;
                                 return (
@@ -592,7 +594,7 @@ function SocialPage() {
                                             className="request-profile-image"
                                         />
                                         <div className="request-info">
-                                            <h4>{sender.name +" "+ sender.surname}</h4>
+                                            <h4>{sender.name + " " + sender.surname}</h4>
                                             {sender.latestExperience && (
                                                 <p>
                                                     <Briefcase size={14} strokeWidth={1.5} />
@@ -616,13 +618,26 @@ function SocialPage() {
                                         </div>
                                     </div>
                                 );
-                            })}
-                        </div>
-                    </section>
-                )}
+                            })
+                        ) : (
+                            <p className="no-requests-message">Şu anda bekleyen bağlantı isteği yok.</p>
+                        )}
+                    </div>
+                </section>
 
-                {/* Main Users Grid */}
+                {/* Connection Recommendations Section (Placeholder) */}
+                <section className="recommendations-section">
+                    <h2>Bağlantı Önerileri</h2>
+                    <div className="recommendations-placeholder">
+                        <p>Yakında burada size özel bağlantı önerileri gösterilecek.</p>
+                    </div>
+                </section>
+            </div>
+
+            {/* Right Column - User Grid with Pagination */}
+            <div className="users-main-content">
                 <section className="users-grid-container">
+                    <h2>Tüm Kullanıcılar</h2>
                     <div className="users-grid">
                         {currentUsers.map(user => (
                             <UserCard
@@ -633,31 +648,32 @@ function SocialPage() {
                             />
                         ))}
                     </div>
+                    
+                    {/* Pagination Controls */}
+                    <div className="pagination-controls">
+                        <button
+                            className="pagination-btn"
+                            onClick={handlePreviousPage}
+                            disabled={currentPage === 1}
+                        >
+                            Önceki
+                        </button>
+                        <span className="pagination-info">
+                            {currentPage} / {totalPages}
+                        </span>
+                        <button
+                            className="pagination-btn"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                        >
+                            Sonraki
+                        </button>
+                    </div>
                 </section>
             </div>
-
-            {/* Pagination Controls */}
-            <div className="pagination-controls">
-                <button
-                    className="pagination-btn"
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                >
-                    Önceki
-                </button>
-                <span className="pagination-info">
-                    {currentPage} / {totalPages}
-                </span>
-                <button
-                    className="pagination-btn"
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                >
-                    Sonraki
-                </button>
-            </div>
-        </Layout>
-    );
+        </div>
+    </Layout>
+);
 }
 
 export default SocialPage;
