@@ -242,6 +242,8 @@ function SocialPage() {
     const [incomingRequests, setIncomingRequests] = useState([]);
     const [outgoingRequests, setOutgoingRequests] = useState([]);
     const [connections, setConnections] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [usersPerPage] = useState(12);
 
     useEffect(() => {
         fetchUsers();
@@ -360,6 +362,10 @@ function SocialPage() {
             );
     
             setUsers(usersWithDetails);
+            console.log('Users fetched:', usersWithDetails.length);
+            console.log('Users per page:', usersPerPage);
+            console.log('Total pages:', Math.ceil(usersWithDetails.length / usersPerPage));
+            console.log('Current page:', currentPage);
         } catch (e) {
             setError(e.message);
         } finally {
@@ -541,6 +547,20 @@ function SocialPage() {
 
     const pendingIncomingRequests = incomingRequests.filter(req => req.status === 0);
 
+    // Pagination logic
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(users.length / usersPerPage);
+
+    const handlePreviousPage = () => {
+        setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage(prevPage => Math.min(prevPage + 1, totalPages));
+    };
+
     return (
         <Layout>
             <section className="welcome">
@@ -597,7 +617,7 @@ function SocialPage() {
                 {/* Main Users Grid */}
                 <section className="users-grid-container">
                     <div className="users-grid">
-                        {users.map(user => (
+                        {currentUsers.map(user => (
                             <UserCard
                                 key={user.id}
                                 user={user}
@@ -607,6 +627,27 @@ function SocialPage() {
                         ))}
                     </div>
                 </section>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="pagination-controls">
+                <button
+                    className="pagination-btn"
+                    onClick={handlePreviousPage}
+                    disabled={currentPage === 1}
+                >
+                    Önceki
+                </button>
+                <span className="pagination-info">
+                    {currentPage} / {totalPages}
+                </span>
+                <button
+                    className="pagination-btn"
+                    onClick={handleNextPage}
+                    disabled={currentPage === totalPages}
+                >
+                    Sonraki
+                </button>
             </div>
         </Layout>
     );
