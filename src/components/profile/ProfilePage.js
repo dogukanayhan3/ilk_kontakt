@@ -109,7 +109,6 @@ export default function ProfilePage() {
   const [connectionsLoading, setConnectionsLoading] = useState(false);
   const [connectionsError, setConnectionsError] = useState('');
   const [showConnections, setShowConnections] = useState(false);
-// Updated navigateToProfile function
 
  // Updated navigateToProfile function
  const navigateToProfile = async (userId) => {
@@ -150,6 +149,9 @@ export default function ProfilePage() {
     console.error('❌ Error navigating to profile:', error);
   }
 };
+
+const [showProfileModal, setShowProfileModal] = useState(false);
+
 
   // EXPERIENCES
   const [experiences, setExperiences] = useState([])
@@ -936,7 +938,7 @@ async function fetchConnections(userId) {
     }
   }
 
-  // --- PROFILE HANDLERS (unchanged) ---
+  // --- PROFILE HANDLERS ---
   const handleChange = e => {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
@@ -950,7 +952,14 @@ async function fetchConnections(userId) {
       _file: f
     }))
   }
-  const handleEdit = () => setIsEditing(true)
+  
+  // Modified handleEdit to open the modal
+  const handleEdit = () => {
+      setIsEditing(true); // Keep isEditing true while the modal is open
+      setShowProfileModal(true);
+  }
+  
+  // Modified handleCancel to close the modal and revert form
   const handleCancel = () => {
     if (profile) {
       setForm({
@@ -967,8 +976,11 @@ async function fetchConnections(userId) {
         userName: profile.userName || ''
       })
     }
-    setIsEditing(false)
+    setIsEditing(false); // Set isEditing to false when canceling
+    setShowProfileModal(false); // Close the modal
   }
+  
+  // Modified handleSave to close the modal on success
   const handleSave = async () => {
     setError('')
     try {
@@ -1021,7 +1033,7 @@ async function fetchConnections(userId) {
       }
       const updated = await res.json()
       setProfile(updated)
-      setForm({
+      setForm({ // Update form state with potentially new data from backend
         about: updated.about || '',
         email: updated.email || '',
         phoneNumber: updated.phoneNumber || '',
@@ -1032,7 +1044,8 @@ async function fetchConnections(userId) {
         surname: updated.surname || '',
         userName: updated.userName || ''
       })
-      setIsEditing(false)
+      setIsEditing(false) // Set isEditing to false after successful save
+      setShowProfileModal(false); // Close the modal
     } catch (e) {
       setError(e.message)
     }
@@ -1057,7 +1070,8 @@ async function fetchConnections(userId) {
 
             <div className="profile-image-container">
               <ProfileImage src={form.profilePictureUrl} />
-              {(isEditing || !profile) && isOwnProfile && (
+              {/* Change photo button visible when profile is being edited via modal or if creating new profile */}
+              {(showProfileModal || !profile) && isOwnProfile && (
                 <>
                   <button
                     className="change-photo-btn"
@@ -1069,128 +1083,51 @@ async function fetchConnections(userId) {
                     type="file"
                     accept="image/*"
                     ref={fileInputRef}
-                    style={{ display: 'none' }}
+                    style={{ display: 'none' }} // Keep hidden
                     onChange={handleFileChange}
                   />
                 </>
               )}
             </div>
 
-            {(isEditing || !profile) && isOwnProfile ? (
-              <div className="profile-edit-form">
-                <input
-                  type="text"
-                  name="userName"
-                  placeholder="Kullanıcı Adı"
-                  value={form.userName}
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="name"
-                  placeholder={currentUser?.isCompanyProfile ? "Şirket Adı" : "Ad"}
-                  value={form.name}
-                  onChange={handleChange}
-                />
-                {!currentUser?.isCompanyProfile && (
-                  <input
-                    type="text"
-                    name="surname"
-                    placeholder="Soyad"
-                    value={form.surname}
-                    onChange={handleChange}
-                  />
-                )}
-                <textarea
-                  name="about"
-                  placeholder="Hakkında"
-                  value={form.about}
-                  onChange={handleChange}
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="E-posta"
-                  value={form.email}
-                  onChange={handleChange}
-                />
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  placeholder="Telefon"
-                  value={form.phoneNumber}
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="address"
-                  placeholder="Adres"
-                  value={form.address}
-                  onChange={handleChange}
-                />
-                <input
-                  type="text"
-                  name="profilePictureUrl"
-                  placeholder="Profil Fotoğrafı URL"
-                  value={form.profilePictureUrl}
-                  onChange={handleChange}
-                />
-                {!currentUser?.isCompanyProfile && (
-                  <div className="date-input-group">
-                    <Calendar size={18} />
-                    <input
-                      type="date"
-                      name="birthday"
-                      value={form.birthday}
-                      onChange={handleChange}
-                    />
-                  </div>
-                )}
-                <div className="profile-actions">
-                  <button
-                    className="save-profile-btn"
-                    onClick={handleSave}
-                  >
-                    <Save size={18} /> Kaydet
-                  </button>
-                  {profile && (
-                    <button
-                      onClick={handleCancel}
-                      style={{ marginLeft: 8 }}
-                    >
-                      <X size={18} /> Vazgeç
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
+            {/* Always render the view mode of profile info */}
               <>
+                {/* Profile name/username display */}
                 <h3 id="profile-name">{profile?.userName}</h3>
+                {/* Profile info list */}
                 <div className="profile-info-list">
                   <div>
                     <Info size={20} />
                     <span>
-                      {currentUser?.isCompanyProfile 
-                        ? profile?.name 
+                      {currentUser?.isCompanyProfile
+                        ? profile?.name
                         : `${profile?.name} ${profile?.surname}`}
                     </span>
                   </div>
+                  {profile?.about && (
                   <div>
                     <Info size={20} />
                     <span>{profile?.about}</span>
                   </div>
+                  )}
+                  {profile?.email && (
                   <div>
                     <Mail size={20} />
                     <span>{profile?.email}</span>
                   </div>
+                  )}
+                  {profile?.phoneNumber && (
                   <div>
                     <Phone size={20} />
                     <span>{profile?.phoneNumber}</span>
                   </div>
+                  )}
+                  {profile?.address && (
                   <div>
                     <MapPin size={20} />
                     <span>{profile?.address}</span>
                   </div>
+                  )}
                   {!currentUser?.isCompanyProfile && profile?.birthday && (
                     <div>
                       <Calendar size={20} />
@@ -1200,21 +1137,23 @@ async function fetchConnections(userId) {
                     </div>
                   )}
                 </div>
+                {/* Profile actions (buttons) */}
                 <div className="profile-actions">
-                  <button 
+                  <button
                     className="show-connections-btn"
                     onClick={() => setShowConnections(true)}
                   >
                     Bağlantıları Göster
                   </button>
+                  {/* Edit button only shown for own profile */}
                   {isOwnProfile && (
-                    <button id="edit-profile-btn" onClick={handleEdit}>
+                    <button id="edit-profile-btn" onClick={handleEdit}> {/* Use handleEdit to open modal */}
                       <Edit size={18} /> Düzenle
                     </button>
                   )}
                 </div>
               </>
-            )}
+
           </div>
         </section>
 
@@ -1224,7 +1163,7 @@ async function fetchConnections(userId) {
             <div className="connections-modal" onClick={e => e.stopPropagation()}>
               <div className="connections-modal-header">
                 <h2>Bağlantılar</h2>
-                <button 
+                <button
                   className="connections-modal-close"
                   onClick={() => setShowConnections(false)}
                 >
@@ -1272,6 +1211,112 @@ async function fetchConnections(userId) {
           </div>
         )}
       </div>
+
+      {/* PROFILE EDIT MODAL */}
+      {showProfileModal && (
+        <div className="modal-overlay" onClick={handleCancel}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button
+              className="modal-close-btn"
+              onClick={handleCancel}
+            >
+              <X size={22} />
+            </button>
+            {error && (
+              <div className="error-message">{error}</div>
+            )}
+            <form className="profile-edit-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+                <h3>{profile ? 'Profili Düzenle' : 'Profil Oluştur'}</h3>
+                <input
+                  type="text"
+                  name="userName"
+                  placeholder="Kullanıcı Adı"
+                  value={form.userName}
+                  onChange={handleChange}
+                  disabled={!!profile}
+                />
+                <input
+                  type="text"
+                  name="name"
+                  placeholder={currentUser?.isCompanyProfile ? "Şirket Adı" : "Ad"}
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+                {!currentUser?.isCompanyProfile && (
+                  <input
+                    type="text"
+                    name="surname"
+                    placeholder="Soyad"
+                    value={form.surname}
+                    onChange={handleChange}
+                    required
+                  />
+                )}
+                <textarea
+                  name="about"
+                  placeholder="Hakkında"
+                  value={form.about}
+                  onChange={handleChange}
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="E-posta"
+                  value={form.email}
+                  onChange={handleChange}
+                />
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  placeholder="Telefon"
+                  value={form.phoneNumber}
+                  onChange={handleChange}
+                />
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Adres"
+                  value={form.address}
+                  onChange={handleChange}
+                />
+                <input
+                    type="url"
+                    name="profilePictureUrl"
+                    placeholder="Profil Fotoğrafı URL"
+                    value={form.profilePictureUrl}
+                    onChange={handleChange}
+                />
+                {!currentUser?.isCompanyProfile && (
+                  <div className="date-input-group">
+                    <Calendar size={18} />
+                    <input
+                      type="date"
+                      name="birthday"
+                      value={form.birthday}
+                      onChange={handleChange}
+                    />
+                  </div>
+                )}
+                <div className="profile-actions">
+                  <button
+                    type="submit"
+                    className="save-profile-btn"
+                  >
+                    <Save size={18} /> {profile ? 'Güncelle' : 'Oluştur'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="cancel-edit-btn"
+                  >
+                    <X size={18} /> Vazgeç
+                  </button>
+                </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Two Column Layout Container */}
       <div className="two-column-container">

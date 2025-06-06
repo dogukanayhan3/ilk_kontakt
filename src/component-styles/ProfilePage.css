@@ -318,6 +318,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 .modal-content {
   background: #fff;
@@ -703,4 +704,84 @@
     width: 95%;
     padding: 16px;
   }
+}
+
+/* Apply existing modal form styles to the profile-edit-form inputs/textarea when in modal */
+.modal-content .profile-edit-form input,
+.modal-content .profile-edit-form textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    transition: border-color 0.2s;
+}
+
+.modal-content .profile-edit-form input:focus,
+.modal-content .profile-edit-form textarea:focus {
+  outline: none;
+  border-color: #5fbcee;
+  box-shadow: 0 0 0 2px rgba(95,188,238,0.2);
+}
+
+.modal-content .profile-edit-form textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.modal-content .profile-edit-form .date-input-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.modal-content .profile-edit-form .date-input-group input[type="date"] {
+     flex-grow: 1;
+}
+
+/* Reuse profile-actions button styling within the modal */
+.modal-content .profile-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-content .profile-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.modal-content .profile-actions button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(50,69,241,0.3);
+}
+
+/* Specific style for the Cancel button in the modal if needed */
+.modal-content .profile-actions .cancel-edit-btn {
+  background: #e0e0e0; /* Grey background for cancel */
+  color: #333; /* Darker text */
+}
+
+.modal-content .profile-actions .cancel-edit-btn:hover {
+  background: #ccc; /* Darker grey on hover */
+  transform: translateY(-2px); /* Keep the hover effect */
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1); /* Softer shadow */
+}
+
+/* Ensure modal form elements stack nicely */
+.profile-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Spacing between form elements */
 }
