@@ -13,7 +13,7 @@ using Volo.Abp.EntityFrameworkCore;
 namespace IlkKontakt.Backend.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20250603004300_initial")]
+    [Migration("20250606100543_initial")]
     partial class initial
     {
         /// <inheritdoc />

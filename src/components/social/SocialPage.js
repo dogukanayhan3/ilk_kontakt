@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Briefcase, 
     ArrowUpRight, 
@@ -81,8 +81,14 @@ function UserCard({ user, onConnect, connectionStatus }) {
     };
 
     return (
-        <div className="user-card" onClick={handleCardClick}>
+        <div className={`user-card ${user.isCompanyProfile ? 'company-profile' : ''}`} onClick={handleCardClick}>
             <div className="user-card-header">
+                {user.isCompanyProfile && (
+                    <div className="company-badge">
+                        <Briefcase size={14} strokeWidth={2} />
+                        <span>Şirket</span>
+                    </div>
+                )}
                 <img
                     src={user.profilePictureUrl || '/default-avatar.png'}
                     alt={user.userName}
@@ -234,6 +240,20 @@ function UserCard({ user, onConnect, connectionStatus }) {
     );
 }
 
+// Utility to parse Gemini response robustly
+function extractMatchesFromGeminiResponse(data) {
+  try {
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // Remove code block markers if present
+    text = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    return parsed.matches || [];
+  } catch (e) {
+    console.error('Failed to parse Gemini response:', e);
+    return [];
+  }
+}
+
 function SocialPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -242,24 +262,221 @@ function SocialPage() {
     const [incomingRequests, setIncomingRequests] = useState([]);
     const [outgoingRequests, setOutgoingRequests] = useState([]);
     const [connections, setConnections] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [usersPerPage] = useState(4);
+    const [profileTypeFilter, setProfileTypeFilter] = useState('all');
+    const [suggestedConnections, setSuggestedConnections] = useState(() => {
+        const stored = localStorage.getItem('socialConnectionSuggestions');
+        return stored ? JSON.parse(stored) : [];
+        });
+    const [connectionsLoading, setConnectionsLoading] = useState(false);
 
+    // Add this somewhere in your component (remove after testing)
     useEffect(() => {
-        fetchUsers();
+    // Clear existing suggestions to force a refresh
+    localStorage.removeItem('socialConnectionSuggestions');
+    setSuggestedConnections([]);
+    }, []);
+
+    // Fetch all users and their details (profile, education, experience)
+    const fetchAllUserDetails = useCallback(async () => {
+    try {
+        // We already have profiles fetched, just need to add additional details
+        const userDetails = await Promise.all(
+        users.map(async (profile) => {
+
+            // Skills fetch - add it back with error handling and timeout
+            let skills = [];
+            try {
+            const skillRes = await fetch(
+                `${API_BASE}/api/app/skill?ProfileId=${profile.id}`,
+                { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    // Add a timeout signal
+                    signal: AbortSignal.timeout(5000) // 5 second timeout
+                }
+            );
+            
+            if (skillRes.ok) {
+                const skillData = await skillRes.json();
+                skills = skillData.items || [];
+            }
+            } catch (err) {
+            console.log(`Error fetching skills for user ${profile.id}: ${err.message}`);
+            // Continue even if skills fetch fails
+            }
+
+            return {
+            ...profile,
+            education: profile.latestEducation ? [profile.latestEducation] : [],
+            experience: profile.latestExperience ? [profile.latestExperience] : [],
+            skills
+            };
+        })
+        );
+        return userDetails;
+    } catch (err) {
+        console.error('Error fetching all user details:', err);
+        return [];
+    }
+    }, [users]);
+
+    // Add this function to SocialPage.js
+    const fetchUserProfile = useCallback(async () => {
+    if (!currentUser) return null;
+    try {
+        const response = await fetch(
+        `${API_BASE}/api/app/user-profile/by-user`,
+        {
+            credentials: 'include',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            }
+        }
+        );
+        if (response.ok) {
+        return await response.json();
+        }
+        return null;
+    } catch (err) {
+        console.error('Fetch user profile error:', err);
+        return null;
+    }
+    }, [currentUser]);
+
+    // Modify getConnectionSuggestions to accept currentUserProfile
+    const getConnectionSuggestions = useCallback(async (allUsers, currentUserProfile) => {
+    if (!currentUser || !allUsers.length || !currentUserProfile) return [];
+    
+    try {
+        console.log("Making Gemini API call with:", {
+        usersCount: allUsers.length,
+        currentUserProfile: currentUserProfile.name
+        });
+        
+        const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+        {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+            contents: [
+                {
+                parts: [
+                    {
+                    text: `
+                        Analyse these users and their companies & positions they worked at or still currently working at, the skills they have, and match 2 of them with ${currentUserProfile.name} ${currentUserProfile.surname}. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
+
+                        Here are all the users data:
+                        ${JSON.stringify(allUsers, null, 2)}
+
+                        Current user to match with:
+                        ${JSON.stringify(currentUserProfile, null, 2)}
+
+                        Please return ONLY the following JSON object, without any code block or extra text:
+                        {
+                        "matches": [
+                            {
+                            "id": "user_profile_id (not UserId)",
+                            "name": "user_name",
+                            "surname": "user_surname", 
+                            "profilePictureUrl": "url",
+                            "matchReason": "5-6 words reason why they should connect"
+                            }
+                        ]
+                        }
+                    `
+                    }
+                ]
+                }
+            ]
+            })
+        }
+        );
+        console.log("Gemini API response received");
+        const data = await response.json();
+        return extractMatchesFromGeminiResponse(data);
+    } catch (err) {
+        console.error('Get connection suggestions error:', err);
+        return [];
+    }
+    }, [currentUser]);
+
+    // Modified useEffect
+    useEffect(() => {
+        // Only fetch all users once when component mounts
+        if (users.length === 0) {
+            fetchAllUsers();
+        }
         fetchConnections();
         // eslint-disable-next-line
     }, []);
 
-    async function fetchUsers() {
+    // Add this effect to update currentUsers when page changes
+    useEffect(() => {
+        // This effect runs when currentPage changes
+        console.log('Page changed to', currentPage);
+    }, [currentPage]);
+
+    // Add this effect to fetch recommendations
+    useEffect(() => {
+    async function fetchRecommendations() {
+        if (users.length > 0 && suggestedConnections.length === 0) {
+            console.log("Starting fetchRecommendations");
+            setConnectionsLoading(true);
+            try {
+            // Get current user profile first
+            const currentUserProfile = await fetchUserProfile();
+            console.log("Current user profile:", currentUserProfile?.name);
+            
+            if (!currentUserProfile) {
+                console.error("No current user profile found");
+                return;
+            }
+            
+            const userDetails = await fetchAllUserDetails();
+            console.log("User details fetched, count:", userDetails.length);
+            
+            // Pass both parameters
+            const matches = await getConnectionSuggestions(userDetails, currentUserProfile);
+            console.log("Suggestion matches received:", matches.length);
+            
+            setSuggestedConnections(matches);
+            localStorage.setItem('socialConnectionSuggestions', JSON.stringify(matches));
+            } catch (err) {
+            console.error('Failed to load connection suggestions:', err);
+            } finally {
+            setConnectionsLoading(false);
+            }
+        }
+    }
+        
+    fetchRecommendations();
+    // eslint-disable-next-line
+    }, [users, fetchAllUserDetails, getConnectionSuggestions]);
+
+    async function fetchAllUsers() {
         setLoading(true);
         setError('');
         try {
-            const profilesRes = await fetch(PROFILE_ROOT, { 
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+            // First fetch user profiles
+            const profilesRes = await fetch(
+                `${PROFILE_ROOT}?SkipCount=0&MaxResultCount=1000`, 
+                { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
                 }
-            });
+            );
             
             if (!profilesRes.ok) {
                 throw new Error('Failed to fetch profiles');
@@ -267,13 +484,34 @@ function SocialPage() {
             
             const profilesData = await profilesRes.json();
             
-            // Debug logging to see the structure
-            console.log('Current user:', currentUser);
-            console.log('All profiles:', profilesData.items);
+            // Then fetch identity users to get isCompanyProfile data
+            const identityRes = await fetch(
+                `${API_BASE}/api/identity/users?SkipCount=0&MaxResultCount=1000`,
+                {
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!identityRes.ok) {
+                throw new Error('Failed to fetch identity users');
+            }
+
+            const identityData = await identityRes.json();
             
-            // Filter out the current user - check both userId and id fields
+            // Create a map of userId to isCompanyProfile
+            const companyProfileMap = new Map(
+                identityData.items.map(user => [
+                    user.id,
+                    user.extraProperties?.IsCompanyProfile || false
+                ])
+            );
+            
+            // Filter out current user and add isCompanyProfile data
             const profiles = (profilesData.items || []).filter(profile => {
-                // Check multiple possible identifier fields
                 const isCurrentUser = 
                     profile.userId === currentUser.id || 
                     profile.userId === currentUser.userId ||
@@ -282,12 +520,12 @@ function SocialPage() {
                     profile.userName === currentUser.userName ||
                     profile.email === currentUser.email;
                 
-                console.log(`Profile ${profile.userName}: isCurrentUser = ${isCurrentUser}`);
                 return !isCurrentUser;
-            });
-    
-            console.log('Filtered profiles:', profiles);
-    
+            }).map(profile => ({
+                ...profile,
+                isCompanyProfile: companyProfileMap.get(profile.userId) || false
+            }));
+
             const usersWithDetails = await Promise.all(
                 profiles.map(async (profile) => {
                     // Fetch experiences
@@ -310,7 +548,7 @@ function SocialPage() {
                             new Date(b.startDate) - new Date(a.startDate)
                         )[0];
                     }
-    
+
                     // Fetch education
                     const eduRes = await fetch(
                         `${EDUCATION_ROOT}?ProfileId=${profile.id}`,
@@ -331,7 +569,7 @@ function SocialPage() {
                             new Date(b.startDate) - new Date(a.startDate)
                         )[0];
                     }
-    
+
                     // Fetch projects
                     const projRes = await fetch(
                         `${PROJECT_ROOT}?ProfileId=${profile.id}`,
@@ -349,17 +587,38 @@ function SocialPage() {
                         const projData = await projRes.json();
                         projects = projData.items || [];
                     }
-    
+
+                    // Add this code here - Skills fetch
+                    const skillRes = await fetch(
+                        `${API_BASE}/api/app/skill?ProfileId=${profile.id}`,
+                        { 
+                            credentials: 'include',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        }
+                    );
+
+                    let skills = [];
+                    if (skillRes.ok) {
+                        const skillData = await skillRes.json();
+                        skills = skillData.items || [];
+                    }
+
                     return {
                         ...profile,
                         latestExperience,
                         latestEducation,
-                        projects
+                        projects,
+                        skills,
                     };
                 })
             );
-    
+
             setUsers(usersWithDetails);
+            
+            console.log('All users fetched:', usersWithDetails.length);
         } catch (e) {
             setError(e.message);
         } finally {
@@ -368,6 +627,7 @@ function SocialPage() {
     }
     
     async function fetchConnections() {
+        setConnectionsLoading(true); // Set to true when starting
         try {
             // Fetch incoming requests
             const incomingRes = await fetch(`${CONNECTION_ROOT}/incoming-list?SkipCount=0&MaxResultCount=100`, { 
@@ -411,6 +671,8 @@ function SocialPage() {
             }
         } catch (e) {
             console.error('Failed to fetch connections:', e);
+        } finally {
+            setConnectionsLoading(false); // Set to false when done
         }
     }
     
@@ -478,7 +740,7 @@ function SocialPage() {
             await fetchConnections();
             
             // Also refresh users to update their connection status
-            await fetchUsers();
+            await fetchAllUsers();
             
         } catch (err) {
             console.error('Respond to connection request error:', err);
@@ -520,8 +782,25 @@ function SocialPage() {
         console.log(`No connection found for user ${userAbpId}`);
         return 'none';
     }
-    
-    
+
+    // Add this function after fetchAllUsers
+    const getFilteredUsers = () => {
+        switch (profileTypeFilter) {
+            case 'company':
+                return users.filter(user => user.isCompanyProfile);
+            case 'individual':
+                return users.filter(user => !user.isCompanyProfile);
+            default:
+                return users;
+        }
+    };
+
+    // Modify the pagination section to use filtered users
+    const filteredUsers = getFilteredUsers();
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
 
     if (loading) return (
         <Layout>
@@ -541,20 +820,55 @@ function SocialPage() {
 
     const pendingIncomingRequests = incomingRequests.filter(req => req.status === 0);
 
-    return (
-        <Layout>
-            <section className="welcome">
-                <h1>Profesyonel Ağ</h1>
-                <p>Alanınızdaki profesyonelleri keşfedin ve bağlantı kurun!</p>
-            </section>
+    const handlePreviousPage = () => {
+        setCurrentPage(prevPage => Math.max(prevPage - 1, 1));
+    };
 
-            <div className="social-page-container">
+    const handleNextPage = () => {
+        setCurrentPage(prevPage => Math.min(prevPage + 1, totalPages));
+    };
+
+    return (
+    <Layout>
+        <section className="welcome">
+            <h1>Profesyonel Ağ</h1>
+            <p>Alanınızdaki profesyonelleri keşfedin ve bağlantı kurun!</p>
+        </section>
+
+        <div className="social-page-container">
+            {/* Left Column */}
+            <div className="social-sidebar">
+                {/* Profile Type Filter */}
+                <section className="profile-filter-section">
+                    <h2>Profil Türü</h2>
+                    <div className="profile-filter-options">
+                        <button
+                            className={`filter-btn ${profileTypeFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setProfileTypeFilter('all')}
+                        >
+                            Tümü
+                        </button>
+                        <button
+                            className={`filter-btn ${profileTypeFilter === 'individual' ? 'active' : ''}`}
+                            onClick={() => setProfileTypeFilter('individual')}
+                        >
+                            Bireysel
+                        </button>
+                        <button
+                            className={`filter-btn ${profileTypeFilter === 'company' ? 'active' : ''}`}
+                            onClick={() => setProfileTypeFilter('company')}
+                        >
+                            Şirket
+                        </button>
+                    </div>
+                </section>
+
                 {/* Incoming Requests Section */}
-                {pendingIncomingRequests.length > 0 && (
-                    <section className="incoming-requests-section">
-                        <h2>Gelen Bağlantı İstekleri ({pendingIncomingRequests.length})</h2>
-                        <div className="incoming-requests-list">
-                            {pendingIncomingRequests.map(req => {
+                <section className="incoming-requests-section">
+                    <h2>Gelen Bağlantı İstekleri ({pendingIncomingRequests.length || 0})</h2>
+                    <div className="incoming-requests-list">
+                        {pendingIncomingRequests.length > 0 ? (
+                            pendingIncomingRequests.map(req => {
                                 const sender = users.find(u => u.userId === req.senderId);
                                 if (!sender) return null;
                                 return (
@@ -565,7 +879,7 @@ function SocialPage() {
                                             className="request-profile-image"
                                         />
                                         <div className="request-info">
-                                            <h4>{sender.name +" "+ sender.surname}</h4>
+                                            <h4>{sender.name + " " + sender.surname}</h4>
                                             {sender.latestExperience && (
                                                 <p>
                                                     <Briefcase size={14} strokeWidth={1.5} />
@@ -589,15 +903,82 @@ function SocialPage() {
                                         </div>
                                     </div>
                                 );
-                            })}
-                        </div>
-                    </section>
-                )}
+                            })
+                        ) : (
+                            <p className="no-requests-message">Şu anda bekleyen bağlantı isteği yok.</p>
+                        )}
+                    </div>
+                </section>
 
-                {/* Main Users Grid */}
+                {/* Connection Recommendations Section (Placeholder) */}
+                <section className="recommendations-section">
+                <h2>Bağlantı Önerileri</h2>
+                <div className="recommendations-list">
+                    {connectionsLoading ? (
+                    <div className="loading-recommendations">Öneriler yükleniyor...</div>
+                    ) : suggestedConnections.length > 0 ? (
+                    suggestedConnections.map((suggestion) => {
+                        // Find the full user object for this suggestion
+                        const suggestedUser = users.find(u => u.id === suggestion.id);
+                        if (!suggestedUser) return null;
+
+                        // Get connection status for this user
+                        const connectionStatus = getConnectionStatus(suggestedUser.userId);
+
+                        return (
+                            <div key={suggestion.id} className="recommendation-card">
+                                <img
+                                    src={suggestion.profilePictureUrl || '/default-avatar.png'}
+                                    alt={suggestion.name}
+                                    className="recommendation-profile-image"
+                                />
+                                <div className="recommendation-info">
+                                    <h4>{suggestion.name} {suggestion.surname}</h4>
+                                    <p className="match-reason">{suggestion.matchReason}</p>
+                                </div>
+                                <div className="recommendation-actions">
+                                    {connectionStatus === 'connected' ? (
+                                        <span className="connection-badge connected">
+                                            Bağlantı kuruldu
+                                        </span>
+                                    ) : connectionStatus === 'pending-outgoing' ? (
+                                        <span className="connection-badge pending">
+                                            Beklemede
+                                        </span>
+                                    ) : (
+                                        <button
+                                            className="connect-btn"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                sendConnectionRequest(suggestedUser.userId);
+                                            }}
+                                        >
+                                            Bağlantı Kur
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })
+                    ) : (
+                    <p className="no-recommendations-message">
+                        Şu anda mevcut bağlantı önerisi bulunamadı.
+                    </p>
+                    )}
+                </div>
+                </section>
+            </div>
+
+            {/* Right Column - User Grid with Pagination */}
+            <div className="users-main-content">
                 <section className="users-grid-container">
+                    <h2>
+                        {profileTypeFilter === 'all' ? 'Tüm Kullanıcılar' :
+                         profileTypeFilter === 'company' ? 'Şirket Profilleri' :
+                         'Bireysel Profiller'}
+                    </h2>
                     <div className="users-grid">
-                        {users.map(user => (
+                        {currentUsers.map(user => (
                             <UserCard
                                 key={user.id}
                                 user={user}
@@ -606,10 +987,32 @@ function SocialPage() {
                             />
                         ))}
                     </div>
+                    
+                    {/* Pagination Controls */}
+                    <div className="pagination-controls">
+                        <button
+                            className="pagination-btn"
+                            onClick={handlePreviousPage}
+                            disabled={currentPage === 1}
+                        >
+                            Önceki
+                        </button>
+                        <span className="pagination-info">
+                            {currentPage} / {totalPages}
+                        </span>
+                        <button
+                            className="pagination-btn"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages}
+                        >
+                            Sonraki
+                        </button>
+                    </div>
                 </section>
             </div>
-        </Layout>
-    );
+        </div>
+    </Layout>
+);
 }
 
 export default SocialPage;
