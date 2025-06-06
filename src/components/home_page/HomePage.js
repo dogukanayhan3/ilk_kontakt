@@ -478,6 +478,7 @@ function HomePage() {
                 onPostUpdate={fetchPosts}
                 profileImage={post.profilePictureUrl}
                 userProfileImage={getProfileImage()}
+                creatorUserId={post.creatorUserId}
               />
             ))
           )}
