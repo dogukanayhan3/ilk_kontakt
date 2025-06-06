@@ -608,6 +608,16 @@
   margin-top: 4px;
 }
 
+/* Preserve line breaks in descriptions */
+.experience-description,
+.education-description,
+.skill-description,
+.language-description,
+.project-description,
+.card-description {
+  white-space: pre-line;
+}
+
 /* ------------------------------ */
 /* 16. Responsive Tweaks          */
 /* ------------------------------ */

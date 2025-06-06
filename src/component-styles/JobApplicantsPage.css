@@ -199,3 +199,10 @@
         grid-template-columns: 1fr;
     }
 } 
+
+.job-description,
+.company-job-description,
+.applicant-description,
+.job-form-preview-description {
+  white-space: pre-line;
+}

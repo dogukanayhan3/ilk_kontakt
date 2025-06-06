@@ -894,3 +894,10 @@
         transform: rotate(360deg);
     }
 }
+
+.job-description,
+.company-job-description,
+.applicant-description,
+.job-form-preview-description {
+  white-space: pre-line;
+}
