@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Briefcase, 
     ArrowUpRight, 
@@ -234,6 +234,20 @@ function UserCard({ user, onConnect, connectionStatus }) {
     );
 }
 
+// Utility to parse Gemini response robustly
+function extractMatchesFromGeminiResponse(data) {
+  try {
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    // Remove code block markers if present
+    text = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(text);
+    return parsed.matches || [];
+  } catch (e) {
+    console.error('Failed to parse Gemini response:', e);
+    return [];
+  }
+}
+
 function SocialPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -244,6 +258,149 @@ function SocialPage() {
     const [connections, setConnections] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(4);
+    const [suggestedConnections, setSuggestedConnections] = useState(() => {
+        const stored = localStorage.getItem('socialConnectionSuggestions');
+        return stored ? JSON.parse(stored) : [];
+        });
+    const [connectionsLoading, setConnectionsLoading] = useState(false);
+
+    // Add this somewhere in your component (remove after testing)
+    useEffect(() => {
+    // Clear existing suggestions to force a refresh
+    localStorage.removeItem('socialConnectionSuggestions');
+    setSuggestedConnections([]);
+    }, []);
+
+    // Fetch all users and their details (profile, education, experience)
+    const fetchAllUserDetails = useCallback(async () => {
+    try {
+        // We already have profiles fetched, just need to add additional details
+        const userDetails = await Promise.all(
+        users.map(async (profile) => {
+
+            // Skills fetch - add it back with error handling and timeout
+            let skills = [];
+            try {
+            const skillRes = await fetch(
+                `${API_BASE}/api/app/skill?ProfileId=${profile.id}`,
+                { 
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    // Add a timeout signal
+                    signal: AbortSignal.timeout(5000) // 5 second timeout
+                }
+            );
+            
+            if (skillRes.ok) {
+                const skillData = await skillRes.json();
+                skills = skillData.items || [];
+            }
+            } catch (err) {
+            console.log(`Error fetching skills for user ${profile.id}: ${err.message}`);
+            // Continue even if skills fetch fails
+            }
+
+            return {
+            ...profile,
+            education: profile.latestEducation ? [profile.latestEducation] : [],
+            experience: profile.latestExperience ? [profile.latestExperience] : [],
+            skills
+            };
+        })
+        );
+        return userDetails;
+    } catch (err) {
+        console.error('Error fetching all user details:', err);
+        return [];
+    }
+    }, [users]);
+
+    // Add this function to SocialPage.js
+    const fetchUserProfile = useCallback(async () => {
+    if (!currentUser) return null;
+    try {
+        const response = await fetch(
+        `${API_BASE}/api/app/user-profile/by-user`,
+        {
+            credentials: 'include',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            }
+        }
+        );
+        if (response.ok) {
+        return await response.json();
+        }
+        return null;
+    } catch (err) {
+        console.error('Fetch user profile error:', err);
+        return null;
+    }
+    }, [currentUser]);
+
+    // Modify getConnectionSuggestions to accept currentUserProfile
+    const getConnectionSuggestions = useCallback(async (allUsers, currentUserProfile) => {
+    if (!currentUser || !allUsers.length || !currentUserProfile) return [];
+    
+    try {
+        console.log("Making Gemini API call with:", {
+        usersCount: allUsers.length,
+        currentUserProfile: currentUserProfile.name
+        });
+        
+        const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+        {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+            contents: [
+                {
+                parts: [
+                    {
+                    text: `
+                        Analyse these users and their companies & positions they worked at or still currently working at, the skills they have, and match 2 of them with ${currentUserProfile.name} ${currentUserProfile.surname}. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
+
+                        Here are all the users data:
+                        ${JSON.stringify(allUsers, null, 2)}
+
+                        Current user to match with:
+                        ${JSON.stringify(currentUserProfile, null, 2)}
+
+                        Please return ONLY the following JSON object, without any code block or extra text:
+                        {
+                        "matches": [
+                            {
+                            "id": "user_profile_id (not UserId)",
+                            "name": "user_name",
+                            "surname": "user_surname", 
+                            "profilePictureUrl": "url",
+                            "matchReason": "5-6 words reason why they should connect"
+                            }
+                        ]
+                        }
+                    `
+                    }
+                ]
+                }
+            ]
+            })
+        }
+        );
+        console.log("Gemini API response received");
+        const data = await response.json();
+        return extractMatchesFromGeminiResponse(data);
+    } catch (err) {
+        console.error('Get connection suggestions error:', err);
+        return [];
+    }
+    }, [currentUser]);
 
     // Modified useEffect
     useEffect(() => {
@@ -260,6 +417,43 @@ function SocialPage() {
         // This effect runs when currentPage changes
         console.log('Page changed to', currentPage);
     }, [currentPage]);
+
+    // Add this effect to fetch recommendations
+    useEffect(() => {
+    async function fetchRecommendations() {
+        if (users.length > 0 && suggestedConnections.length === 0) {
+            console.log("Starting fetchRecommendations");
+            setConnectionsLoading(true);
+            try {
+            // Get current user profile first
+            const currentUserProfile = await fetchUserProfile();
+            console.log("Current user profile:", currentUserProfile?.name);
+            
+            if (!currentUserProfile) {
+                console.error("No current user profile found");
+                return;
+            }
+            
+            const userDetails = await fetchAllUserDetails();
+            console.log("User details fetched, count:", userDetails.length);
+            
+            // Pass both parameters
+            const matches = await getConnectionSuggestions(userDetails, currentUserProfile);
+            console.log("Suggestion matches received:", matches.length);
+            
+            setSuggestedConnections(matches);
+            localStorage.setItem('socialConnectionSuggestions', JSON.stringify(matches));
+            } catch (err) {
+            console.error('Failed to load connection suggestions:', err);
+            } finally {
+            setConnectionsLoading(false);
+            }
+        }
+    }
+        
+    fetchRecommendations();
+    // eslint-disable-next-line
+    }, [users, fetchAllUserDetails, getConnectionSuggestions]);
 
     async function fetchAllUsers() {
     setLoading(true);
@@ -358,11 +552,30 @@ function SocialPage() {
                     projects = projData.items || [];
                 }
 
+                // Add this code here - Skills fetch
+                const skillRes = await fetch(
+                    `${API_BASE}/api/app/skill?ProfileId=${profile.id}`,
+                    { 
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                let skills = [];
+                if (skillRes.ok) {
+                    const skillData = await skillRes.json();
+                    skills = skillData.items || [];
+                }
+
                 return {
                     ...profile,
                     latestExperience,
                     latestEducation,
-                    projects
+                    projects,
+                    skills,
                 };
             })
         );
@@ -378,6 +591,7 @@ function SocialPage() {
 }
     
     async function fetchConnections() {
+        setConnectionsLoading(true); // Set to true when starting
         try {
             // Fetch incoming requests
             const incomingRes = await fetch(`${CONNECTION_ROOT}/incoming-list?SkipCount=0&MaxResultCount=100`, { 
@@ -421,6 +635,8 @@ function SocialPage() {
             }
         } catch (e) {
             console.error('Failed to fetch connections:', e);
+        } finally {
+            setConnectionsLoading(false); // Set to false when done
         }
     }
     
@@ -530,8 +746,6 @@ function SocialPage() {
         console.log(`No connection found for user ${userAbpId}`);
         return 'none';
     }
-    
-    
 
     if (loading) return (
         <Layout>
@@ -626,11 +840,42 @@ function SocialPage() {
                 </section>
 
                 {/* Connection Recommendations Section (Placeholder) */}
+                {/* Connection Recommendations Section */}
                 <section className="recommendations-section">
-                    <h2>Bağlantı Önerileri</h2>
-                    <div className="recommendations-placeholder">
-                        <p>Yakında burada size özel bağlantı önerileri gösterilecek.</p>
-                    </div>
+                <h2>Bağlantı Önerileri</h2>
+                <div className="recommendations-list">
+                    {connectionsLoading ? (
+                    <div className="loading-recommendations">Öneriler yükleniyor...</div>
+                    ) : suggestedConnections.length > 0 ? (
+                    suggestedConnections.map((suggestion) => (
+                        <div key={suggestion.id} className="recommendation-card">
+                        <img
+                            src={suggestion.profilePictureUrl || '/default-avatar.png'}
+                            alt={suggestion.name}
+                            className="recommendation-profile-image"
+                        />
+                        <div className="recommendation-info">
+                            <h4>{suggestion.name} {suggestion.surname}</h4>
+                            <p className="match-reason">{suggestion.matchReason}</p>
+                        </div>
+                        <div className="recommendation-actions">
+                            <button
+                            className="connect-btn"
+                            onClick={() => sendConnectionRequest(
+                                users.find(u => u.id === suggestion.id)?.userId
+                            )}
+                            >
+                            Bağlantı Kur
+                            </button>
+                        </div>
+                        </div>
+                    ))
+                    ) : (
+                    <p className="no-recommendations-message">
+                        Şu anda mevcut bağlantı önerisi bulunamadı.
+                    </p>
+                    )}
+                </div>
                 </section>
             </div>
 
