@@ -245,133 +245,137 @@ function SocialPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage] = useState(12);
 
+    // Modified useEffect
     useEffect(() => {
-        fetchUsers();
+        // Only fetch all users once when component mounts
+        if (users.length === 0) {
+            fetchAllUsers();
+        }
         fetchConnections();
         // eslint-disable-next-line
     }, []);
 
-    async function fetchUsers() {
-        setLoading(true);
-        setError('');
-        try {
-            const profilesRes = await fetch(PROFILE_ROOT, { 
+    // Add this effect to update currentUsers when page changes
+    useEffect(() => {
+        // This effect runs when currentPage changes
+        console.log('Page changed to', currentPage);
+    }, [currentPage]);
+
+    async function fetchAllUsers() {
+    setLoading(true);
+    setError('');
+    try {
+        // Get a large number of users (adjust as needed)
+        const profilesRes = await fetch(
+            `${PROFILE_ROOT}?SkipCount=0&MaxResultCount=1000`, 
+            { 
                 credentials: 'include',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 }
-            });
-            
-            if (!profilesRes.ok) {
-                throw new Error('Failed to fetch profiles');
             }
-            
-            const profilesData = await profilesRes.json();
-            
-            // Debug logging to see the structure
-            console.log('Current user:', currentUser);
-            console.log('All profiles:', profilesData.items);
-            
-            // Filter out the current user - check both userId and id fields
-            const profiles = (profilesData.items || []).filter(profile => {
-                // Check multiple possible identifier fields
-                const isCurrentUser = 
-                    profile.userId === currentUser.id || 
-                    profile.userId === currentUser.userId ||
-                    profile.id === currentUser.id ||
-                    profile.id === currentUser.userId ||
-                    profile.userName === currentUser.userName ||
-                    profile.email === currentUser.email;
-                
-                console.log(`Profile ${profile.userName}: isCurrentUser = ${isCurrentUser}`);
-                return !isCurrentUser;
-            });
-    
-            console.log('Filtered profiles:', profiles);
-    
-            const usersWithDetails = await Promise.all(
-                profiles.map(async (profile) => {
-                    // Fetch experiences
-                    const expRes = await fetch(
-                        `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
-                        { 
-                            credentials: 'include',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-                    
-                    let latestExperience = null;
-                    if (expRes.ok) {
-                        const expData = await expRes.json();
-                        const experiences = expData.items || [];
-                        latestExperience = experiences.sort((a, b) => 
-                            new Date(b.startDate) - new Date(a.startDate)
-                        )[0];
-                    }
-    
-                    // Fetch education
-                    const eduRes = await fetch(
-                        `${EDUCATION_ROOT}?ProfileId=${profile.id}`,
-                        { 
-                            credentials: 'include',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-                    
-                    let latestEducation = null;
-                    if (eduRes.ok) {
-                        const eduData = await eduRes.json();
-                        const educations = eduData.items || [];
-                        latestEducation = educations.sort((a, b) => 
-                            new Date(b.startDate) - new Date(a.startDate)
-                        )[0];
-                    }
-    
-                    // Fetch projects
-                    const projRes = await fetch(
-                        `${PROJECT_ROOT}?ProfileId=${profile.id}`,
-                        { 
-                            credentials: 'include',
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        }
-                    );
-                    
-                    let projects = [];
-                    if (projRes.ok) {
-                        const projData = await projRes.json();
-                        projects = projData.items || [];
-                    }
-    
-                    return {
-                        ...profile,
-                        latestExperience,
-                        latestEducation,
-                        projects
-                    };
-                })
-            );
-    
-            setUsers(usersWithDetails);
-            console.log('Users fetched:', usersWithDetails.length);
-            console.log('Users per page:', usersPerPage);
-            console.log('Total pages:', Math.ceil(usersWithDetails.length / usersPerPage));
-            console.log('Current page:', currentPage);
-        } catch (e) {
-            setError(e.message);
-        } finally {
-            setLoading(false);
+        );
+        
+        if (!profilesRes.ok) {
+            throw new Error('Failed to fetch profiles');
         }
+        
+        const profilesData = await profilesRes.json();
+        
+        // Filter out current user
+        const profiles = (profilesData.items || []).filter(profile => {
+            const isCurrentUser = 
+                profile.userId === currentUser.id || 
+                profile.userId === currentUser.userId ||
+                profile.id === currentUser.id ||
+                profile.id === currentUser.userId ||
+                profile.userName === currentUser.userName ||
+                profile.email === currentUser.email;
+            
+            return !isCurrentUser;
+        });
+
+        const usersWithDetails = await Promise.all(
+            profiles.map(async (profile) => {
+                // Fetch experiences
+                const expRes = await fetch(
+                    `${EXPERIENCE_ROOT}?ProfileId=${profile.id}`,
+                    { 
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                let latestExperience = null;
+                if (expRes.ok) {
+                    const expData = await expRes.json();
+                    const experiences = expData.items || [];
+                    latestExperience = experiences.sort((a, b) => 
+                        new Date(b.startDate) - new Date(a.startDate)
+                    )[0];
+                }
+
+                // Fetch education
+                const eduRes = await fetch(
+                    `${EDUCATION_ROOT}?ProfileId=${profile.id}`,
+                    { 
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                let latestEducation = null;
+                if (eduRes.ok) {
+                    const eduData = await eduRes.json();
+                    const educations = eduData.items || [];
+                    latestEducation = educations.sort((a, b) => 
+                        new Date(b.startDate) - new Date(a.startDate)
+                    )[0];
+                }
+
+                // Fetch projects
+                const projRes = await fetch(
+                    `${PROJECT_ROOT}?ProfileId=${profile.id}`,
+                    { 
+                        credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+                
+                let projects = [];
+                if (projRes.ok) {
+                    const projData = await projRes.json();
+                    projects = projData.items || [];
+                }
+
+                return {
+                    ...profile,
+                    latestExperience,
+                    latestEducation,
+                    projects
+                };
+            })
+        );
+
+        setUsers(usersWithDetails);
+        
+        console.log('All users fetched:', usersWithDetails.length);
+    } catch (e) {
+        setError(e.message);
+    } finally {
+        setLoading(false);
     }
+}
     
     async function fetchConnections() {
         try {
@@ -484,7 +488,7 @@ function SocialPage() {
             await fetchConnections();
             
             // Also refresh users to update their connection status
-            await fetchUsers();
+            await fetchAllUsers();
             
         } catch (err) {
             console.error('Respond to connection request error:', err);
@@ -547,10 +551,13 @@ function SocialPage() {
 
     const pendingIncomingRequests = incomingRequests.filter(req => req.status === 0);
 
-    // Pagination logic
+    // Then in your render function:
+    // Apply client-side pagination
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
     const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+
+    // Calculate total pages based on all users
     const totalPages = Math.ceil(users.length / usersPerPage);
 
     const handlePreviousPage = () => {
