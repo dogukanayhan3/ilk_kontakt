@@ -3,13 +3,15 @@ import { MessageCircle, X, Send, Mic, MicOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import '../../component-styles/ChatButton.css';
 
-const API_BASE = 'https://localhost:44388';
+const API_BASE = process.env.REACT_APP_API_BASE || 'https://localhost:44388';
 const JOB_LISTINGS_ROOT = `${API_BASE}/api/app/job-listing`;
 const JOB_APPLICATIONS_ROOT = `${API_BASE}/api/app/job-application`;
 const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`;
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`;
 const EDUCATION_ROOT = `${API_BASE}/api/app/education`;
 const SKILL_ROOT = `${API_BASE}/api/app/skill`;
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 const WORK_TYPE_LABELS = {
     0: 'Ofiste',
@@ -530,7 +532,7 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : 'Belirtilmemiş'}`;
                 `${job.title} - ${job.company} (${job.location}) - ${WORK_TYPE_LABELS[job.workType]}`
             ).join('\n');
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`, {
+            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
