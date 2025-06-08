@@ -6,7 +6,8 @@ import Layout from "../page_layout/Layout";
 
 const API_BASE = 'https://localhost:44388';
 const APPLICATION_ROOT = `${API_BASE}/api/app/job-application`;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCGsj7ia3gcCamolOyeUB4Vyir790GSR8c';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 function JobApplicantsPage() {
     const { jobId } = useParams();
@@ -18,6 +19,7 @@ function JobApplicantsPage() {
     const [error, setError] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [isFiltering, setIsFiltering] = useState(false);
+    const [jobTitle, setJobTitle] = useState('');
 
     useEffect(() => {
         fetchJobAndApplicants();
@@ -50,6 +52,11 @@ function JobApplicantsPage() {
               setApplicants(applicantsData);
               setFilteredApplicants(applicantsData);
 
+            // Fetch job title
+            if (jobResponse.ok) {
+                const jobData = await jobResponse.json();
+                setJobTitle(jobData.title);
+            }
         } catch (err) {
             setError('Failed to load data. Please try again.');
             console.error('Error:', err);
@@ -103,6 +110,48 @@ function JobApplicantsPage() {
           setIsFiltering(false);
         }
       };
+
+    const analyzeApplicant = async (applicant) => {
+        try {
+            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: `Analyze this job applicant's profile and provide a brief assessment:
+
+Applicant Name: ${applicant.name}
+Experience: ${applicant.experience}
+Education: ${applicant.education}
+Skills: ${applicant.skills}
+Job Title: ${jobTitle}
+
+Please provide:
+1. Overall assessment
+2. Key strengths
+3. Potential concerns
+4. Recommendation (Strong, Moderate, or Weak)
+
+Keep the response concise and professional.`
+                        }]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to analyze applicant');
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        } catch (err) {
+            console.error('Error analyzing applicant:', err);
+            return 'Unable to analyze applicant at this time.';
+        }
+    };
 
     if (isLoading) {
         return (
