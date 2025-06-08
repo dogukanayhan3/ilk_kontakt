@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MessageCircle, X, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageCircle, X, Send, Mic, MicOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import '../../component-styles/ChatButton.css';
 
@@ -43,6 +43,8 @@ const ChatButton = () => {
     const [userSkills, setUserSkills] = useState([]);
     const [pendingApplication, setPendingApplication] = useState(null);
     const { currentUser } = useAuth();
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
 
     // Reset chat history when user changes or logs off
     useEffect(() => {
@@ -60,6 +62,87 @@ const ChatButton = () => {
             fetchUserProfile();
         }
     }, [isOpen, currentUser]);
+
+    // --- Speech Recognition Setup ---
+    useEffect(() => {
+        // Only set up once
+        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+            recognitionRef.current = null;
+            return;
+        }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'tr-TR,en-US'; // Turkish + English
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+        recognition.continuous = false; // Stop after user stops talking
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+
+        recognition.onerror = (event) => {
+            setIsListening(false);
+            // Optionally show error to user
+            if (event.error !== 'no-speech') {
+                alert('Mikrofon hatası: ' + event.error);
+            }
+        };
+
+        recognition.onresult = (event) => {
+            setIsListening(false);
+            const transcript = event.results[0][0].transcript.trim();
+            if (transcript) {
+                handleSpeechResult(transcript);
+            }
+        };
+
+        recognitionRef.current = recognition;
+    }, []);
+
+    // --- Handle Speech Result ---
+    const handleSpeechResult = async (transcript) => {
+        // Simulate user typing and sending
+        const userMessage = {
+            text: transcript,
+            sender: 'user',
+            timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, userMessage]);
+        setMessage('');
+        setIsLoading(true);
+
+        try {
+            const reply = await processMessage(transcript);
+            const botMessage = {
+                text: reply,
+                sender: 'bot',
+                timestamp: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, botMessage]);
+        } catch (error) {
+            const errorMessage = {
+                text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
+                sender: 'bot',
+                timestamp: new Date().toISOString()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // --- Start/Stop Listening ---
+    const startListening = () => {
+        if (recognitionRef.current && !isListening) {
+            recognitionRef.current.start();
+        }
+    };
+
+    const stopListening = () => {
+        if (recognitionRef.current && isListening) {
+            recognitionRef.current.stop();
+        }
+    };
 
     const fetchJobListings = async () => {
         try {
@@ -597,18 +680,32 @@ Yapabilecekleriniz:
                             type="text"
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Mesajınızı yazın..."
+                            placeholder="Mesajınızı yazın veya mikrofona konuşun..."
                             className="chat-input"
-                            disabled={isLoading}
+                            disabled={isLoading || isListening}
                         />
+                        <button
+                            type="button"
+                            className={`mic-button ${isListening ? 'listening' : ''}`}
+                            onClick={isListening ? stopListening : startListening}
+                            title={isListening ? "Dinleniyor..." : "Mikrofon ile konuş"}
+                            disabled={isLoading}
+                        >
+                            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+                        </button>
                         <button 
                             type="submit" 
                             className="send-button"
-                            disabled={isLoading || !message.trim()}
+                            disabled={isLoading || !message.trim() || isListening}
                         >
                             <Send size={20} />
                         </button>
                     </form>
+                    {isListening && (
+                        <div className="listening-indicator">
+                            Dinleniyor... Lütfen konuşun.
+                        </div>
+                    )}
                 </div>
             )}
             <button 
