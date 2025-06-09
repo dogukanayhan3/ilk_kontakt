@@ -10,6 +10,9 @@ import SocialPage from "./components/social/SocialPage";
 import JobApplicantsPage from './components/positions/JobApplicantsPage';
 import "./component-styles/global.css";
 import { AuthProvider } from './contexts/AuthContext';
+import AboutUsPage from './components/static_pages/AboutUsPage';
+import PrivacyPolicyPage from './components/static_pages/PrivacyPolicyPage';
+import TermsOfServicePage from './components/static_pages/TermsOfServicePage';
 
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
@@ -88,6 +91,11 @@ function App() {
             } 
           />
           <Route path="/job-applicants/:jobId" element={<JobApplicantsPage />} />
+
+          {/* New routes for static pages */}
+          <Route path="/about_us" element={<AboutUsPage />} />
+          <Route path="/privacy_policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms_of_service" element={<TermsOfServicePage />} />
         </Routes>
       </Router>
     </AuthProvider>
