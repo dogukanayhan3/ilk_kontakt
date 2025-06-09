@@ -13,8 +13,6 @@ function getCookie(name) {
   return match ? match[2] : null;
 }
 
-const API_BASE_URL = 'https://localhost:44388';
-
 // Utility to parse Gemini response robustly
 function extractMatchesFromGeminiResponse(data) {
   try {
@@ -56,7 +54,7 @@ function HomePage() {
     setProfileLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/app/user-profile/by-user`,
+        `${API_CONFIG.API_BASE}/api/app/user-profile/by-user`,
         {
           credentials: 'include',
           headers: {
@@ -84,11 +82,11 @@ function HomePage() {
     }
   }, [currentUser]);
 
-  // Fetch all users and their details (profile, education, experience, skills)
+  // Fetch all users and their details
   const fetchAllUserDetails = useCallback(async () => {
     try {
       // 1. Fetch all profiles
-      const profilesRes = await fetch(`${API_BASE_URL}/api/app/user-profile`, {
+      const profilesRes = await fetch(`${API_CONFIG.API_BASE}/api/app/user-profile`, {
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
@@ -104,21 +102,21 @@ function HomePage() {
         profiles.map(async (profile) => {
           // Fetch education
           const eduRes = await fetch(
-            `${API_BASE_URL}/api/app/education?ProfileId=${profile.id}`,
+            `${API_CONFIG.API_BASE}/api/app/education?ProfileId=${profile.id}`,
             { credentials: 'include' }
           );
           const education = eduRes.ok ? (await eduRes.json()).items || [] : [];
 
           // Fetch experience
           const expRes = await fetch(
-            `${API_BASE_URL}/api/app/experience?ProfileId=${profile.id}`,
+            `${API_CONFIG.API_BASE}/api/app/experience?ProfileId=${profile.id}`,
             { credentials: 'include' }
           );
           const experience = expRes.ok ? (await expRes.json()).items || [] : [];
 
           // Fetch skills
           const skillRes = await fetch(
-            `${API_BASE_URL}/api/app/skill?ProfileId=${profile.id}`,
+            `${API_CONFIG.API_BASE}/api/app/skill?ProfileId=${profile.id}`,
             { credentials: 'include' }
           );
           const skills = skillRes.ok ? (await skillRes.json()).items || [] : [];
@@ -138,13 +136,13 @@ function HomePage() {
     }
   }, []);
 
-  // Gemini API call (with improved prompt)
+  // Gemini API call
   const getConnectionSuggestions = useCallback(
     async (allUsers, currentUserProfile) => {
       if (!currentUserProfile || !allUsers.length) return [];
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+          `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: {
@@ -202,7 +200,7 @@ function HomePage() {
     setLoading(true);
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/app/post?SkipCount=0&MaxResultCount=20`,
+        `${API_CONFIG.API_BASE}/api/app/post?SkipCount=0&MaxResultCount=20`,
         {
           credentials: 'include',
         }
@@ -294,7 +292,7 @@ function HomePage() {
     }
 
     try {
-      await fetch(`${API_BASE_URL}/api/abp/application-configuration`, {
+      await fetch(`${API_CONFIG.API_BASE}/api/abp/application-configuration`, {
         credentials: 'include',
       });
       const xsrfToken = getCookie('XSRF-TOKEN');
@@ -303,7 +301,7 @@ function HomePage() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/app/post`, {
+      const response = await fetch(`${API_CONFIG.API_BASE}/api/app/post`, {
         method: 'POST',
         headers: {
           accept: 'application/json',
