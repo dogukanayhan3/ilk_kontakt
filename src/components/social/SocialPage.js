@@ -380,7 +380,7 @@ function SocialPage() {
                         Current user to match with:
                         ${JSON.stringify(currentUserProfile, null, 2)}
 
-                        Please return ONLY the following JSON object, without any code block or extra text:
+                        Please return ONLY the following JSON object, without any code block or extra text. Give the match reason part in Turkish language!:
                         {
                         "matches": [
                             {
