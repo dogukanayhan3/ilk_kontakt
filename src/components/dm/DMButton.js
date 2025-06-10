@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { MessageSquare, X, Send } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/DMButton.css";
-import DMWindow from "./DMWindow";
-
 
 const DMButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -42,6 +40,7 @@ const DMButton = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !selectedConnection) return;
+
     const userMessage = {
       text: message,
       sender: "user",
@@ -55,6 +54,7 @@ const DMButton = () => {
     setMessage("");
     setIsLoading(true);
 
+    // Simulate API call
     setTimeout(() => {
       const botMessage = {
         text: "This is a placeholder response. DM functionality will be implemented with backend integration.",
