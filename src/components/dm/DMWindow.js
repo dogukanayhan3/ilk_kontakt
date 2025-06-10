@@ -56,7 +56,7 @@ const DMWindow = ({ onClose }) => {
       <div className="dmwindow single-panel">
         {!selectedContact ? (
           <div className="dmwindow-left full">
-            <div className="dmwindow-header">Contacts</div>
+            <div className="dmwindow-header">İletişim</div>
             <ul className="dmwindow-contact-list">
               {mockContacts.map((contact) => (
                 <li
@@ -78,7 +78,7 @@ const DMWindow = ({ onClose }) => {
                 className="dmwindow-back"
                 onClick={() => setSelectedContact(null)}
               >
-                &#8592; Back
+                &#8592; Geri
               </button>
               <span>
                 {mockContacts.find((c) => c.id === selectedContact)?.name}
@@ -112,7 +112,7 @@ const DMWindow = ({ onClose }) => {
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Mesajınızı yazın..."
                 className="dmwindow-input"
               />
               <button type="submit" className="dmwindow-send">

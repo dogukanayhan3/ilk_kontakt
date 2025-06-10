@@ -1,50 +1,51 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Layout from '../page_layout/Layout';
-import Post from './Post';
-import { Send } from 'lucide-react';
-import '../../component-styles/HomePage.css';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { API_CONFIG } from '../../config/api';
+import React, { useState, useEffect, useCallback } from "react";
+import Layout from "../page_layout/Layout";
+import Post from "./Post";
+import { Send } from "lucide-react";
+import "../../component-styles/HomePage.css";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { API_CONFIG } from "../../config/api";
 
 // Helper to get a cookie value by name
 function getCookie(name) {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
   return match ? match[2] : null;
 }
 
 // Utility to parse Gemini response robustly
 function extractMatchesFromGeminiResponse(data) {
   try {
-    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     // Remove code block markers if present
-    text = text.replace(/```json|```/g, '').trim();
+    text = text.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(text);
     return parsed.matches || [];
   } catch (e) {
-    console.error('Failed to parse Gemini response:', e);
+    console.error("Failed to parse Gemini response:", e);
     return [];
   }
 }
 
 function HomePage() {
   const [posts, setPosts] = useState([]);
-  const [newPostContent, setNewPostContent] = useState('');
+  const [newPostContent, setNewPostContent] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [userProfile, setUserProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [suggestedConnections, setSuggestedConnections] = useState(() => {
-    const stored = localStorage.getItem('connectionSuggestions');
+    const stored = localStorage.getItem("connectionSuggestions");
     return stored ? JSON.parse(stored) : [];
-  });  const [connectionsLoading, setConnectionsLoading] = useState(true);
+  });
+  const [connectionsLoading, setConnectionsLoading] = useState(true);
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!currentUser) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [currentUser, navigate]);
 
@@ -56,11 +57,11 @@ function HomePage() {
       const response = await fetch(
         `${API_CONFIG.API_BASE}/api/app/user-profile/by-user`,
         {
-          credentials: 'include',
+          credentials: "include",
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
       if (response.ok) {
@@ -71,11 +72,11 @@ function HomePage() {
         setUserProfile(null);
         return null;
       } else {
-        console.error('Failed to fetch user profile');
+        console.error("Failed to fetch user profile");
         return null;
       }
     } catch (err) {
-      console.error('Fetch user profile error:', err);
+      console.error("Fetch user profile error:", err);
       return null;
     } finally {
       setProfileLoading(false);
@@ -86,14 +87,17 @@ function HomePage() {
   const fetchAllUserDetails = useCallback(async () => {
     try {
       // 1. Fetch all profiles
-      const profilesRes = await fetch(`${API_CONFIG.API_BASE}/api/app/user-profile`, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+      const profilesRes = await fetch(
+        `${API_CONFIG.API_BASE}/api/app/user-profile`,
+        {
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
-      });
-      if (!profilesRes.ok) throw new Error('Failed to fetch profiles');
+      );
+      if (!profilesRes.ok) throw new Error("Failed to fetch profiles");
       const profilesData = await profilesRes.json();
       const profiles = profilesData.items || [];
 
@@ -103,21 +107,21 @@ function HomePage() {
           // Fetch education
           const eduRes = await fetch(
             `${API_CONFIG.API_BASE}/api/app/education?ProfileId=${profile.id}`,
-            { credentials: 'include' }
+            { credentials: "include" }
           );
           const education = eduRes.ok ? (await eduRes.json()).items || [] : [];
 
           // Fetch experience
           const expRes = await fetch(
             `${API_CONFIG.API_BASE}/api/app/experience?ProfileId=${profile.id}`,
-            { credentials: 'include' }
+            { credentials: "include" }
           );
           const experience = expRes.ok ? (await expRes.json()).items || [] : [];
 
           // Fetch skills
           const skillRes = await fetch(
             `${API_CONFIG.API_BASE}/api/app/skill?ProfileId=${profile.id}`,
-            { credentials: 'include' }
+            { credentials: "include" }
           );
           const skills = skillRes.ok ? (await skillRes.json()).items || [] : [];
 
@@ -131,7 +135,7 @@ function HomePage() {
       );
       return userDetails;
     } catch (err) {
-      console.error('Error fetching all user details:', err);
+      console.error("Error fetching all user details:", err);
       return [];
     }
   }, []);
@@ -144,18 +148,21 @@ function HomePage() {
         const response = await fetch(
           `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
           {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json'
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({
               contents: [
                 {
                   parts: [
                     {
-                      text: 
-                      `
-                        Analyse these users and their companies & positions they worked at or still currently working at, the skills they have, and match 2 of them with ${currentUserProfile.name} ${currentUserProfile.surname}. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
+                      text: `
+                        Analyse these users and their companies & positions they worked at or still currently working at, the skills they have, and match 2 of them with ${
+                          currentUserProfile.name
+                        } ${
+                        currentUserProfile.surname
+                      }. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
 
                         Here are all the users data:
                         ${JSON.stringify(allUsers, null, 2)}
@@ -175,18 +182,18 @@ function HomePage() {
                             }
                           ]
                         }
-                      `
-                    }
-                  ]
-                }
-              ]
-            })
+                      `,
+                    },
+                  ],
+                },
+              ],
+            }),
           }
         );
         const data = await response.json();
         return extractMatchesFromGeminiResponse(data);
       } catch (err) {
-        console.error('Get connection suggestions error:', err);
+        console.error("Get connection suggestions error:", err);
         return [];
       }
     },
@@ -195,18 +202,18 @@ function HomePage() {
 
   // Fetch posts function
   const fetchPosts = useCallback(async () => {
-    setError('');
+    setError("");
     if (!currentUser) return;
     setLoading(true);
     try {
       const response = await fetch(
         `${API_CONFIG.API_BASE}/api/app/post?SkipCount=0&MaxResultCount=20`,
         {
-          credentials: 'include',
+          credentials: "include",
         }
       );
       if (response.status === 401 || response.redirected) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
       if (!response.ok) {
@@ -235,28 +242,37 @@ function HomePage() {
       setLoading(true);
       setProfileLoading(true);
       setConnectionsLoading(true);
-  
+
       try {
         // 1. Fetch current user profile
         const profileData = await fetchUserProfile();
         if (!isMounted) return;
-  
+
         // 2. Fetch posts
         await fetchPosts();
         if (!isMounted) return;
-  
+
         // 3. Fetch suggestions only if not already present in localStorage
-        if (profileData && (!suggestedConnections || suggestedConnections.length === 0)) {
+        if (
+          profileData &&
+          (!suggestedConnections || suggestedConnections.length === 0)
+        ) {
           const allUserData = await fetchAllUserDetails();
           if (!isMounted) return;
-          const matches = await getConnectionSuggestions(allUserData, profileData);
+          const matches = await getConnectionSuggestions(
+            allUserData,
+            profileData
+          );
           if (isMounted) {
             setSuggestedConnections(matches);
-            localStorage.setItem('connectionSuggestions', JSON.stringify(matches));
+            localStorage.setItem(
+              "connectionSuggestions",
+              JSON.stringify(matches)
+            );
           }
         }
       } catch (err) {
-        if (isMounted) setError('Failed to load connection suggestions');
+        if (isMounted) setError("Failed to load connection suggestions");
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -276,64 +292,66 @@ function HomePage() {
     fetchUserProfile,
     fetchPosts,
     fetchAllUserDetails,
-    getConnectionSuggestions
+    getConnectionSuggestions,
   ]);
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     if (!newPostContent.trim()) {
-        setError("Post content cannot be empty.");
-        return;
-    };
+      setError("Post content cannot be empty.");
+      return;
+    }
     if (!currentUser) {
-        setError("Please log in to create a post.");
-        return;
+      setError("Please log in to create a post.");
+      return;
     }
 
     try {
       await fetch(`${API_CONFIG.API_BASE}/api/abp/application-configuration`, {
-        credentials: 'include',
+        credentials: "include",
       });
-      const xsrfToken = getCookie('XSRF-TOKEN');
+      const xsrfToken = getCookie("XSRF-TOKEN");
       if (!xsrfToken) {
-        setError('Could not verify request (XSRF token missing).');
+        setError("Could not verify request (XSRF token missing).");
         return;
       }
 
       const response = await fetch(`${API_CONFIG.API_BASE}/api/app/post`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          accept: 'application/json',
-          'Content-Type': 'application/json',
+          accept: "application/json",
+          "Content-Type": "application/json",
           RequestVerificationToken: xsrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
+          "X-Requested-With": "XMLHttpRequest",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           content: newPostContent,
         }),
       });
 
       if (response.status === 401 || response.redirected) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
       if (!response.ok) {
-        let errorMsg = 'Failed to create post.';
+        let errorMsg = "Failed to create post.";
         try {
           const errorData = await response.json();
           errorMsg = errorData?.error?.message || errorMsg;
-        } catch (parseError) { /* Ignore */ }
+        } catch (parseError) {
+          /* Ignore */
+        }
         throw new Error(errorMsg + ` (Status: ${response.status})`);
       }
 
       const createdPost = await response.json();
       setPosts((prevPosts) => [createdPost, ...prevPosts]);
-      setNewPostContent('');
+      setNewPostContent("");
     } catch (err) {
-      console.error('Create post error:', err);
+      console.error("Create post error:", err);
       setError(err.message);
     }
   };
@@ -351,7 +369,7 @@ function HomePage() {
         return userProfile.name;
       }
     }
-    return currentUser?.userName || 'Misafir';
+    return currentUser?.userName || "Misafir";
   };
 
   const getWelcomeName = () => {
@@ -361,46 +379,53 @@ function HomePage() {
     if (userProfile?.userName) {
       return userProfile.userName;
     }
-    return currentUser?.userName || 'Misafir';
+    return currentUser?.userName || "Misafir";
   };
 
   const getProfileImage = () => {
     if (userProfile?.profilePictureUrl) {
       return userProfile.profilePictureUrl;
     }
-    return currentUser?.profilePictureUrl || '/default-avatar.png';
+    return currentUser?.profilePictureUrl || "/default-avatar.png";
   };
 
   const handleCreateProfile = () => {
-    navigate('/create-profile');
+    navigate("/create-profile");
   };
 
   const generatePost = async () => {
     try {
-      const response = await fetch(`${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Generate a professional social media post about career development or industry insights. The post should be:
+      const response = await fetch(
+        `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: `Generate a professional social media post about career development or industry insights. The post should be:
 1. Professional and informative
 2. Engaging and shareable
 3. Relevant to the tech industry
 4. Include a call to action
 5. Be in Turkish
 
-Keep it concise and impactful.`
-            }]
-          }]
-        })
-      });
+Keep it concise and impactful.`,
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
 
       // ... rest of the code ...
     } catch (err) {
-      console.error('Generate post error:', err);
+      console.error("Generate post error:", err);
     }
   };
 
@@ -432,9 +457,13 @@ Keep it concise and impactful.`
                   className="profile-image"
                 />
                 <h3>{getDisplayName()}</h3>
-                <p>{userProfile.address || 'Konum belirtilmemiş'}</p>
-                <p className="profile-email">{userProfile.email || currentUser?.email}</p>
-                <button onClick={() => navigate('/profilepage')}>Profili Düzenle</button>
+                <p>{userProfile.address || "Konum belirtilmemiş"}</p>
+                <p className="profile-email">
+                  {userProfile.email || currentUser?.email}
+                </p>
+                <button onClick={() => navigate("/profilepage")}>
+                  Profili Düzenle
+                </button>
               </>
             ) : (
               <div className="no-profile">
@@ -443,9 +472,12 @@ Keep it concise and impactful.`
                   alt="Default Profile"
                   className="profile-image"
                 />
-                <h3>{currentUser?.userName || 'Misafir'}</h3>
+                <h3>{currentUser?.userName || "Misafir"}</h3>
                 <p>Profil oluşturulmamış</p>
-                <button onClick={handleCreateProfile} className="create-profile-btn">
+                <button
+                  onClick={handleCreateProfile}
+                  className="create-profile-btn"
+                >
                   Profil Oluştur
                 </button>
               </div>
@@ -464,14 +496,14 @@ Keep it concise and impactful.`
                   alt="Profile"
                   className="post-profile-image"
                 />
-              <textarea
-                className="post-input"
-                placeholder="Düşüncelerinizi paylaşın..."
-                value={newPostContent}
-                onChange={(e) => setNewPostContent(e.target.value)}
+                <textarea
+                  className="post-input"
+                  placeholder="Düşüncelerinizi paylaşın..."
+                  value={newPostContent}
+                  onChange={(e) => setNewPostContent(e.target.value)}
                   disabled={!currentUser}
                   rows={3}
-              />
+                />
               </div>
               <div className="post-submit">
                 <button
@@ -491,7 +523,9 @@ Keep it concise and impactful.`
           {loading ? (
             <div className="loading-message">Gönderiler Yükleniyor...</div>
           ) : posts.length === 0 && !error ? (
-             <div className="no-posts-message">Henüz gönderi yok. İlk gönderiyi sen paylaş!</div>
+            <div className="no-posts-message">
+              Henüz gönderi yok. İlk gönderiyi sen paylaş!
+            </div>
           ) : (
             posts.map((post) => (
               <Post
@@ -510,7 +544,9 @@ Keep it concise and impactful.`
               />
             ))
           )}
-           {!loading && error && posts.length === 0 && <div className="error-message">{error}</div>}
+          {!loading && error && posts.length === 0 && (
+            <div className="error-message">{error}</div>
+          )}
         </div>
 
         {/* Right Sidebar (Suggestions) */}
@@ -523,14 +559,18 @@ Keep it concise and impactful.`
               suggestedConnections.map((suggestion, index) => (
                 <div key={index} className="connection-suggestion">
                   <img
-                    src={suggestion.profilePictureUrl || '/default-avatar.png'}
+                    src={suggestion.profilePictureUrl || "/default-avatar.png"}
                     alt={suggestion.name}
                     className="suggestion-profile-image"
                   />
                   <div className="suggestion-details">
-                    <h4>{suggestion.name} {suggestion.surname}</h4>
-                    <p className="suggestion-reason">{suggestion.matchReason}</p>
-                    <button onClick={() => navigate(`/profilepage/${suggestion.id}`)}>
+                    <h4>
+                      {suggestion.name} {suggestion.surname}
+                    </h4>
+                    {/* <p className="suggestion-reason">{suggestion.matchReason}</p> */}
+                    <button
+                      onClick={() => navigate(`/profilepage/${suggestion.id}`)}
+                    >
                       Profili Görüntüle
                     </button>
                   </div>
