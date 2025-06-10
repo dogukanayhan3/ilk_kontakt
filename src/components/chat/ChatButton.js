@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Send, Mic, MicOff } from "lucide-react";
+import { MessageCircle, X, Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/ChatButton.css";
 
@@ -48,6 +48,9 @@ const ChatButton = () => {
   const { currentUser } = useAuth();
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speechSynthesisRef = useRef(null);
+  const speechUtteranceRef = useRef(null);
 
   // Reset chat history when user changes or logs off
   useEffect(() => {
@@ -65,6 +68,75 @@ const ChatButton = () => {
       fetchUserProfile();
     }
   }, [isOpen, currentUser]);
+
+  // Initialize speech synthesis
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthesisRef.current = window.speechSynthesis;
+      
+      // Get available voices
+      const voices = speechSynthesisRef.current.getVoices();
+      // Find Turkish voices
+      const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
+      
+      // If Turkish voices are available, set the default voice
+      if (turkishVoices.length > 0) {
+        // Prefer female Turkish voice if available
+        const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
+        speechSynthesisRef.current.defaultVoice = preferredVoice;
+      }
+    }
+  }, []);
+
+  // Function to speak text
+  const speakText = (text) => {
+    if (!speechSynthesisRef.current) return;
+
+    // Stop any ongoing speech
+    speechSynthesisRef.current.cancel();
+
+    // Create new utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Force Turkish language
+    utterance.lang = 'tr-TR';
+    
+    // Get available voices
+    const voices = speechSynthesisRef.current.getVoices();
+    // Find Turkish voices
+    const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
+    
+    // Set Turkish voice if available
+    if (turkishVoices.length > 0) {
+      // Prefer female Turkish voice if available
+      const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
+      utterance.voice = preferredVoice;
+    }
+
+    // Adjust speech parameters for better Turkish pronunciation
+    utterance.rate = 0.9; // Slightly slower for better clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    // Set up event handlers
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    // Store reference to current utterance
+    speechUtteranceRef.current = utterance;
+
+    // Speak the text
+    speechSynthesisRef.current.speak(utterance);
+  };
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if (speechSynthesisRef.current) {
+      speechSynthesisRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
 
   // --- Speech Recognition Setup ---
   useEffect(() => {
@@ -107,14 +179,12 @@ const ChatButton = () => {
 
   // --- Handle Speech Result ---
   const handleSpeechResult = async (transcript) => {
-    // Simulate user typing and sending
     const userMessage = {
       text: transcript,
       sender: "user",
       timestamp: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, userMessage]);
-    setMessage("");
+    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
@@ -124,14 +194,18 @@ const ChatButton = () => {
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages(prev => [...prev, botMessage]);
+      // Speak the bot's response
+      speakText(reply);
     } catch (error) {
+      console.error("Error processing speech result:", error);
       const errorMessage = {
         text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
     } finally {
       setIsLoading(false);
     }
@@ -140,6 +214,8 @@ const ChatButton = () => {
   // --- Start/Stop Listening ---
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
+      // Stop any ongoing speech
+      stopSpeaking();
       recognitionRef.current.start();
     }
   };
@@ -677,7 +753,7 @@ CEVAP:`,
       sender: "user",
       timestamp: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     const currentMessage = message;
     setMessage("");
     setIsLoading(true);
@@ -689,7 +765,9 @@ CEVAP:`,
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages(prev => [...prev, botMessage]);
+      // Speak the bot's response
+      speakText(reply);
     } catch (error) {
       console.error("Error processing message:", error);
       const errorMessage = {
@@ -697,7 +775,8 @@ CEVAP:`,
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
     } finally {
       setIsLoading(false);
     }
@@ -747,7 +826,6 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
   const handleActionClick = async (action) => {
     const response = action === 'apply' ? 'evet' : 'hayır';
     
-    // Add user's response as a message
     const userMessage = {
       text: response,
       sender: "user",
@@ -757,7 +835,6 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
     setIsLoading(true);
 
     try {
-      // Process the response directly
       const reply = await processMessage(response);
       const botMessage = {
         text: reply,
@@ -765,6 +842,8 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, botMessage]);
+      // Speak the bot's response
+      speakText(reply);
     } catch (error) {
       console.error("Error processing message:", error);
       const errorMessage = {
@@ -773,6 +852,7 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
     } finally {
       setIsLoading(false);
     }
@@ -814,9 +894,19 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
         <div className="chat-window">
           <div className="chat-header">
             <h3>Kariyer Asistanı</h3>
-            <button className="close-button" onClick={toggleChat}>
-              <X size={20} />
-            </button>
+            <div className="header-controls">
+              <button
+                className="speech-toggle-btn"
+                onClick={isSpeaking ? stopSpeaking : () => speakText(messages[messages.length - 1]?.text)}
+                title={isSpeaking ? "Konuşmayı Durdur" : "Son Mesajı Oku"}
+                disabled={!messages.length}
+              >
+                {isSpeaking ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              <button className="close-button" onClick={toggleChat}>
+                <X size={20} />
+              </button>
+            </div>
           </div>
           <div className="chat-messages">
             {messages.length === 0 && (
