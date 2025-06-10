@@ -151,7 +151,7 @@ Keep the response concise and professional.`
             console.error('Error analyzing applicant:', err);
             return 'Unable to analyze applicant at this time.';
         }
-    };
+      };
 
     if (isLoading) {
         return (

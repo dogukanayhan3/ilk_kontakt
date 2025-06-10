@@ -462,7 +462,7 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
 
   const processMessage = async (userMessage) => {
     // Gelen mesajı küçük harfe çevir
-    const lowerMessage = message.toLowerCase();
+    const lowerMessage = userMessage.toLowerCase();
 
     // Handle job application confirmation
     if (pendingApplication) {
@@ -605,7 +605,7 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
         )
         .join("\n");
 
-      const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`${GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -615,19 +615,28 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
             {
               parts: [
                 {
-                  text: `Sen bir kariyer web sitesinin uzman asistanısın. Kullanıcılara iş bulma, başvuru yapma ve kariyer tavsiyesi konularında yardım ediyorsun.
- 
+                  text: `Sen "İlk Kontakt" platformunun uzman asistanısın. Platform, profesyonel ağ kurma, kariyer geliştirme ve iş fırsatları bulma konusunda kullanıcılara yardımcı olan kapsamlı bir sistemdir.
+
+PLATFORM ÖZELLİKLERİ:
+- Profesyonel Profil Yönetimi: Kullanıcılar eğitim geçmişi, iş deneyimi, beceriler ve başarılarını içeren kapsamlı profiller oluşturabilir
+- Ağ Oluşturma: Meslektaşlar, akranlar ve sektör profesyonelleriyle bağlantı kurma imkanı
+- İş Fırsatları: Kişiselleştirilmiş iş ilanları ve başvuru sistemi
+- Bilgi Paylaşımı: Makaleler, içgörüler ve sektör haberleri paylaşımı
+- Şirket Profilleri: Şirketlerin kurumsal kültürlerini tanıtma ve iş ilanları yayınlama
+- Mentorluk: Deneyimli profesyonellerle eşleştirme ve kariyer rehberliği
+- Veri Analitiği: Profil görüntülemeleri, bağlantı büyümesi ve etkileşim oranları takibi
+
 KULLANICI BİLGİLERİ:
 ${userContext}
- 
+
 MEVCUT İŞ İLANLARI:
 ${jobContext}
- 
+
 ÖNCEKİ KONUŞMA:
 ${chatHistoryContext}
- 
+
 KULLANICI SORUSU: ${userMessage}
- 
+
 KURALLAR:
 - Kısa ve öz cevaplar ver (maksimum 3-4 cümle)
 - Türkçe cevap ver
@@ -636,7 +645,10 @@ KURALLAR:
 - İş ilanları hakkında sorularda spesifik bilgi ver
 - Başvuru yapmak için "X pozisyonuna başvur" formatını öner
 - Profesyonel ve yardımsever ol
- 
+- Platform özelliklerini vurgula
+- Mentorluk ve ağ oluşturma fırsatlarını öne çıkar
+- Kariyer gelişimi için önerilerde bulun
+
 CEVAP:`,
                 },
               ],
@@ -697,21 +709,39 @@ CEVAP:`,
 
   const getWelcomeMessage = () => {
     if (!currentUser) {
-      return "Merhaba! Size nasıl yardımcı olabilirim? İş ilanlarını görmek için 'listele' yazabilirsiniz.";
+      return `Merhaba! Ben "İlk Kontakt" platformunun kariyer asistanıyım. Size profesyonel ağ kurma, kariyer geliştirme ve iş fırsatları bulma konusunda yardımcı olabilirim.
+
+Giriş yaparak şunları yapabilirsiniz:
+• İş ilanlarını görüntüleme ve başvuru yapma
+• Profesyonel ağınızı genişletme
+• Mentorluk fırsatları bulma
+• Kariyer tavsiyeleri alma
+
+İş ilanlarını görmek için 'listele' yazabilirsiniz.`;
     }
 
     if (currentUser.isCompanyProfile) {
-      return `Merhaba ${currentUser.userName}! Şirket hesabınızla iş ilanlarını görüntüleyebilir ve yönetebilirsiniz. 'listele' yazarak başlayabilirsiniz.`;
+      return `Merhaba ${currentUser.userName}! Şirket hesabınızla şunları yapabilirsiniz:
+• İş ilanları yayınlama ve yönetme
+• Şirket profilinizi güncelleme
+• Başvuruları görüntüleme
+• Adaylarla iletişim kurma
+
+'listele' yazarak mevcut iş ilanlarını görüntüleyebilirsiniz.`;
     }
 
-    return `Merhaba ${currentUser.userName}! Size nasıl yardımcı olabilirim?
- 
+    return `Merhaba ${currentUser.userName}! Ben "İlk Kontakt" platformunun kariyer asistanıyım. Size şu konularda yardımcı olabilirim:
+
 Yapabilecekleriniz:
-• 'listele' - Tüm iş ilanlarını görün
-• 'öner' - Size uygun pozisyonları bulun  
-• 'frontend ara' - Belirli pozisyonları arayın
-• 'X pozisyonuna başvur' - Başvuru yapın
-• 'profilim' - Profil bilgilerinizi görün`;
+• 'listele' - Tüm iş ilanlarını görüntüle
+• 'öner' - Size uygun pozisyonları bul
+• 'frontend ara' - Belirli pozisyonları ara
+• 'X pozisyonuna başvur' - Başvuru yap
+• 'profilim' - Profil bilgilerinizi görüntüle
+• 'mentorluk' - Mentorluk fırsatlarını keşfet
+• 'ağ' - Profesyonel ağınızı genişlet
+
+Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsiyeler alabilirsiniz.`;
   };
 
   return (

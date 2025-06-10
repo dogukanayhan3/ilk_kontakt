@@ -1,0 +1,209 @@
+"İlk Kontakt" Ne İşe Yarar?
+"İlk Kontakt", profesyonel ağ kurmak, kariyerini geliştirmek ve yeni iş fırsatları bulmak isteyen herkes için tasarlanmış kapsamlı bir dijital platformdur. Amacı, bireylerin profesyonel yaşamlarının her aşamasında anlamlı bağlantılar kurmalarına, mesleki anlamda büyümelerine ve kendilerine uygun işleri keşfetmelerine yardımcı olmaktır. Aynı zamanda, şirketlerin doğru yetenekleri kolayca bulmasını sağlayan bir köprü görevi görür.
+
+Kısacası, "İlk Kontakt":
+
+Kariyer Gelişimi İçin Kapsamlı Destek: Kullanıcılara kişiselleştirilmiş kariyer tavsiyeleri, beceri geliştirme imkanları ve sektör bilgileri sunar.
+Etkili Ağ Oluşturma Ortamı: Meslektaşlar, sektör liderleri ve potansiyel iş birlikçileriyle bağlantı kurmayı, gruplara katılmayı ve bilgi alışverişinde bulunmayı kolaylaştırır.
+Akıllı İş Arama ve İşe Alım: Kullanıcıların yeteneklerine ve hedeflerine uygun iş ilanlarını sunarken, işverenlerin de nitelikli adaylara hızla ulaşmasını sağlar.
+Bilgi ve Deneyim Paylaşım Platformu: Profesyonellerin makaleler, içgörüler ve sektör haberleri paylaşarak bilgi akışını desteklemesini sağlar.
+Şirketler İçin Markalaşma Fırsatı: Şirketlerin kurumsal kültürlerini sergilemelerine, iş ilanlarını duyurmalarına ve potansiyel yeteneklerle etkileşim kurmalarına olanak tanır.
+Mentorluk ve İş Birliği: Kullanıcıları deneyimli mentorlarla bir araya getirerek kariyer rehberliği sunar ve profesyoneller arası iş birliğini teşvik eder.
+"İlk Kontakt" Nasıl Çalışır?
+"İlk Kontakt" platformu, kullanıcı deneyimini merkeze alan modüler bir yapıya sahiptir ve yapay zeka destekli özelliklerle zenginleştirilmiştir. İşte temel çalışma prensipleri:
+
+Profil Oluşturma ve Özelleştirme:
+
+Kullanıcılar platforma kayıt olurlar (LoginPage.js).
+Eğitim geçmişleri, iş deneyimleri, becerileri ve başarıları gibi detayları içeren kapsamlı profesyonel profiller (ProfilePage.js) oluştururlar. Bu profiller, diğer kullanıcılar ve potansiyel işverenler için bir nevi dijital özgeçmiş görevi görür.
+Kişiselleştirilmiş Öneriler için AI Kullanımı:
+
+Platform, kullanıcı profil bilgilerini (profileData) ve platformdaki etkinliklerini (görüntülenen ilanlar, bağlantılar vb.) temel alan yapay zeka destekli "Akıllı Kariyer Asistanı"'nı kullanır.
+Bu asistan, kullanıcılara kişiselleştirilmiş iş ilanları (JobListPage.js ve Job.js), bağlantı önerileri (SocialPage.js ve SocialConnectionCard.js) ve kariyer gelişim kursları (EducationPage.js ve CourseCard.js) sunar.
+Etkileşim ve Ağ Oluşturma:
+
+Kullanıcılar, diğer profesyonellerle bağlantı kurabilir ve özel mesajlar gönderebilirler (SocialPage.js).
+Ortak ilgi alanlarına göre oluşturulmuş gruplara katılarak bilgi ve deneyim alışverişinde bulunabilirler.
+Ana Sayfa (HomePage.js), kullanıcıların bağlantılarının paylaştığı gönderilerin akışını (Post.js) gösterir; bu gönderilere beğeni ve yorum yapabilirler.
+Mentorluk özellikleri aracılığıyla deneyimli profesyonellerle bir araya gelerek kariyer rehberliği alabilirler.
+İş Fırsatları ve İşe Alım Süreci:
+
+İş arayanlar, kendi profillerine ve tercihlerine uygun kişiselleştirilmiş iş ilanlarını (JobListPage.js) görüntüler ve bu ilanlara başvurabilirler (Job.js).
+İşverenler, şirket profilleri (Company Profiles) oluşturarak kurumsal kültürlerini tanıtabilir, iş ilanları yayınlayabilir ve platformun algoritmaları sayesinde nitelikli adaylarla eşleşebilirler.
+Bilgi Paylaşımı ve Sürekli Öğrenme:
+
+Kullanıcılar, makaleler, içgörüler ve sektör haberleri gibi bilgileri platformda paylaşabilirler (HomePage.js - postlar aracılığıyla).
+Bu, sürekli öğrenmeyi teşvik eden ve sektördeki güncel gelişmeleri takip etmeyi sağlayan iş birliğine dayalı bir öğrenme ortamı yaratır.
+Bildirimler ve Takip:
+
+Kullanıcılar, yeni bağlantı istekleri, gönderi etkileşimleri veya önemli duyurular gibi çeşitli durumlar için bildirimler (NotificationsPage.js ve NotificationCard.js) alırlar. Bu bildirimleri okundu olarak işaretleyebilir ve gerektiğinde geri bildirimde bulunabilirler.
+Veri Analitiği ve Raporlama özellikleri sayesinde kullanıcılar, profil görüntülemeleri, bağlantı büyümesi ve etkileşim oranları gibi performans metriklerini takip ederek ağ oluşturma stratejilerini optimize edebilirler.
+Platform, Layout.js tarafından sağlanan tutarlı bir sayfa düzeni (NavigationBar.js ve Footer.js) ile kullanıcı dostu bir arayüz sunar. Veriler, her bir bileşenin ihtiyacına göre ilgili modüller tarafından tüketilir ve yönetilir.
+
+Bu yapısıyla "İlk Kontakt", kullanıcıların profesyonel yolculuklarında aktif bir rol almalarını ve kariyer hedeflerine ulaşmaları için gerekli tüm araçlara sahip olmalarını sağlar.
+
+İlk Kontakt: Profesyonel Ağ Oluşturma ve Kariyer Gelişiminin Yeni Adresi
+"İlk Kontakt" platformu, profesyonel ağ kurma ve kariyer gelişimini baştan sona ele alan kapsamlı bir sistem sunma amacıyla tasarlandı. Bu platform, kullanıcıların kariyerlerinin her aşamasında anlamlı bağlantılar kurmalarına, mesleki anlamda büyümelerine ve daha iyi iş fırsatları bulmalarına destek olmayı hedefliyor. Yapay zeka destekli araçlar ve etkili bir içerik yönetim sistemi sayesinde, her kullanıcının yeteneklerine, eğitimine ve kariyer hedeflerine göre kişiselleştirilmiş kariyer önerileri, iş ilanları ve bağlantı tavsiyeleri sunuyoruz.
+
+Platformumuz, özelleştirilebilir profiller, yapay zeka destekli iş ve bağlantı önerileri, mesajlaşma yönetimi ve kariyer rehberliği araçları gibi temel özellikler içerir. Bu özellikler, kullanıcıların kariyer hedeflerine doğru ilerlerken profesyonel ağlarını inşa etmelerine ve büyütmelerine yardımcı olur. İşverenler için ise "İlk Kontakt", uygun adaylarla eşleştirme yaparak işe alım süreçlerini kolaylaştıran güçlü araçlar sunar. Genel olarak projemiz, insanların kariyer fırsatlarını keşfedebileceği, bilgilerini paylaşabileceği ve hem profesyonel hem de kişisel başarıya götürecek ilişkiler kurabileceği bir alan yaratmayı amaçlamaktadır.
+
+Sistem Özellikleri: Kapsamlı Bir Profesyonel Ekosistem
+"İlk Kontakt" platformu, kapsamlı bir profesyonel ağ kurma ve kariyer geliştirme ekosistemi oluşturmak için bir araya gelen temel özellikler üzerine inşa edilmiştir. Bu özellikler, iş arayanlardan profesyonellere, işverenlerden kuruluşlara kadar geniş bir kullanıcı kitlesinin ihtiyaçlarını desteklemek üzere özenle tasarlanmıştır. Aşağıdaki bölümlerde, kullanıcıların profesyonel ağlarını kurmalarına, kariyerlerini ilerletmelerine ve platform içinde anlamlı etkileşimlerde bulunmalarına olanak tanıyan temel özellikler detaylandırılmıştır:
+
+Profesyonel Profil Yönetimi: Kullanıcılar, eğitim geçmişlerini, iş deneyimlerini, becerilerini ve başarılarını vurgulayan kapsamlı profiller oluşturabilirler. Bu özellik, kullanıcıların kariyer ilerlemelerini takip etmelerini ve potansiyel işverenler ile iş birlikçilere görünür olan profesyonel başarılarını sergilemelerini sağlar.
+
+Ağ Oluşturma ve Bağlantı Yönetimi: "İlk Kontakt", meslektaşlar, akranlar ve sektör profesyonelleriyle bağlantı kurmayı kolaylaştırır. Kullanıcılar, bağlantılarını yönetebilir, özel mesajlar gönderebilir ve ortak ilgi alanlarına veya uzmanlık bölgelerine dayalı özel gruplar aracılığıyla başkalarıyla etkileşimde bulunabilirler.
+
+İş Fırsatları: Platform, iş arayanların beceri ve deneyimlerine göre kişiselleştirilmiş iş ilanlarına erişmelerini sağlar. İşverenler iş ilanları yayınlayabilir ve uygun adayları eşleştirmek için algoritmaları kullanabilir. Sistem, kullanıcılar için ilgili fırsatları önererek hem iş arama hem de işe alım deneyimini iyileştirir.
+
+Bilgi Paylaşımı ve Öğrenme: Kullanıcılar, içgörüleri, makaleleri ve sektör haberlerini paylaşabilir ve değiş tokuş edebilir, böylece iş birliğine dayalı bir öğrenme ortamı yaratılır. Bu özellik, profesyonellerin sektördeki gelişmelerden haberdar olmalarına yardımcı olur ve sürekli kariyer gelişimi için hayati önem taşıyan bilgi alışverişini teşvik eder.
+
+Şirket Profilleri ve Markalaşma: Şirketler, çalışma kültürlerini tanıtmak, iş ilanlarını duyurmak ve platformda bir varlık oluşturmak için profil oluşturabilirler. Bu, onların yetenekleri çekmelerine ve organizasyonel değerleri ve iş gereksinimleriyle uyumlu potansiyel adaylarla etkileşim kurmalarına olanak tanır.
+
+Akıllı Kariyer Asistanı: Doğal Dil İşleme (NLP) yetenekleriyle entegre olan bu asistan, kariyer gelişimi için kişiselleştirilmiş öneriler sunar. Kullanıcılar, platformdaki etkinlikleri ve profil bilgilerine dayanarak iş fırsatları, beceri geliştirme kursları veya ağ oluşturma stratejileri hakkında öneriler alabilirler.
+
+Veri Analitiği ve Raporlama: "İlk Kontakt", kullanıcılara profil görüntülemeleri, bağlantı büyümesi ve etkileşim oranları gibi performans metriklerine erişim sunar. Bu içgörüler, kullanıcıların ağ oluşturma etkinliklerini değerlendirmelerine ve profesyonel gelişimlerini en üst düzeye çıkarmak için stratejilerini ayarlamalarına olanak tanır.
+
+Mentorluk ve İş Birliği Fırsatları: Platform, kullanıcıları deneyimli profesyonellerle eşleştirerek mentorluk bağlantılarını kolaylaştırır. Mentorluk özellikleri, kariyer rehberliği sağlamak, kullanıcıların sektördeki zorlukların üstesinden gelmelerine yardımcı olmak ve tamamlayıcı becerilere ve uzmanlığa sahip profesyoneller arasında iş birliğini teşvik etmek için tasarlanmıştır.
+
+3 Sistem Mimarisi
+Sistem Mimarisi bölümü, "İlk Kontakt"ın bileşenlerini tanıtır, tanımlanan işlevleri ve verinin nasıl yönetildiğini açıklar.
+
+3.1 Sistem Bileşenleri
+"İlk Kontakt" aşağıdaki mantıksal bileşen kategorilerinden oluşur: İletişim, Eğitim, Ana Sayfa, Bildirimler, Sayfa Düzeni, Pozisyonlar, Profil, Sosyal ve Kullanıcı Yönetimi.
+
+3.1.1 İletişim Bileşeni
+ContactPage.js dosyasını kullanarak bu bileşen, kullanıcıların sorularını iletebilecekleri bir iletişim formu ve kuruluşun adresi, telefon numarası ve e-posta adresi gibi statik iletişim bilgilerini görüntüler. Form, kullanıcıların adlarını, e-postalarını ve mesajlarını girerek web sitesi yöneticisine ulaşmalarını sağlar.
+
+Tüketilen Veri: Kullanıcı girdileri (ad, e-posta ve mesaj dahil).
+3.1.2 Eğitim Bileşeni
+CourseCard.js dosyası, kursun başlığı, açıklaması, eğitmenin adı, eğitmenin unvanı, süresi, seviyesi, fiyatı ve kursla ilgili bir görsel gibi detayları gösteren tek bir kurs kartını temsil eder.
+
+Tüketilen Veri: Başlık, açıklama, eğitmen, eğitmenUnvanı, süre, seviye, fiyat ve görselUrl alanlarını içeren tek bir kurs nesnesi.
+EducationPage.js, birden fazla CourseCard kullanarak mevcut kursların bir listesini görüntüler ve kullanıcıların kurs tekliflerine göz atmalarını sağlar.
+
+Tüketilen Veri: Her biri CourseCard.js tarafından tüketilen alanların aynısını içeren bir kurs nesneleri dizisi.
+3.1.3 Ana Sayfa Bileşeni
+Ana Sayfa bileşeni, ana kullanıcı paneli olarak hizmet verir. Bir hoş geldiniz başlığı, gönderi akışı ve profil kartı, bağlantı önerileri ve açık iş pozisyonlarını sergileyen yan paneller içerir.
+
+Tüketilen Veri:
+Gönderi sahibi, gönderi içeriği, gönderi beğenileri ve gönderi yorumları ile birlikte bir gönderi dizisi.
+Yan paneller için temel kullanıcı bilgileri.
+Post.js ile, gönderi akışında ayrı ayrı gönderiler oluşturulur ve beğenileri ile yorumları gösterme özellikleri dahil edilir.
+
+Tüketilen Veri: Gönderi sahibi, gönderi içeriği, gönderi beğenileri ve gönderi yorumları dahil gönderi verileri.
+3.1.4 Bildirimler Bileşeni
+NotificationCard.js kullanılarak bu bileşen, tek bir bildirimi görüntüler ve okundu olarak işaretleme veya geri bildirim yanıtlarını tetikleme eylemleri sunar.
+
+Tüketilen Veri: Kimlik, tür, başlık, içerik ve okundu alanlarına sahip bir bildirim nesnesi.
+Bildirimler Sayfası bileşeni, kullanıcıya bildirim listesini görüntüler. Kullanıcılar bildirimleri okundu olarak işaretleyebilir ve geri bildirim seçenekleriyle etkileşim kurabilir.
+
+Tüketilen Veri: NotificationCard.js'de kullanılan yapının aynısını içeren bir bildirim nesneleri dizisi.
+3.1.5 Sayfa Düzeni Bileşeni
+Sitenin altbilgisi Footer.js dosyası kullanılarak görüntülenir. Statik navigasyon bağlantıları ve genel site bilgilerini içerir.
+
+Tüketilen Veri: Yok (önceden tanımlanmış statik dizeleri kullanır).
+Sitenin ana navigasyon çubuğunu sağlamak için NavigationBar.js dosyası kullanılır. Farklı sayfalara bağlantıları görüntüler, oturum durumunu yönetir ve menü yapısı için bir navItems dizisi kullanır.
+
+Tüketilen Veri:
+yol, etiket ve ikon içeren navItems dizisi.
+Oturumdan alınan Giriş Durumu.
+Layout.js dosyası, NavigationBar.js dosyasını üstte ve Footer.js dosyasını altta gömerek tüm alt sayfalar için bir sarmalayıcı görevi görür. Sayfalar arasında tutarlı bir yapı sağlar.
+
+Tüketilen Veri: Doğrudan veri yok.
+3.1.6 Pozisyonlar Bileşeni
+Pozisyonlar bileşeni, tek tek iş ilanlarını oluşturur, ayrıntılı bilgi gösterir ve Job.js dosyasını kullanarak işe başvurma seçeneği sunar.
+
+Tüketilen Veri: Başlık, şirket, açıklama, konum, deneyim, maaş ve tür dahil iş detayları.
+JobListPage.js dosyası, birden fazla işi kullanarak mevcut iş ilanlarının bir listesini görüntülemek için kullanılır.
+
+Tüketilen Veri: Her biri Job.js tarafından tüketilen alanların aynısını içeren bir iş nesneleri dizisi.
+3.1.7 Profil Bileşeni
+Profile-img.js dosyası, kullanıcı profil görseli için bir URL sağlamak üzere kullanılır. Kullanıcı profil resmini görüntüleyen çeşitli bileşenlerde kullanılabilir.
+
+Tüketilen Veri: profilGörseli URL'si.
+ProfilePage.js dosyası ile Profil bileşeni, kullanıcının profil sayfasını görüntüler; ad, meslek, bağlantılar, gönderiler ve takipçi sayısı gibi bilgileri gösterir. Ayrıca profil detaylarını düzenlemeyi de destekler.
+
+Tüketilen Veri:
+Kullanıcı profil detaylarını içeren profilVerisi nesnesi.
+Kimlik, başlık, içerik, tarih, beğeniler ve yorumlar alanlarına sahip bir gönderi dizisi.
+3.1.8 Sosyal Bileşeni
+Sosyal bileşeni, SocialConnectionCard.js dosyasını kullanarak tek bir sosyal bağlantıyla ilgili detayları görüntüler; adlarını, pozisyonlarını, profil resimlerini ve dahil oldukları projelerin bir listesini içerir.
+
+Tüketilen Veri: Ad, pozisyon, profil görseli ve başlık ile açıklama içeren bir proje dizisi barındıran bir bağlantı nesnesi.
+SocialPage.js dosyası, birden fazla SocialConnectionCard kullanarak tüm sosyal bağlantıların bir listesini sağlar.
+
+Tüketilen Veri: SocialConnectionCard.js tarafından tüketilen yapıyla eşleşen bir bağlantı nesneleri dizisi.
+3.1.9 Kullanıcı Yönetimi Bileşeni
+LoginPage.js dosyası ile kullanıcı kimlik doğrulaması yapılır, kullanıcıların giriş yapmasına veya kaydolmasına olanak tanır. Kimlik bilgileri ve kayıt detaylarını girmek için formlar sağlar.
+
+Tüketilen Veri: Kullanıcı kimlik bilgileri ve kullanıcı adı, parola, ad, e-posta, rol, kuruluş ve parola onayı dahil kayıt detayları.
+
+# İlk Kontakt - Kariyer Asistanı Bilgi 
+
+## Genel Bilgiler
+- İlk Kontakt, kullanıcılara iş arama ve kariyer gelişimi konusunda yardımcı olan bir kariyer asistanıdır.
+- Sistem, kullanıcıların profillerine ve iş ilanlarına göre kişiselleştirilmiş öneriler sunar.
+- Asistan hem Türkçe hem İngilizce dil desteğine sahiptir.
+
+## İş Başvuru Süreci
+- Kullanıcılar "X pozisyonuna başvur" komutu ile başvuru yapabilirler.
+- Başvuru öncesi kullanıcıdan onay alınır.
+- Şirket hesapları iş ilanlarına başvuru yapamaz.
+- Harici başvuru gerektiren ilanlar için link paylaşılır.
+
+## Komutlar ve Özellikler
+- "listele" - Tüm iş ilanlarını gösterir
+- "öner" - Kullanıcının profiline uygun işleri önerir
+- "ara" veya "bul" - Belirli kriterlere göre iş araması yapar
+- "profilim" - Kullanıcı profil bilgilerini gösterir
+- "X numaralı ilanı göster" - Belirli bir ilanın detaylarını gösterir
+
+## İş İlanı Özellikleri
+- Her ilan şu bilgileri içerir:
+  * Pozisyon adı
+  * Şirket adı
+  * Konum
+  * Çalışma türü (Ofiste/Uzaktan/Hibrit)
+  * Deneyim seviyesi
+  * İş tanımı
+
+## Profil Özellikleri
+- Kullanıcı profili şu bilgileri içerir:
+  * Ad ve soyad
+  * Hakkında
+  * Yetenekler
+  * Deneyimler
+  * Eğitim bilgileri
+
+## Güvenlik ve Kısıtlamalar
+- Başvurular için XSRF token kontrolü yapılır
+- Kullanıcı girişi gerektiren işlemler için oturum kontrolü yapılır
+- Aynı pozisyona tekrar başvuru yapılamaz
+
+## Öneri Sistemi
+- Öneriler şu kriterlere göre yapılır:
+  * Kullanıcının yetenekleri
+  * Önceki deneyimleri
+  * Eğitim bilgileri
+  * İş ilanlarının gereksinimleri
+
+## Hata Mesajları
+- Bağlantı hatası: "❌ Bağlantı hatası. İnternet bağlantınızı kontrol edin."
+- Oturum hatası: "❌ Başvuru yapabilmek için giriş yapmalısınız!"
+- Şirket hesabı hatası: "❌ Şirket hesapları iş ilanlarına başvuru yapamaz."
+- Tekrar başvuru hatası: "❌ Bu pozisyona daha önce başvuru yaptınız."
+
+## Sesli Asistan Özellikleri
+- Türkçe ve İngilizce dil desteği
+- Konuşma tanıma özelliği
+- Mikrofon kontrolü
+- Dinleme göstergesi
+
+## API Entegrasyonları
+- Gemini API: Genel sorular için yapay zeka desteği
+- İş İlanları API: İlan listeleme ve başvuru işlemleri
+- Profil API: Kullanıcı bilgileri ve özellikleri
+- Deneyim API: Kullanıcı deneyim bilgileri
+- Eğitim API: Kullanıcı eğitim bilgileri
+- Yetenek API: Kullanıcı yetenek bilgileri 
