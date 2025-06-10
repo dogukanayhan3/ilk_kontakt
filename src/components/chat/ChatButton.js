@@ -1,546 +1,706 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, Mic, MicOff } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import '../../component-styles/ChatButton.css';
+import React, { useState, useEffect, useRef } from "react";
+import { MessageCircle, X, Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import "../../component-styles/ChatButton.css";
 
-const API_BASE = process.env.REACT_APP_API_BASE || 'https://localhost:44388';
+const API_BASE = process.env.REACT_APP_API_BASE || "https://localhost:44388";
 const JOB_LISTINGS_ROOT = `${API_BASE}/api/app/job-listing`;
 const JOB_APPLICATIONS_ROOT = `${API_BASE}/api/app/job-application`;
 const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`;
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`;
 const EDUCATION_ROOT = `${API_BASE}/api/app/education`;
 const SKILL_ROOT = `${API_BASE}/api/app/skill`;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 const WORK_TYPE_LABELS = {
-    0: 'Ofiste',
-    1: 'Uzaktan',
-    2: 'Hibrit'
+  0: "Ofiste",
+  1: "Uzaktan",
+  2: "Hibrit",
 };
 
 const EXPERIENCE_LEVEL_LABELS = {
-    0: 'Staj',
-    1: 'Giriş Seviyesi',
-    2: 'Orta Seviye',
-    3: 'Üst Seviye',
-    4: 'Direktör',
-    5: 'Yönetici'
+  0: "Staj",
+  1: "Giriş Seviyesi",
+  2: "Orta Seviye",
+  3: "Üst Seviye",
+  4: "Direktör",
+  5: "Yönetici",
 };
 
 function getCookie(name) {
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-    return match ? match[2] : null;
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? match[2] : null;
 }
 
 const ChatButton = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [jobListings, setJobListings] = useState([]);
-    const [userProfile, setUserProfile] = useState(null);
-    const [userExperiences, setUserExperiences] = useState([]);
-    const [userEducations, setUserEducations] = useState([]);
-    const [userSkills, setUserSkills] = useState([]);
-    const [pendingApplication, setPendingApplication] = useState(null);
-    const { currentUser } = useAuth();
-    const [isListening, setIsListening] = useState(false);
-    const recognitionRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [jobListings, setJobListings] = useState([]);
+  const [userProfile, setUserProfile] = useState(null);
+  const [userExperiences, setUserExperiences] = useState([]);
+  const [userEducations, setUserEducations] = useState([]);
+  const [userSkills, setUserSkills] = useState([]);
+  const [pendingApplication, setPendingApplication] = useState(null);
+  const { currentUser } = useAuth();
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speechSynthesisRef = useRef(null);
+  const speechUtteranceRef = useRef(null);
 
-    // Reset chat history when user changes or logs off
-    useEffect(() => {
-        setMessages([]);
-        setPendingApplication(null);
-        setUserProfile(null);
-        setUserExperiences([]);
-        setUserEducations([]);
-        setUserSkills([]);
-    }, [currentUser]);
+  // Reset chat history when user changes or logs off
+  useEffect(() => {
+    setMessages([]);
+    setPendingApplication(null);
+    setUserProfile(null);
+    setUserExperiences([]);
+    setUserEducations([]);
+    setUserSkills([]);
+  }, [currentUser]);
 
-    useEffect(() => {
-        if (isOpen && currentUser) {
-            fetchJobListings();
-            fetchUserProfile();
-        }
-    }, [isOpen, currentUser]);
+  useEffect(() => {
+    if (isOpen && currentUser) {
+      fetchJobListings();
+      fetchUserProfile();
+    }
+  }, [isOpen, currentUser]);
 
-    // --- Speech Recognition Setup ---
-    useEffect(() => {
-        // Only set up once
-        if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-            recognitionRef.current = null;
-            return;
-        }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'tr-TR,en-US'; // Turkish + English
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        recognition.continuous = false; // Stop after user stops talking
+  // Initialize speech synthesis
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      speechSynthesisRef.current = window.speechSynthesis;
+      
+      // Get available voices
+      const voices = speechSynthesisRef.current.getVoices();
+      // Find Turkish voices
+      const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
+      
+      // If Turkish voices are available, set the default voice
+      if (turkishVoices.length > 0) {
+        // Prefer female Turkish voice if available
+        const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
+        speechSynthesisRef.current.defaultVoice = preferredVoice;
+      }
+    }
+  }, []);
 
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
+  // Function to speak text
+  const speakText = (text) => {
+    if (!speechSynthesisRef.current) return;
 
-        recognition.onerror = (event) => {
-            setIsListening(false);
-            // Optionally show error to user
-            if (event.error !== 'no-speech') {
-                alert('Mikrofon hatası: ' + event.error);
-            }
-        };
+    // Stop any ongoing speech
+    speechSynthesisRef.current.cancel();
 
-        recognition.onresult = (event) => {
-            setIsListening(false);
-            const transcript = event.results[0][0].transcript.trim();
-            if (transcript) {
-                handleSpeechResult(transcript);
-            }
-        };
+    // Create new utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Force Turkish language
+    utterance.lang = 'tr-TR';
+    
+    // Get available voices
+    const voices = speechSynthesisRef.current.getVoices();
+    // Find Turkish voices
+    const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
+    
+    // Set Turkish voice if available
+    if (turkishVoices.length > 0) {
+      // Prefer female Turkish voice if available
+      const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
+      utterance.voice = preferredVoice;
+    }
 
-        recognitionRef.current = recognition;
-    }, []);
+    // Adjust speech parameters for better Turkish pronunciation
+    utterance.rate = 0.9; // Slightly slower for better clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
 
-    // --- Handle Speech Result ---
-    const handleSpeechResult = async (transcript) => {
-        // Simulate user typing and sending
-        const userMessage = {
-            text: transcript,
-            sender: 'user',
-            timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setMessage('');
-        setIsLoading(true);
+    // Set up event handlers
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
 
-        try {
-            const reply = await processMessage(transcript);
-            const botMessage = {
-                text: reply,
-                sender: 'bot',
-                timestamp: new Date().toISOString()
-            };
-            setMessages(prev => [...prev, botMessage]);
-        } catch (error) {
-            const errorMessage = {
-                text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
-                sender: 'bot',
-                timestamp: new Date().toISOString()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsLoading(false);
-        }
+    // Store reference to current utterance
+    speechUtteranceRef.current = utterance;
+
+    // Speak the text
+    speechSynthesisRef.current.speak(utterance);
+  };
+
+  // Stop speaking
+  const stopSpeaking = () => {
+    if (speechSynthesisRef.current) {
+      speechSynthesisRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  // --- Speech Recognition Setup ---
+  useEffect(() => {
+    // Only set up once
+    if (
+      !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
+    ) {
+      recognitionRef.current = null;
+      return;
+    }
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "tr-TR"; // Turkish
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false; // Stop after user stops talking
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.onerror = (event) => {
+      setIsListening(false);
+      // Optionally show error to user
+      if (event.error !== "no-speech") {
+        alert("Mikrofon hatası: " + event.error);
+      }
     };
 
-    // --- Start/Stop Listening ---
-    const startListening = () => {
-        if (recognitionRef.current && !isListening) {
-            recognitionRef.current.start();
+    recognition.onresult = (event) => {
+      setIsListening(false);
+      const transcript = event.results[0][0].transcript.trim();
+      if (transcript) {
+        handleSpeechResult(transcript);
+      }
+    };
+
+    recognitionRef.current = recognition;
+  }, []);
+
+  // --- Handle Speech Result ---
+  const handleSpeechResult = async (transcript) => {
+    const userMessage = {
+      text: transcript,
+      sender: "user",
+      timestamp: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const reply = await processMessage(transcript);
+      const botMessage = {
+        text: reply,
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+      // Speak the bot's response
+      speakText(reply);
+    } catch (error) {
+      console.error("Error processing speech result:", error);
+      const errorMessage = {
+        text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- Start/Stop Listening ---
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      // Stop any ongoing speech
+      stopSpeaking();
+      recognitionRef.current.start();
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  };
+
+  const fetchJobListings = async () => {
+    try {
+      const response = await fetch(
+        `${JOB_LISTINGS_ROOT}?SkipCount=0&MaxResultCount=100`,
+        {
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
-    };
+      );
+      if (!response.ok) throw new Error("İş ilanları yüklenemedi");
+      const data = await response.json();
+      setJobListings(data.items || []);
+    } catch (error) {
+      console.error("Error fetching job listings:", error);
+    }
+  };
 
-    const stopListening = () => {
-        if (recognitionRef.current && isListening) {
-            recognitionRef.current.stop();
-        }
-    };
+  const fetchUserProfile = async () => {
+    if (!currentUser) return;
 
-    const fetchJobListings = async () => {
-        try {
-            const response = await fetch(
-                `${JOB_LISTINGS_ROOT}?SkipCount=0&MaxResultCount=100`,
-                {
-                    credentials: 'include',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-            if (!response.ok) throw new Error('İş ilanları yüklenemedi');
-            const data = await response.json();
-            setJobListings(data.items || []);
-        } catch (error) {
-            console.error('Error fetching job listings:', error);
-        }
-    };
+    try {
+      const res = await fetch(PROFILE_BY_USER, { credentials: "include" });
+      if (res.ok) {
+        const profile = await res.json();
+        setUserProfile(profile);
 
-    const fetchUserProfile = async () => {
-        if (!currentUser) return;
-        
-        try {
-            const res = await fetch(PROFILE_BY_USER, { credentials: 'include' });
-            if (res.ok) {
-                const profile = await res.json();
-                setUserProfile(profile);
-                
-                // Fetch related data
-                await Promise.all([
-                    fetchUserExperiences(profile.id),
-                    fetchUserEducations(profile.id),
-                    fetchUserSkills(profile.id)
-                ]);
-            }
-        } catch (error) {
-            console.error('Error fetching user profile:', error);
-        }
-    };
+        // Fetch related data
+        await Promise.all([
+          fetchUserExperiences(profile.id),
+          fetchUserEducations(profile.id),
+          fetchUserSkills(profile.id),
+        ]);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
-    const fetchUserExperiences = async (profileId) => {
-        try {
-            const res = await fetch(
-                `${EXPERIENCE_ROOT}?ProfileId=${profileId}`,
-                { credentials: 'include' }
-            );
-            if (res.ok) {
-                const data = await res.json();
-                setUserExperiences(data.items || []);
-            }
-        } catch (error) {
-            console.error('Error fetching experiences:', error);
-        }
-    };
+  const fetchUserExperiences = async (profileId) => {
+    try {
+      const res = await fetch(`${EXPERIENCE_ROOT}?ProfileId=${profileId}`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserExperiences(data.items || []);
+      }
+    } catch (error) {
+      console.error("Error fetching experiences:", error);
+    }
+  };
 
-    const fetchUserEducations = async (profileId) => {
-        try {
-            const res = await fetch(
-                `${EDUCATION_ROOT}?ProfileId=${profileId}`,
-                { credentials: 'include' }
-            );
-            if (res.ok) {
-                const data = await res.json();
-                setUserEducations(data.items || []);
-            }
-        } catch (error) {
-            console.error('Error fetching educations:', error);
-        }
-    };
+  const fetchUserEducations = async (profileId) => {
+    try {
+      const res = await fetch(`${EDUCATION_ROOT}?ProfileId=${profileId}`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserEducations(data.items || []);
+      }
+    } catch (error) {
+      console.error("Error fetching educations:", error);
+    }
+  };
 
-    const fetchUserSkills = async (profileId) => {
-        try {
-            const res = await fetch(
-                `${SKILL_ROOT}?ProfileId=${profileId}`,
-                { credentials: 'include' }
-            );
-            if (res.ok) {
-                const data = await res.json();
-                setUserSkills(data.items || []);
-            }
-        } catch (error) {
-            console.error('Error fetching skills:', error);
-        }
-    };
+  const fetchUserSkills = async (profileId) => {
+    try {
+      const res = await fetch(`${SKILL_ROOT}?ProfileId=${profileId}`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserSkills(data.items || []);
+      }
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+    }
+  };
 
-    const findJobByTitle = (title) => {
-        const searchTitle = title.toLowerCase();
-        return jobListings.find(job => 
-            job.title.toLowerCase().includes(searchTitle) ||
-            job.company.toLowerCase().includes(searchTitle) ||
-            job.description?.toLowerCase().includes(searchTitle)
-        );
-    };
+  const findJobByTitle = (title) => {
+    const searchTitle = title.toLowerCase();
+    return jobListings.find(
+      (job) =>
+        job.title.toLowerCase().includes(searchTitle) ||
+        job.company.toLowerCase().includes(searchTitle) ||
+        job.description?.toLowerCase().includes(searchTitle)
+    );
+  };
 
-    const findJobsByKeywords = (keywords) => {
-        const searchTerms = keywords.toLowerCase().split(' ');
-        return jobListings.filter(job => 
-            searchTerms.some(term => 
-                job.title.toLowerCase().includes(term) ||
-                job.company.toLowerCase().includes(term) ||
-                job.description?.toLowerCase().includes(term) ||
-                job.location?.toLowerCase().includes(term)
-            )
-        );
-    };
+  const findJobsByKeywords = (keywords) => {
+    const searchTerms = keywords.toLowerCase().split(" ");
+    return jobListings.filter((job) =>
+      searchTerms.some(
+        (term) =>
+          job.title.toLowerCase().includes(term) ||
+          job.company.toLowerCase().includes(term) ||
+          job.description?.toLowerCase().includes(term) ||
+          job.location?.toLowerCase().includes(term)
+      )
+    );
+  };
 
-    const getRecommendedJobs = () => {
-        if (!userSkills.length && !userExperiences.length) {
-            return jobListings.slice(0, 5);
-        }
+  const getRecommendedJobs = () => {
+    if (!userSkills.length && !userExperiences.length) {
+      return jobListings.slice(0, 5);
+    }
 
-        const userSkillNames = userSkills.map(skill => skill.skillName.toLowerCase());
-        const userCompanies = userExperiences.map(exp => exp.companyName.toLowerCase());
-        const userTitles = userExperiences.map(exp => exp.title.toLowerCase());
+    const userSkillNames = userSkills.map((skill) =>
+      skill.skillName.toLowerCase()
+    );
+    const userCompanies = userExperiences.map((exp) =>
+      exp.companyName.toLowerCase()
+    );
+    const userTitles = userExperiences.map((exp) => exp.title.toLowerCase());
 
-        const scoredJobs = jobListings.map(job => {
-            let score = 0;
-            const jobText = `${job.title} ${job.description || ''} ${job.company}`.toLowerCase();
+    const scoredJobs = jobListings.map((job) => {
+      let score = 0;
+      const jobText = `${job.title} ${job.description || ""} ${
+        job.company
+      }`.toLowerCase();
 
-            // Score based on skills
-            userSkillNames.forEach(skill => {
-                if (jobText.includes(skill)) score += 3;
-            });
+      // Score based on skills
+      userSkillNames.forEach((skill) => {
+        if (jobText.includes(skill)) score += 3;
+      });
 
-            // Score based on similar titles
-            userTitles.forEach(title => {
-                if (jobText.includes(title)) score += 2;
-            });
+      // Score based on similar titles
+      userTitles.forEach((title) => {
+        if (jobText.includes(title)) score += 2;
+      });
 
-            // Score based on company experience
-            userCompanies.forEach(company => {
-                if (jobText.includes(company)) score += 1;
-            });
+      // Score based on company experience
+      userCompanies.forEach((company) => {
+        if (jobText.includes(company)) score += 1;
+      });
 
-            return { ...job, score };
-        });
+      return { ...job, score };
+    });
 
-        return scoredJobs
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 5);
-    };
+    return scoredJobs.sort((a, b) => b.score - a.score).slice(0, 5);
+  };
 
-    const formatJobDetails = (job) => {
-        return `📋 Pozisyon: ${job.title}
+  const formatJobDetails = (job) => {
+    return `📋 Pozisyon: ${job.title}
 🏢 Şirket: ${job.company}
-📍 Konum: ${job.location || 'Belirtilmemiş'}
-💼 Çalışma Türü: ${WORK_TYPE_LABELS[job.workType] || 'Belirtilmemiş'}
-⭐ Deneyim: ${EXPERIENCE_LEVEL_LABELS[job.experienceLevel] || 'Belirtilmemiş'}${job.description ? `\n📝 Açıklama: ${job.description}` : ''}`;
-    };
+📍 Konum: ${job.location || "Belirtilmemiş"}
+💼 Çalışma Türü: ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}
+⭐ Deneyim: ${EXPERIENCE_LEVEL_LABELS[job.experienceLevel] || "Belirtilmemiş"}${
+      job.description ? `\n📝 Açıklama: ${job.description}` : ""
+    }`;
+  };
 
-    const formatJobList = (jobs, title = '') => {
-        if (jobs.length === 0) return 'Uygun iş ilanı bulunamadı.';
-        
-        const jobList = jobs.map((job, index) => 
-            `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${job.location || 'Belirtilmemiş'}\n   💼 ${WORK_TYPE_LABELS[job.workType] || 'Belirtilmemiş'}`
-        ).join('\n\n');
-        
-        return `${title ? title + '\n\n' : ''}${jobList}\n\nDetayları görmek için "X numaralı ilanı göster" yazabilirsiniz.`;
-    };
+  const formatJobList = (jobs, title = "") => {
+    if (jobs.length === 0) return "Uygun iş ilanı bulunamadı.";
 
-    const getUserProfileSummary = () => {
-        if (!userProfile) return '';
-        
-        const skills = userSkills.map(s => s.skillName).join(', ');
-        const latestExp = userExperiences.length > 0 ? userExperiences[0] : null;
-        const latestEdu = userEducations.length > 0 ? userEducations[0] : null;
-        
-        return `Kullanıcı Profili:
-Ad: ${userProfile.name || ''} ${userProfile.surname || ''}
-Hakkında: ${userProfile.about || 'Belirtilmemiş'}
-Yetenekler: ${skills || 'Belirtilmemiş'}
-Son Deneyim: ${latestExp ? `${latestExp.title} @ ${latestExp.companyName}` : 'Belirtilmemiş'}
-Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : 'Belirtilmemiş'}`;
-    };
+    const jobList = jobs
+      .map(
+        (job, index) =>
+          `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
+            job.location || "Belirtilmemiş"
+          }\n   💼 ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}`
+      )
+      .join("\n\n");
 
-    // FIXED: Enhanced job application function with proper error handling
-    const handleApplyToJob = async (jobId) => {
-        console.log('🚀 Starting job application process for job ID:', jobId);
-        
-        if (!currentUser) {
-            console.log('❌ No current user found');
-            return "❌ Başvuru yapabilmek için giriş yapmalısınız!";
+    return `${
+      title ? title + "\n\n" : ""
+    }${jobList}\n\nDetayları görmek için "X numaralı ilanı göster" yazabilirsiniz.`;
+  };
+
+  const getUserProfileSummary = () => {
+    if (!userProfile) return "";
+
+    const skills = userSkills.map((s) => s.skillName).join(", ");
+    const latestExp = userExperiences.length > 0 ? userExperiences[0] : null;
+    const latestEdu = userEducations.length > 0 ? userEducations[0] : null;
+
+    return `Kullanıcı Profili:
+Ad: ${userProfile.name || ""} ${userProfile.surname || ""}
+Hakkında: ${userProfile.about || "Belirtilmemiş"}
+Yetenekler: ${skills || "Belirtilmemiş"}
+Son Deneyim: ${
+      latestExp
+        ? `${latestExp.title} @ ${latestExp.companyName}`
+        : "Belirtilmemiş"
+    }
+Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
+  };
+
+  // FIXED: Enhanced job application function with proper error handling
+  const handleApplyToJob = async (jobId) => {
+    console.log("🚀 Starting job application process for job ID:", jobId);
+
+    if (!currentUser) {
+      console.log("❌ No current user found");
+      return "❌ Başvuru yapabilmek için giriş yapmalısınız!";
+    }
+
+    if (currentUser.isCompanyProfile) {
+      console.log("❌ Company profile trying to apply");
+      return "❌ Şirket hesapları iş ilanlarına başvuru yapamaz.";
+    }
+
+    try {
+      console.log("🔄 Step 1: Getting XSRF token...");
+
+      // 1) Get XSRF token by hitting the configuration endpoint
+      const configResponse = await fetch(
+        `${API_BASE}/api/abp/application-configuration`,
+        {
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
+      );
 
-        if (currentUser.isCompanyProfile) {
-            console.log('❌ Company profile trying to apply');
-            return "❌ Şirket hesapları iş ilanlarına başvuru yapamaz.";
-        }
+      if (!configResponse.ok) {
+        console.error("❌ Failed to get configuration:", configResponse.status);
+        throw new Error("Konfigürasyon alınamadı");
+      }
+
+      console.log("✅ Configuration response received");
+
+      // 2) Extract XSRF token from cookie
+      const xsrf = getCookie("XSRF-TOKEN");
+      console.log("🔑 XSRF Token:", xsrf ? "Found" : "Not found");
+
+      if (!xsrf) {
+        throw new Error("XSRF token bulunamadı");
+      }
+
+      console.log("🔄 Step 2: Submitting job application...");
+
+      // 3) Create the job application payload
+      const applicationPayload = {
+        jobListingId: jobId,
+      };
+
+      console.log("📦 Application payload:", applicationPayload);
+
+      // 4) Submit the job application
+      const response = await fetch(JOB_APPLICATIONS_ROOT, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          RequestVerificationToken: xsrf,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify(applicationPayload),
+      });
+
+      console.log("📡 Application response status:", response.status);
+      console.log(
+        "📡 Application response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
+
+      if (!response.ok) {
+        console.error("❌ Application failed with status:", response.status);
+
+        let errorMessage = "Başvuru yapılırken bir hata oluştu.";
 
         try {
-            console.log('🔄 Step 1: Getting XSRF token...');
-            
-            // 1) Get XSRF token by hitting the configuration endpoint
-            const configResponse = await fetch(`${API_BASE}/api/abp/application-configuration`, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!configResponse.ok) {
-                console.error('❌ Failed to get configuration:', configResponse.status);
-                throw new Error('Konfigürasyon alınamadı');
-            }
-            
-            console.log('✅ Configuration response received');
-            
-            // 2) Extract XSRF token from cookie
-            const xsrf = getCookie('XSRF-TOKEN');
-            console.log('🔑 XSRF Token:', xsrf ? 'Found' : 'Not found');
-            
-            if (!xsrf) {
-                throw new Error('XSRF token bulunamadı');
-            }
-            
-            console.log('🔄 Step 2: Submitting job application...');
-            
-            // 3) Create the job application payload
-            const applicationPayload = {
-                jobListingId: jobId
-            };
-            
-            console.log('📦 Application payload:', applicationPayload);
-            
-            // 4) Submit the job application
-            const response = await fetch(JOB_APPLICATIONS_ROOT, {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': xsrf,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(applicationPayload)
-            });
+          const errorData = await response.json();
+          console.error("❌ Error response data:", errorData);
 
-            console.log('📡 Application response status:', response.status);
-            console.log('📡 Application response headers:', Object.fromEntries(response.headers.entries()));
-
-            if (!response.ok) {
-                console.error('❌ Application failed with status:', response.status);
-                
-                let errorMessage = 'Başvuru yapılırken bir hata oluştu.';
-                
-                try {
-                    const errorData = await response.json();
-                    console.error('❌ Error response data:', errorData);
-                    
-                    if (errorData.error?.message) {
-                        errorMessage = errorData.error.message;
-                    } else if (errorData.error?.details) {
-                        errorMessage = errorData.error.details;
-                    }
-                } catch (parseError) {
-                    console.error('❌ Could not parse error response:', parseError);
-                    const errorText = await response.text();
-                    console.error('❌ Raw error response:', errorText);
-                }
-                
-                throw new Error(errorMessage);
-            }
-
-            console.log('✅ Application submitted successfully');
-            
-            // 5) Parse the successful response
-            const responseData = await response.json();
-            console.log('✅ Application response data:', responseData);
-
-            return "✅ Başvurunuz başarıyla alındı! İyi şanslar!";
-            
-        } catch (error) {
-            console.error('❌ Application error:', error);
-            
-            // Provide more specific error messages
-            if (error.message.includes('XSRF')) {
-                return "❌ Güvenlik token hatası. Lütfen sayfayı yenileyin ve tekrar deneyin.";
-            } else if (error.message.includes('Network')) {
-                return "❌ Bağlantı hatası. İnternet bağlantınızı kontrol edin.";
-            } else if (error.message.includes('already applied')) {
-                return "❌ Bu pozisyona daha önce başvuru yaptınız.";
-            } else {
-                return `❌ Başvuru sırasında bir hata oluştu: ${error.message}`;
-            }
-        }
-    };
-
-    const processMessage = async (userMessage) => {
-        const lowerMessage = userMessage.toLowerCase();
-
-        // Handle job application confirmation
-        if (pendingApplication) {
-            if (lowerMessage.includes('evet') || lowerMessage.includes('onaylıyorum') || lowerMessage.includes('başvur')) {
-                console.log('🎯 User confirmed application for job:', pendingApplication.id);
-                const result = await handleApplyToJob(pendingApplication.id);
-                setPendingApplication(null);
-                return result;
-            } else if (lowerMessage.includes('hayır') || lowerMessage.includes('iptal')) {
-                console.log('❌ User cancelled application');
-                setPendingApplication(null);
-                return "Başvuru işlemi iptal edildi.";
-            }
-            return "Lütfen 'evet' veya 'hayır' diyerek başvurunuzu onaylayın veya iptal edin.";
+          if (errorData.error?.message) {
+            errorMessage = errorData.error.message;
+          } else if (errorData.error?.details) {
+            errorMessage = errorData.error.details;
+          }
+        } catch (parseError) {
+          console.error("❌ Could not parse error response:", parseError);
+          const errorText = await response.text();
+          console.error("❌ Raw error response:", errorText);
         }
 
-        // Handle numbered job details
-        const numberMatch = lowerMessage.match(/(\d+)\s*numaralı\s*ilanı?\s*göster/);
-        if (numberMatch) {
-            const jobIndex = parseInt(numberMatch[1]) - 1;
-            if (jobIndex >= 0 && jobIndex < jobListings.length) {
-                const job = jobListings[jobIndex];
-                return `${formatJobDetails(job)}\n\nBu pozisyona başvurmak için "${job.title} pozisyonuna başvur" yazabilirsiniz.`;
-            }
-            return "❌ Geçersiz ilan numarası.";
+        throw new Error(errorMessage);
+      }
+
+      console.log("✅ Application submitted successfully");
+
+      // 5) Parse the successful response
+      const responseData = await response.json();
+      console.log("✅ Application response data:", responseData);
+
+      return "✅ Başvurunuz başarıyla alındı! İyi şanslar!";
+    } catch (error) {
+      console.error("❌ Application error:", error);
+
+      // Provide more specific error messages
+      if (error.message.includes("XSRF")) {
+        return "❌ Güvenlik token hatası. Lütfen sayfayı yenileyin ve tekrar deneyin.";
+      } else if (error.message.includes("Network")) {
+        return "❌ Bağlantı hatası. İnternet bağlantınızı kontrol edin.";
+      } else if (error.message.includes("already applied")) {
+        return "❌ Bu pozisyona daha önce başvuru yaptınız.";
+      } else {
+        return `❌ Başvuru sırasında bir hata oluştu: ${error.message}`;
+      }
+    }
+  };
+
+  const processMessage = async (userMessage) => {
+    // Gelen mesajı küçük harfe çevir
+    const lowerMessage = userMessage.toLowerCase();
+
+    // Handle job application confirmation
+    if (pendingApplication) {
+      if (
+        lowerMessage.includes("evet") ||
+        lowerMessage.includes("onaylıyorum") ||
+        lowerMessage.includes("başvur")
+      ) {
+        console.log(
+          "🎯 User confirmed application for job:",
+          pendingApplication.id
+        );
+        const result = await handleApplyToJob(pendingApplication.id);
+        setPendingApplication(null);
+        return result;
+      } else if (
+        lowerMessage.includes("hayır") ||
+        lowerMessage.includes("iptal")
+      ) {
+        console.log("❌ User cancelled application");
+        setPendingApplication(null);
+        return "Başvuru işlemi iptal edildi.";
+      }
+      return "Lütfen 'evet' veya 'hayır' diyerek başvurunuzu onaylayın veya iptal edin.";
+    }
+
+    // Handle numbered job details
+    const numberMatch = lowerMessage.match(
+      /(\d+)\s*numaralı\s*ilanı?\s*göster/
+    );
+    if (numberMatch) {
+      const jobIndex = parseInt(numberMatch[1]) - 1;
+      if (jobIndex >= 0 && jobIndex < jobListings.length) {
+        const job = jobListings[jobIndex];
+        return `${formatJobDetails(job)}\n\nBu pozisyona başvurmak için "${
+          job.title
+        } pozisyonuna başvur" yazabilirsiniz.`;
+      }
+      return "❌ Geçersiz ilan numarası.";
+    }
+
+    // Handle job listing requests
+    if (
+      lowerMessage.includes("listele") ||
+      lowerMessage.includes("ilanları göster") ||
+      lowerMessage.includes("tüm ilanlar")
+    ) {
+      return formatJobList(jobListings, "Mevcut İş İlanları:");
+    }
+
+    // Handle job search
+    if (lowerMessage.includes("ara") || lowerMessage.includes("bul")) {
+      const searchTerms = userMessage.replace(/(ara|bul)/gi, "").trim();
+      if (searchTerms) {
+        const foundJobs = findJobsByKeywords(searchTerms);
+        return formatJobList(
+          foundJobs,
+          `"${searchTerms}" için bulunan ilanlar:`
+        );
+      }
+      return "Arama yapmak için 'frontend ara' veya 'istanbul bul' gibi bir komut yazın.";
+    }
+
+    // Handle job applications - ENHANCED
+    if (lowerMessage.includes("başvur")) {
+      console.log("🎯 User wants to apply to a job");
+
+      const jobTitle = userMessage
+        .replace(/başvur/i, "")
+        .replace(/pozisyonuna|için/gi, "")
+        .trim();
+      console.log("🔍 Looking for job with title:", jobTitle);
+
+      const job = findJobByTitle(jobTitle);
+      console.log("🎯 Found job:", job ? job.title : "Not found");
+
+      if (!job) {
+        const suggestions = findJobsByKeywords(jobTitle).slice(0, 3);
+        if (suggestions.length > 0) {
+          return `❌ "${jobTitle}" pozisyonu bulunamadı. Benzer ilanlar:\n\n${formatJobList(
+            suggestions
+          )}\n\nBunlardan birine başvurmak için tam pozisyon adını yazın.`;
         }
+        return `❌ "${jobTitle}" pozisyonuna ait bir ilan bulamadım. "listele" yazarak tüm ilanları görebilirsiniz.`;
+      }
 
-        // Handle job listing requests
-        if (lowerMessage.includes('listele') || lowerMessage.includes('ilanları göster') || lowerMessage.includes('tüm ilanlar')) {
-            return formatJobList(jobListings, 'Mevcut İş İlanları:');
-        }
+      if (job.externalUrl) {
+        return `Bu pozisyon için harici başvuru gerekiyor:\n\n${formatJobDetails(
+          job
+        )}\n\n🔗 Başvuru linki: ${job.externalUrl}`;
+      }
 
-        // Handle job search
-        if (lowerMessage.includes('ara') || lowerMessage.includes('bul')) {
-            const searchTerms = userMessage.replace(/(ara|bul)/gi, '').trim();
-            if (searchTerms) {
-                const foundJobs = findJobsByKeywords(searchTerms);
-                return formatJobList(foundJobs, `"${searchTerms}" için bulunan ilanlar:`);
-            }
-            return "Arama yapmak için 'frontend ara' veya 'istanbul bul' gibi bir komut yazın.";
-        }
+      console.log("✅ Setting pending application for job:", job.id);
+      setPendingApplication(job);
+      return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(
+        job
+      )}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
+    }
 
-        // Handle job applications - ENHANCED
-        if (lowerMessage.includes('başvur')) {
-            console.log('🎯 User wants to apply to a job');
-            
-            const jobTitle = userMessage.replace(/başvur/i, '').replace(/pozisyonuna|için/gi, '').trim();
-            console.log('🔍 Looking for job with title:', jobTitle);
-            
-            const job = findJobByTitle(jobTitle);
-            console.log('🎯 Found job:', job ? job.title : 'Not found');
+    // Handle job recommendations
+    if (
+      lowerMessage.includes("öner") ||
+      lowerMessage.includes("benzer") ||
+      lowerMessage.includes("uygun")
+    ) {
+      const recommendedJobs = getRecommendedJobs();
+      return formatJobList(recommendedJobs, "Size önerilen iş ilanları:");
+    }
 
-            if (!job) {
-                const suggestions = findJobsByKeywords(jobTitle).slice(0, 3);
-                if (suggestions.length > 0) {
-                    return `❌ "${jobTitle}" pozisyonu bulunamadı. Benzer ilanlar:\n\n${formatJobList(suggestions)}\n\nBunlardan birine başvurmak için tam pozisyon adını yazın.`;
-                }
-                return `❌ "${jobTitle}" pozisyonuna ait bir ilan bulamadım. "listele" yazarak tüm ilanları görebilirsiniz.`;
-            }
+    // Handle profile-related queries
+    if (
+      lowerMessage.includes("profil") ||
+      lowerMessage.includes("hakkımda") ||
+      lowerMessage.includes("bilgilerim")
+    ) {
+      if (!userProfile) {
+        return "Profilinizi görüntüleyebilmek için önce profil sayfanızı oluşturmanız gerekiyor.";
+      }
+      return getUserProfileSummary();
+    }
 
-            if (job.externalUrl) {
-                return `Bu pozisyon için harici başvuru gerekiyor:\n\n${formatJobDetails(job)}\n\n🔗 Başvuru linki: ${job.externalUrl}`;
-            }
+    // For other queries, use Gemini API with enhanced context
+    try {
+      const recentMessages = messages.slice(-5);
+      const chatHistoryContext = recentMessages
+        .map(
+          (msg) =>
+            `${msg.sender === "user" ? "Kullanıcı" : "Asistan"}: ${msg.text}`
+        )
+        .join("\n");
 
-            console.log('✅ Setting pending application for job:', job.id);
-            setPendingApplication(job);
-            return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(job)}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
-        }
+      const userContext = getUserProfileSummary();
+      const jobContext = jobListings
+        .slice(0, 10)
+        .map(
+          (job) =>
+            `${job.title} - ${job.company} (${job.location}) - ${
+              WORK_TYPE_LABELS[job.workType]
+            }`
+        )
+        .join("\n");
 
-        // Handle job recommendations
-        if (lowerMessage.includes('öner') || lowerMessage.includes('benzer') || lowerMessage.includes('uygun')) {
-            const recommendedJobs = getRecommendedJobs();
-            return formatJobList(recommendedJobs, 'Size önerilen iş ilanları:');
-        }
+      const response = await fetch(`${GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `Sen "İlk Kontakt" platformunun uzman asistanısın. Platform, profesyonel ağ kurma, kariyer geliştirme ve iş fırsatları bulma konusunda kullanıcılara yardımcı olan kapsamlı bir sistemdir.
 
-        // Handle profile-related queries
-        if (lowerMessage.includes('profil') || lowerMessage.includes('hakkımda') || lowerMessage.includes('bilgilerim')) {
-            if (!userProfile) {
-                return "Profilinizi görüntüleyebilmek için önce profil sayfanızı oluşturmanız gerekiyor.";
-            }
-            return getUserProfileSummary();
-        }
-
-        // For other queries, use Gemini API with enhanced context
-        try {
-            const recentMessages = messages.slice(-5);
-            const chatHistoryContext = recentMessages
-                .map(msg => `${msg.sender === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.text}`)
-                .join('\n');
-
-            const userContext = getUserProfileSummary();
-            const jobContext = jobListings.slice(0, 10).map(job => 
-                `${job.title} - ${job.company} (${job.location}) - ${WORK_TYPE_LABELS[job.workType]}`
-            ).join('\n');
-
-            const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: `Sen bir kariyer web sitesinin uzman asistanısın. Kullanıcılara iş bulma, başvuru yapma ve kariyer tavsiyesi konularında yardım ediyorsun.
+PLATFORM ÖZELLİKLERİ:
+- Profesyonel Profil Yönetimi: Kullanıcılar eğitim geçmişi, iş deneyimi, beceriler ve başarılarını içeren kapsamlı profiller oluşturabilir
+- Ağ Oluşturma: Meslektaşlar, akranlar ve sektör profesyonelleriyle bağlantı kurma imkanı
+- İş Fırsatları: Kişiselleştirilmiş iş ilanları ve başvuru sistemi
+- Bilgi Paylaşımı: Makaleler, içgörüler ve sektör haberleri paylaşımı
+- Şirket Profilleri: Şirketlerin kurumsal kültürlerini tanıtma ve iş ilanları yayınlama
+- Mentorluk: Deneyimli profesyonellerle eşleştirme ve kariyer rehberliği
+- Veri Analitiği: Profil görüntülemeleri, bağlantı büyümesi ve etkileşim oranları takibi
 
 KULLANICI BİLGİLERİ:
 ${userContext}
@@ -561,163 +721,262 @@ KURALLAR:
 - İş ilanları hakkında sorularda spesifik bilgi ver
 - Başvuru yapmak için "X pozisyonuna başvur" formatını öner
 - Profesyonel ve yardımsever ol
+- Platform özelliklerini vurgula
+- Mentorluk ve ağ oluşturma fırsatlarını öne çıkar
+- Kariyer gelişimi için önerilerde bulun
 
-CEVAP:`
-                        }]
-                    }]
-                })
-            });
+CEVAP:`,
+                },
+              ],
+            },
+          ],
+        }),
+      });
 
-            const data = await response.json();
-            if (data.candidates && data.candidates[0].content) {
-                return data.candidates[0].content.parts[0].text;
-            }
-            return "Üzgünüm, şu anda size yardımcı olamıyorum. Lütfen tekrar deneyin.";
-        } catch (error) {
-            console.error('Error sending message to Gemini:', error);
-            return "Bir hata oluştu. 'listele' yazarak iş ilanlarını görebilir, 'öner' yazarak size uygun pozisyonları bulabilirsiniz.";
-        }
+      const data = await response.json();
+      if (data.candidates && data.candidates[0].content) {
+        return data.candidates[0].content.parts[0].text;
+      }
+      return "Üzgünüm, şu anda size yardımcı olamıyorum. Lütfen tekrar deneyin.";
+    } catch (error) {
+      console.error("Error sending message to Gemini:", error);
+      return "Bir hata oluştu. 'listele' yazarak iş ilanlarını görebilir, 'öner' yazarak size uygun pozisyonları bulabilirsiniz.";
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+
+    const userMessage = {
+      text: message,
+      sender: "user",
+      timestamp: new Date().toISOString(),
     };
+    setMessages(prev => [...prev, userMessage]);
+    const currentMessage = message;
+    setMessage("");
+    setIsLoading(true);
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!message.trim()) return;
+    try {
+      const reply = await processMessage(currentMessage);
+      const botMessage = {
+        text: reply,
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+      // Speak the bot's response
+      speakText(reply);
+    } catch (error) {
+      console.error("Error processing message:", error);
+      const errorMessage = {
+        text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        const userMessage = {
-            text: message,
-            sender: 'user',
-            timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, userMessage]);
-        const currentMessage = message;
-        setMessage('');
-        setIsLoading(true);
+  const toggleChat = () => {
+    setIsOpen(!isOpen);
+  };
 
-        try {
-            const reply = await processMessage(currentMessage);
-            const botMessage = {
-                text: reply,
-                sender: 'bot',
-                timestamp: new Date().toISOString()
-            };
-            setMessages(prev => [...prev, botMessage]);
-        } catch (error) {
-            console.error('Error processing message:', error);
-            const errorMessage = {
-                text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
-                sender: 'bot',
-                timestamp: new Date().toISOString()
-            };
-            setMessages(prev => [...prev, errorMessage]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const getWelcomeMessage = () => {
+    if (!currentUser) {
+      return `Merhaba! Ben "İlk Kontakt" platformunun kariyer asistanıyım. Size profesyonel ağ kurma, kariyer geliştirme ve iş fırsatları bulma konusunda yardımcı olabilirim.
 
-    const toggleChat = () => {
-        setIsOpen(!isOpen);
-    };
+Giriş yaparak şunları yapabilirsiniz:
+• İş ilanlarını görüntüleme ve başvuru yapma
+• Profesyonel ağınızı genişletme
+• Mentorluk fırsatları bulma
+• Kariyer tavsiyeleri alma
 
-    const getWelcomeMessage = () => {
-        if (!currentUser) {
-            return "Merhaba! Size nasıl yardımcı olabilirim? İş ilanlarını görmek için 'listele' yazabilirsiniz.";
-        }
+İş ilanlarını görmek için 'listele' yazabilirsiniz.`;
+    }
 
-        if (currentUser.isCompanyProfile) {
-            return `Merhaba ${currentUser.userName}! Şirket hesabınızla iş ilanlarını görüntüleyebilir ve yönetebilirsiniz. 'listele' yazarak başlayabilirsiniz.`;
-        }
+    if (currentUser.isCompanyProfile) {
+      return `Merhaba ${currentUser.userName}! Şirket hesabınızla şunları yapabilirsiniz:
+• İş ilanları yayınlama ve yönetme
+• Şirket profilinizi güncelleme
+• Başvuruları görüntüleme
+• Adaylarla iletişim kurma
 
-        return `Merhaba ${currentUser.userName}! Size nasıl yardımcı olabilirim? 
+'listele' yazarak mevcut iş ilanlarını görüntüleyebilirsiniz.`;
+    }
+
+    return `Merhaba ${currentUser.userName}! Ben "İlk Kontakt" platformunun kariyer asistanıyım. Size şu konularda yardımcı olabilirim:
 
 Yapabilecekleriniz:
-• 'listele' - Tüm iş ilanlarını görün
-• 'öner' - Size uygun pozisyonları bulun  
-• 'frontend ara' - Belirli pozisyonları arayın
-• 'X pozisyonuna başvur' - Başvuru yapın
-• 'profilim' - Profil bilgilerinizi görün`;
+• 'listele' - Tüm iş ilanlarını görüntüle
+• 'öner' - Size uygun pozisyonları bul
+• 'frontend ara' - Belirli pozisyonları ara
+• 'X pozisyonuna başvur' - Başvuru yap
+• 'profilim' - Profil bilgilerinizi görüntüle
+• 'mentorluk' - Mentorluk fırsatlarını keşfet
+• 'ağ' - Profesyonel ağınızı genişlet
+
+Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsiyeler alabilirsiniz.`;
+  };
+
+  const handleActionClick = async (action) => {
+    const response = action === 'apply' ? 'evet' : 'hayır';
+    
+    const userMessage = {
+      text: response,
+      sender: "user",
+      timestamp: new Date().toISOString(),
     };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const reply = await processMessage(response);
+      const botMessage = {
+        text: reply,
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+      // Speak the bot's response
+      speakText(reply);
+    } catch (error) {
+      console.error("Error processing message:", error);
+      const errorMessage = {
+        text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderMessageContent = (msg) => {
+    const lines = msg.text.split('\n');
+    const hasActions = msg.sender === 'bot' && 
+      (msg.text.includes('onaylıyor musunuz?') || msg.text.includes('onaylamak için'));
 
     return (
-        <div className="chat-container">
-            {isOpen && (
-                <div className="chat-window">
-                    <div className="chat-header">
-                        <h3>Kariyer Asistanı</h3>
-                        <button className="close-button" onClick={toggleChat}>
-                            <X size={20} />
-                        </button>
-                    </div>
-                    <div className="chat-messages">
-                        {messages.length === 0 && (
-                            <div className="message bot-message">
-                                <div className="message-text">
-                                    {getWelcomeMessage()}
-                                </div>
-                            </div>
-                        )}
-                        {messages.map((msg, index) => (
-                            <div 
-                                key={index} 
-                                className={`message ${msg.sender === 'bot' ? 'bot-message' : 'user-message'}`}
-                            >
-                                <div className="message-text">
-                                    {msg.text.split('\n').map((line, i) => (
-                                        <div key={i}>{line}</div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                        {isLoading && (
-                            <div className="message bot-message loading">
-                                <div className="typing-indicator">
-                                    <span></span>
-                                    <span></span>
-                                    <span></span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    <form className="chat-input-container" onSubmit={handleSendMessage}>
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Mesajınızı yazın veya mikrofona konuşun..."
-                            className="chat-input"
-                            disabled={isLoading || isListening}
-                        />
-                        <button
-                            type="button"
-                            className={`mic-button ${isListening ? 'listening' : ''}`}
-                            onClick={isListening ? stopListening : startListening}
-                            title={isListening ? "Dinleniyor..." : "Mikrofon ile konuş"}
-                            disabled={isLoading}
-                        >
-                            {isListening ? <MicOff size={20} /> : <Mic size={20} />}
-                        </button>
-                        <button 
-                            type="submit" 
-                            className="send-button"
-                            disabled={isLoading || !message.trim() || isListening}
-                        >
-                            <Send size={20} />
-                        </button>
-                    </form>
-                    {isListening && (
-                        <div className="listening-indicator">
-                            Dinleniyor... Lütfen konuşun.
-                        </div>
-                    )}
-                </div>
-            )}
-            <button 
-                className={`chat-button ${isOpen ? 'active' : ''}`}
-                onClick={toggleChat}
+      <>
+        {lines.map((line, i) => (
+          <div key={i}>{line}</div>
+        ))}
+        {hasActions && (
+          <div className="message-actions">
+            <button
+              className="message-action-button apply"
+              onClick={() => handleActionClick('apply')}
             >
-                <MessageCircle size={24} />
+              Başvur
             </button>
-        </div>
+            <button
+              className="message-action-button cancel"
+              onClick={() => handleActionClick('cancel')}
+            >
+              İptal
+            </button>
+          </div>
+        )}
+      </>
     );
+  };
+
+  return (
+    <div className="chat-container">
+      {isOpen && (
+        <div className="chat-window">
+          <div className="chat-header">
+            <h3>Kariyer Asistanı</h3>
+            <div className="header-controls">
+              <button
+                className="speech-toggle-btn"
+                onClick={isSpeaking ? stopSpeaking : () => speakText(messages[messages.length - 1]?.text)}
+                title={isSpeaking ? "Konuşmayı Durdur" : "Son Mesajı Oku"}
+                disabled={!messages.length}
+              >
+                {isSpeaking ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+              <button className="close-button" onClick={toggleChat}>
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+          <div className="chat-messages">
+            {messages.length === 0 && (
+              <div className="message bot-message">
+                <div className="message-text">{getWelcomeMessage()}</div>
+              </div>
+            )}
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`message ${
+                  msg.sender === "bot" ? "bot-message" : "user-message"
+                }`}
+              >
+                <div className="message-text">
+                  {renderMessageContent(msg)}
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="message bot-message loading">
+                <div className="typing-indicator">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <form className="chat-input-container" onSubmit={handleSendMessage}>
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Mesajınızı yazın veya mikrofona konuşun..."
+              className="chat-input"
+              disabled={isLoading || isListening}
+            />
+            <button
+              type="button"
+              className={`mic-button ${isListening ? "listening" : ""}`}
+              onClick={isListening ? stopListening : startListening}
+              title={isListening ? "Dinleniyor..." : "Mikrofon ile konuş"}
+              disabled={isLoading}
+            >
+              {isListening ? <MicOff size={20} /> : <Mic size={20} />}
+            </button>
+            <button
+              type="submit"
+              className="send-button"
+              disabled={isLoading || !message.trim() || isListening}
+            >
+              <Send size={20} />
+            </button>
+          </form>
+          {isListening && (
+            <div className="listening-indicator">
+              Dinleniyor... Lütfen konuşun.
+            </div>
+          )}
+        </div>
+      )}
+      <button
+        className={`chat-button ${isOpen ? "active" : ""}`}
+        onClick={toggleChat}
+      >
+        <MessageCircle size={24} />
+      </button>
+    </div>
+  );
 };
 
 export default ChatButton;

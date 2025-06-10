@@ -4,11 +4,9 @@ import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/DMButton.css";
 import DMWindow from "./DMWindow";
 
-
 const DMButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const { currentUser } = useAuth();
 
@@ -42,6 +40,7 @@ const DMButton = () => {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !selectedConnection) return;
+
     const userMessage = {
       text: message,
       sender: "user",
@@ -55,18 +54,18 @@ const DMButton = () => {
     setMessage("");
     setIsLoading(true);
 
+    // TODO: Implement actual DM functionality with backend
+    // For now, just simulate a response
     setTimeout(() => {
       const botMessage = {
         text: "This is a placeholder response. DM functionality will be implemented with backend integration.",
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-
       setMessagesByConnection((prev) => {
         const prevMsgs = prev[selectedConnection.id] || [];
         return { ...prev, [selectedConnection.id]: [...prevMsgs, botMessage] };
       });
-
       setIsLoading(false);
     }, 1000);
   };
@@ -181,4 +180,4 @@ const DMButton = () => {
   );
 };
 
-export default DMButton;
+export default DMButton; 

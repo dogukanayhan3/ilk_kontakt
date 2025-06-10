@@ -170,7 +170,8 @@ function HomePage() {
                         Current user to match with:
                         ${JSON.stringify(currentUserProfile, null, 2)}
 
-                        Please return ONLY the following JSON object, without any code block or extra text give the match reason in the Turkish language:
+                        Please return ONLY the following JSON object, without any code block or extra text. Give the match reason part in Turkish language!:
+
                         {
                           "matches": [
                             {
@@ -407,7 +408,8 @@ function HomePage() {
               {
                 parts: [
                   {
-                    text: `Generate a professional social media post about career development or industry insights. The post should be :
+                    text: `Generate a professional social media post about career development or industry insights. The post should be:
+
 1. Professional and informative
 2. Engaging and shareable
 3. Relevant to the tech industry

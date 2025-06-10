@@ -482,26 +482,34 @@
 /* Header controls for speech buttons */
 .header-controls {
     display: flex;
+    gap: 0.5rem;
     align-items: center;
-    gap: 8px;
 }
 
 .speech-toggle-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: none;
     border: none;
-    color: white;
+    color: #fff;
     cursor: pointer;
-    padding: 6px;
+    padding: 0.5rem;
     border-radius: 50%;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s ease;
 }
 
 .speech-toggle-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.speech-toggle-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.speech-toggle-btn:disabled:hover {
+    background: none;
 }
 
 .mic-button {
@@ -601,5 +609,57 @@
 
     .chat-input-container {
         gap: 6px;
+    }
+}
+
+/* Action buttons in chat messages */
+.message-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    justify-content: flex-end;
+}
+
+.message-action-button {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.message-action-button.apply {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+.message-action-button.apply:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.message-action-button.cancel {
+    background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.message-action-button.cancel:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.message-action-button:active {
+    transform: translateY(1px);
+}
+
+/* Responsive adjustments for action buttons */
+@media (max-width: 480px) {
+    .message-action-button {
+        padding: 6px 12px;
+        font-size: 0.85rem;
     }
 }
