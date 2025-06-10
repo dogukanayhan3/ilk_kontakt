@@ -744,6 +744,70 @@ Yapabilecekleriniz:
 Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsiyeler alabilirsiniz.`;
   };
 
+  const handleActionClick = async (action) => {
+    const response = action === 'apply' ? 'evet' : 'hayır';
+    
+    // Add user's response as a message
+    const userMessage = {
+      text: response,
+      sender: "user",
+      timestamp: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      // Process the response directly
+      const reply = await processMessage(response);
+      const botMessage = {
+        text: reply,
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error processing message:", error);
+      const errorMessage = {
+        text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderMessageContent = (msg) => {
+    const lines = msg.text.split('\n');
+    const hasActions = msg.sender === 'bot' && 
+      (msg.text.includes('onaylıyor musunuz?') || msg.text.includes('onaylamak için'));
+
+    return (
+      <>
+        {lines.map((line, i) => (
+          <div key={i}>{line}</div>
+        ))}
+        {hasActions && (
+          <div className="message-actions">
+            <button
+              className="message-action-button apply"
+              onClick={() => handleActionClick('apply')}
+            >
+              Başvur
+            </button>
+            <button
+              className="message-action-button cancel"
+              onClick={() => handleActionClick('cancel')}
+            >
+              İptal
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="chat-container">
       {isOpen && (
@@ -768,9 +832,7 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
                 }`}
               >
                 <div className="message-text">
-                  {msg.text.split("\n").map((line, i) => (
-                    <div key={i}>{line}</div>
-                  ))}
+                  {renderMessageContent(msg)}
                 </div>
               </div>
             ))}
