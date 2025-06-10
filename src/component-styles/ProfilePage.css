@@ -290,6 +290,11 @@
 .section-header {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 12px;
+
+  /* Add new styles */
+  margin-top: 2.5rem;
+  padding-bottom: 1rem;
+  position: relative;
 }
 .section-header h2 {
   font-size: 1.4em; color: #3245f1;
@@ -300,17 +305,43 @@
   bottom: 0; left: 0; width: 40px; height: 3px;
   background: #5fbcee; border-radius: 2px;
 }
-.section-header button {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: linear-gradient(135deg,#5fbcee 0%,#3245f1 100%);
-  color: #fff; border: none; padding: 6px 12px;
-  border-radius: 20px; font-size: 0.9em; font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+
+/* Add new gradient separator line */
+.section-header:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -1.25rem;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to right, rgba(95, 188, 238, 0.5), rgba(50, 69, 241, 0.3), rgba(95, 188, 238, 0));
 }
+
+/* First section header doesn't need the line */
+.left-column > section:first-child .section-header:before,
+.right-column > section:first-child .section-header:before {
+  display: none;
+}
+
+/* Section header buttons similar to create-job-btn */
+.section-header button {
+  background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .section-header button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(50,69,241,0.3);
+  background: linear-gradient(135deg, #4facdd 0%, #2b3ae0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(95, 188, 238, 0.4);
 }
 
 /* ------------------------------ */
@@ -329,6 +360,7 @@
 /* ------------------------------ */
 /* 10. Card Base                  */
 /* ------------------------------ */
+/* Update card styling for all profile sections */
 .experience-card,
 .education-card,
 .skill-card,
@@ -336,71 +368,122 @@
 .project-card {
   background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: transform 0.3s, box-shadow 0.3s;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
+
+/* Add hover effects like job listings */
 .experience-card:hover,
 .education-card:hover,
 .skill-card:hover,
 .language-card:hover,
 .project-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px rgba(50, 69, 241, 0.15);
+  border-color: #5fbcee;
 }
 
 /* ------------------------------ */
 /* 11. Card Header & Edit Button  */
 /* ------------------------------ */
+/* Card header styling similar to job-title-section */
 .experience-card-header,
 .education-card-header,
 .skill-card-header,
 .language-card-header,
 .project-card-header {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
+
 .experience-title,
 .education-title,
 .skill-name,
 .language-name,
 .project-name {
-  font-size: 1.1em; font-weight: 700; color: #3245f1;
-}
-.edit-btn {
-  margin-left: auto;
-  background: none;
-  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 1.1em; 
+  font-weight: 700; 
   color: #3245f1;
-  cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
 }
-.edit-btn:hover {
+
+/* Add this to style workplace names in experiences */
+.experience-company {
   color: #5fbcee;
-  transform: scale(1.1);
+  font-weight: 500;
+  display: inline;
+  margin-left: 4px;
+}
+
+/* Edit button styling similar to job actions */
+.edit-btn {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px;
+  color: #5fbcee;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn:hover {
+  background: rgba(95, 188, 238, 0.1);
+  border-color: #5fbcee;
+  transform: translateY(-2px);
 }
 
 /* ------------------------------ */
 /* 12. Meta & Detail Text         */
 /* ------------------------------ */
+/* Card content formatting */
 .experience-dates,
 .education-dates,
-.skill-proficiency-text,
-.language-proficiency-text,
 .project-dates {
-  font-size: 0.9em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #4a5568;
+  font-size: 0.9em;
+  margin-bottom: 8px;
 }
+
 .experience-location,
 .experience-type,
+.skill-proficiency-text,
+.language-proficiency-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f7ff;
+  color: #3245f1;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.experience-description,
 .education-description,
 .project-description {
-  font-size: 0.9em;
-  color: #666;
+  margin-top: 12px;
+  color: #4a5568;
+  line-height: 1.6;
+  font-size: 0.95em;
 }
 
 /* ------------------------------ */
@@ -907,4 +990,39 @@
   display: flex;
   flex-direction: column;
   gap: 15px; /* Spacing between form elements */
+}
+
+/* (alt kisimlar divler arasi bosluk icin) Add this to your CSS file */
+.experience-section,
+.education-section,
+.skill-section,
+.language-section,
+.project-section {
+  margin-bottom: 2.5rem; /* Add consistent spacing between sections */
+}
+
+/* Last element in each column doesn't need bottom margin */
+.left-column > section:last-child,
+.right-column > section:last-child {
+  margin-bottom: 0;
+}
+
+.show-more-btn {
+  background: transparent;
+  color: #3245f1;
+  border: 1px solid #3245f1;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 16px auto 0;
+  display: block;
+  transition: all 0.3s ease;
+}
+
+.show-more-btn:hover {
+  background: rgba(50, 69, 241, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(50, 69, 241, 0.1);
 }
