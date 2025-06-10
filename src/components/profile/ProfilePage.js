@@ -228,6 +228,23 @@ const [showProfileModal, setShowProfileModal] = useState(false);
   const [editingProj,     setEditingProj]     = useState(false)
   const [currentProj,     setCurrentProj]     = useState(null)
 
+  // Add these state variables near the top of your component
+  const [expandedSections, setExpandedSections] = useState({
+    experiences: false,
+    education: false,
+    skills: false,
+    languages: false,
+    projects: false
+  });
+
+  // Helper function to toggle section expansion
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   // load profile
   useEffect(() => {
     if (!currentUser) {
@@ -533,10 +550,14 @@ async function fetchConnections(userId) {
   function openEditLang(lang) {
     setEditingLang(true)
     setCurrentLang(lang)
+
+    // Convert numeric proficiency to string enum value
+    // This maps the numeric value (0-4) to the corresponding string value in the options array
+    const proficiencyString = LANGUAGE_PROFICIENCY_OPTIONS[Number(lang.languageProficiency)]?.value || 'Elementary';
+
     setNewLang({
       languageName: lang.languageName,
-      languageProficiency:
-        lang.languageProficiency
+      languageProficiency: proficiencyString  // Now uses the string value that matches dropdown options
     })
     setShowLangModal(true)
   }
@@ -1342,291 +1363,353 @@ async function fetchConnections(userId) {
         {/* Left Column */}
         <div className="left-column">
           {/* EXPERIENCE SECTION */}
-          {!currentUser?.isCompanyProfile && (
-            <section className="experience-section">
-              <div className="section-header">
-                <h2>Deneyimler</h2>
-                {isOwnProfile && (
-                  <button className="add-experience-btn" onClick={openAddExp}>
-                    + Yeni Deneyim
-                  </button>
-                )}
-              </div>
-              {expError && (
-                <div className="error-message">{expError}</div>
-              )}
-              {expLoading ? (
-                <div>Yükleniyor...</div>
-              ) : (
-                <div className="experiences-grid">
-                  {experiences.map(exp => (
-                    <div className="experience-card" key={exp.id}>
-                      <div className="experience-card-header">
-                        <span className="experience-title">
-                          {exp.title}
-                        </span>
-                        <span className="experience-company">
-                          @ {exp.companyName}
-                        </span>
-                        {isOwnProfile && (
-                          <button
-                            className="edit-btn"
-                            onClick={() => openEditExp(exp)}
-                            style={{
-                              marginLeft: 'auto',
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <Edit size={16} />
-                          </button>
-                        )}
-                      </div>
-                      <div className="experience-dates">
-                        {new Date(
-                          exp.startDate
-                        ).toLocaleDateString()}{' '}
-                        -{' '}
-                        {exp.isCurrentPosition
-                          ? 'Devam Ediyor'
-                          : exp.endDate
-                          ? new Date(
-                              exp.endDate
-                            ).toLocaleDateString()
-                          : ''}
-                      </div>
-                      <div className="experience-location">
-                        {exp.location}
-                      </div>
-                      <div className="experience-type">
-                        {
-                          EMPLOYMENT_TYPE_OPTIONS.find(
-                            o =>
-                              o.value === exp.employmentType
-                          )?.label
-                        }
-                      </div>
-                      <div className="experience-description">
-                        {exp.description}
-                      </div>
-                    </div>
-                  ))}
+            {!currentUser?.isCompanyProfile && (
+              <section className="experience-section">
+                <div className="section-header">
+                  <h2>Deneyimler</h2>
+                  {isOwnProfile && (
+                    <button className="add-experience-btn" onClick={openAddExp}>
+                      + Yeni Deneyim
+                    </button>
+                  )}
                 </div>
-              )}
-            </section>
-          )}
+                
+                {expError && <div className="error-message">{expError}</div>}
+                
+                {expLoading ? (
+                  <div>Yükleniyor...</div>
+                ) : (
+                  <>
+                    <div className="experiences-grid">
+                      {experiences
+                        .slice(0, expandedSections.experiences ? experiences.length : 2)
+                        .map(exp => (
+                          <div className="experience-card" key={exp.id}>
+                            <div className="experience-card-header">
+                              <span className="experience-title">
+                                {exp.title}
+                              </span>
+                              <span className="experience-company">
+                                @ {exp.companyName}
+                              </span>
+                              {isOwnProfile && (
+                                <button
+                                  className="edit-btn"
+                                  onClick={() => openEditExp(exp)}
+                                  style={{
+                                    marginLeft: 'auto',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Edit size={16} />
+                                </button>
+                              )}
+                            </div>
+                            <div className="experience-dates">
+                              {new Date(exp.startDate).toLocaleDateString()}{' '}
+                              -{' '}
+                              {exp.isCurrentPosition
+                                ? 'Devam Ediyor'
+                                : exp.endDate
+                                ? new Date(exp.endDate).toLocaleDateString()
+                                : ''}
+                            </div>
+                            <div className="experience-location">
+                              {exp.location}
+                            </div>
+                            <div className="experience-type">
+                              {EMPLOYMENT_TYPE_OPTIONS.find(
+                                o => o.value === exp.employmentType
+                              )?.label}
+                            </div>
+                            <div className="experience-description">
+                              {exp.description}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                    
+                    {/* Show More/Less button only appears if there are more than 2 experiences */}
+                    {experiences.length > 2 && (
+                      <button 
+                        className="show-more-btn"
+                        onClick={() => toggleSection('experiences')}
+                      >
+                        {expandedSections.experiences ? 'Daha Az Göster' : 'Daha Fazla Göster'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
 
           {/* EDUCATION SECTION */}
-          {!currentUser?.isCompanyProfile && (
-            <section className="education-section">
-              <div className="section-header">
-                <h2>Eğitim Bilgileri</h2>
-                {isOwnProfile && (
-                  <button className="add-experience-btn" onClick={openAddEdu}>
-                    + Yeni Eğitim
-                  </button>
+            {!currentUser?.isCompanyProfile && (
+              <section className="education-section">
+                <div className="section-header">
+                  <h2>Eğitim Bilgileri</h2>
+                  {isOwnProfile && (
+                    <button className="add-experience-btn" onClick={openAddEdu}>
+                      + Yeni Eğitim
+                    </button>
+                  )}
+                </div>
+                {eduError && (
+                  <div className="error-message">
+                    {eduError}
+                  </div>
                 )}
-              </div>
-              {eduError && (
-                <div className="error-message">
-                  {eduError}
-                </div>
-              )}
-              {eduLoading ? (
-                <div>Yükleniyor...</div>
-              ) : (
-                <div className="experiences-grid">
-                  {educations.map(ed => (
-                    <div
-                      className="experience-card"
-                      key={ed.id}
-                    >
-                      <div className="experience-card-header">
-                        <span className="experience-title">
-                          {ed.instutionName}
-                        </span>
-                        <span className="experience-company">
-                          {EDUCATION_DEGREE_OPTIONS.find(
-                            o => o.value === ed.degree
-                          )?.label}
-                        </span>
-                        {isOwnProfile && (
-                          <button
-                            className="edit-btn"
-                            onClick={() => openEditEdu(ed)}
-                            style={{
-                              marginLeft: 'auto',
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer'
-                            }}
+                {eduLoading ? (
+                  <div>Yükleniyor...</div>
+                ) : (
+                  <>
+                    <div className="experiences-grid">
+                      {educations
+                        .slice(0, expandedSections.education ? educations.length : 2)
+                        .map(ed => (
+                          <div
+                            className="experience-card"
+                            key={ed.id}
                           >
-                            <Edit size={16} />
-                          </button>
-                        )}
-                      </div>
-                      <div className="experience-dates">
-                        {new Date(
-                          ed.startDate
-                        ).toLocaleDateString()}{' '}
-                        -{' '}
-                        {ed.endDate
-                          ? new Date(
-                              ed.endDate
-                            ).toLocaleDateString()
-                          : 'Devam Ediyor'}
-                      </div>
-                      <div className="experience-description">
-                        GPA: {ed.gpa?.toFixed(2) || '-'}<br />
-                        {ed.description}
-                      </div>
+                            <div className="experience-card-header">
+                              <span className="experience-title">
+                                {ed.instutionName}
+                              </span>
+                              <span className="experience-company">
+                                {EDUCATION_DEGREE_OPTIONS.find(
+                                  o => o.value === ed.degree
+                                )?.label}
+                              </span>
+                              {isOwnProfile && (
+                                <button
+                                  className="edit-btn"
+                                  onClick={() => openEditEdu(ed)}
+                                  style={{
+                                    marginLeft: 'auto',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  <Edit size={16} />
+                                </button>
+                              )}
+                            </div>
+                            <div className="experience-dates">
+                              {new Date(
+                                ed.startDate
+                              ).toLocaleDateString()}{' '}
+                              -{' '}
+                              {ed.endDate
+                                ? new Date(
+                                    ed.endDate
+                                  ).toLocaleDateString()
+                                : 'Devam Ediyor'}
+                            </div>
+                            <div className="experience-description">
+                              GPA: {ed.gpa?.toFixed(2) || '-'}<br />
+                              {ed.description}
+                            </div>
+                          </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
+                    
+                    {/* Show More/Less button only appears if there are more than 2 educations */}
+                    {educations.length > 2 && (
+                      <button 
+                        className="show-more-btn"
+                        onClick={() => toggleSection('education')}
+                      >
+                        {expandedSections.education ? 'Daha Az Göster' : 'Daha Fazla Göster'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
         </div>
 
         {/* Right Column */}
         <div className="right-column">
           {/* SKILL SECTION */}
-          {!currentUser?.isCompanyProfile && (
-            <section className="skill-section">
-              <div className="section-header">
-                <h2>Yetenekler</h2>
-                {isOwnProfile && (
-                  <button className="add-skill-btn" onClick={openAddSkill}>
-                    + Yeni Yetenek
-                  </button>
-                )}
-              </div>
-              {skillError && <div className="error-message">{skillError}</div>}
-              {skillLoading
-                ? <div>Yükleniyor...</div>
-                : <div className="skills-grid">
-                    {skills.map((sk) => {
-                      let level = Number(sk.skillProficiency);
-                      if (isNaN(level) || level < 1 || level > 5) level = 1;
+            {!currentUser?.isCompanyProfile && (
+              <section className="skill-section">
+                <div className="section-header">
+                  <h2>Yetenekler</h2>
+                  {isOwnProfile && (
+                    <button className="add-skill-btn" onClick={openAddSkill}>
+                      + Yeni Yetenek
+                    </button>
+                  )}
+                </div>
+                {skillError && <div className="error-message">{skillError}</div>}
+                {skillLoading ? (
+                  <div>Yükleniyor...</div>
+                ) : (
+                  <>
+                    <div className="skills-grid">
+                      {skills
+                        .slice(0, expandedSections.skills ? skills.length : 2)
+                        .map((sk) => {
+                          let level = Number(sk.skillProficiency) + 1; // Convert stored index (0-4) to UI value (1-5)
+                          if (isNaN(level) || level < 1 || level > 5) level = 1;
 
-                      return (
-                        <div key={sk.id} className="skill-card">
-                          <div className="skill-card-header">
-                            <span className="skill-name">{sk.skillName}</span>
-                            {isOwnProfile && (
-                              <button className="edit-btn" onClick={() => openEditSkill(sk)}>
-                                <Edit size={16}/>
-                              </button>
-                            )}
-                          </div>
-                          <div className="skill-proficiency-text">
-                            {getProficiencyLabel(level)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-              }
-            </section>
-          )}
+                          return (
+                            <div key={sk.id} className="skill-card">
+                              <div className="skill-card-header">
+                                <span className="skill-name">{sk.skillName}</span>
+                                {isOwnProfile && (
+                                  <button className="edit-btn" onClick={() => openEditSkill(sk)}>
+                                    <Edit size={16}/>
+                                  </button>
+                                )}
+                              </div>
+                              <div className="skill-proficiency-text">
+                                {getProficiencyLabel(level)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                    
+                    {/* Show More/Less button only appears if there are more than 2 skills */}
+                    {skills.length > 2 && (
+                      <button 
+                        className="show-more-btn"
+                        onClick={() => toggleSection('skills')}
+                      >
+                        {expandedSections.skills ? 'Daha Az Göster' : 'Daha Fazla Göster'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
 
           {/* LANGUAGE SECTION */}
-          {!currentUser?.isCompanyProfile && (
-            <section className="language-section">
-              <div className="section-header">
-                <h2>Diller</h2>
-                {isOwnProfile && (
-                  <button className="add-language-btn" onClick={openAddLang}>
-                    + Yeni Dil
-                  </button>
+            {!currentUser?.isCompanyProfile && (
+              <section className="language-section">
+                <div className="section-header">
+                  <h2>Diller</h2>
+                  {isOwnProfile && (
+                    <button className="add-language-btn" onClick={openAddLang}>
+                      + Yeni Dil
+                    </button>
+                  )}
+                </div>
+                {langError && <div className="error-message">{langError}</div>}
+                {langLoading ? (
+                  <div>Yükleniyor...</div>
+                ) : (
+                  <>
+                    <div className="languages-grid">
+                      {languages
+                        .slice(0, expandedSections.languages ? languages.length : 2)
+                        .map((l) => {
+                          const proficiencyLabel = LANGUAGE_PROFICIENCY_OPTIONS.find(
+                            opt => opt.value === l.languageProficiency
+                          )?.label || l.languageProficiency;
+                          
+                          return (
+                            <div key={l.id} className="language-card">
+                              <div className="language-card-header">
+                                <span className="language-name">{l.languageName}</span>
+                                {isOwnProfile && (
+                                  <button className="edit-btn"
+                                          onClick={() => openEditLang(l)}>
+                                    <Edit size={16}/>
+                                  </button>
+                                )}
+                              </div>
+                              <div className="language-proficiency-text">
+                                Seviye: {Number(l.languageProficiency) + 1}/5
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                    
+                    {/* Show More/Less button only appears if there are more than 2 languages */}
+                    {languages.length > 2 && (
+                      <button 
+                        className="show-more-btn"
+                        onClick={() => toggleSection('languages')}
+                      >
+                        {expandedSections.languages ? 'Daha Az Göster' : 'Daha Fazla Göster'}
+                      </button>
+                    )}
+                  </>
                 )}
-              </div>
-              {langError && <div className="error-message">{langError}</div>}
-              {langLoading
-                ? <div>Yükleniyor...</div>
-                : <div className="languages-grid">
-                    {languages.map((l) => {
-                      const proficiencyLabel = LANGUAGE_PROFICIENCY_OPTIONS.find(
-                        opt => opt.value === l.languageProficiency
-                      )?.label || l.languageProficiency;
-                      
-                      return (
-                        <div key={l.id} className="language-card">
-                          <div className="language-card-header">
-                            <span className="language-name">{l.languageName}</span>
-                            {isOwnProfile && (
-                              <button className="edit-btn"
-                                      onClick={() => openEditLang(l)}>
-                                <Edit size={16}/>
-                              </button>
-                            )}
-                          </div>
-                          <div className="language-proficiency-text">
-                            Seviye: {proficiencyLabel + 1}/5  
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-              }
-            </section>
-          )}
+              </section>
+            )}
 
           {/* PROJECT SECTION */}
-          {!currentUser?.isCompanyProfile && (
-            <section className="project-section">
-              <div className="section-header">
-                <h2>Projeler</h2>
-                {isOwnProfile && (
-                  <button className="add-project-btn" onClick={openAddProj}>
-                    + Yeni Proje
-                  </button>
-                )}
-              </div>
-              {projError && (
-                <div className="error-message">
-                  {projError}
+            {!currentUser?.isCompanyProfile && (
+              <section className="project-section">
+                <div className="section-header">
+                  <h2>Projeler</h2>
+                  {isOwnProfile && (
+                    <button className="add-project-btn" onClick={openAddProj}>
+                      + Yeni Proje
+                    </button>
+                  )}
                 </div>
-              )}
-              {projLoading ? (
-                <div>Yükleniyor...</div>
-              ) : (
-                <div className="projects-grid">
-                  {projects.map(p => (
-                    <div className="project-card" key={p.id}>
-                      <div className="project-card-header">
-                        <span className="project-name">
-                          {p.projectName}
-                        </span>
-                        {isOwnProfile && (
-                          <button
-                            className="edit-btn"
-                            onClick={() => openEditProj(p)}
-                          >
-                            <Edit size={16} />
-                          </button>
-                        )}
-                      </div>
-                      <div className="project-dates">
-                        {new Date(p.startDate).toLocaleDateString()} -{' '}
-                        {p.endDate ? new Date(p.endDate).toLocaleDateString() : 'Devam Ediyor'}
-                      </div>
-                      <div className="project-description">{p.description}</div>
-                      {p.projectUrl && (
-                        <div className="project-link">
-                          <a href={p.projectUrl} target="_blank" rel="noreferrer" className="github-link">
-                            <Github size={20} />
-                            GitHub Repo
-                          </a>
-                        </div>
-                      )}
+                {projError && <div className="error-message">{projError}</div>}
+                {projLoading ? (
+                  <div>Yükleniyor...</div>
+                ) : (
+                  <>
+                    <div className="projects-grid">
+                      {projects
+                        .slice(0, expandedSections.projects ? projects.length : 2)
+                        .map((p) => (
+                          <div key={p.id} className="project-card">
+                            <div className="project-card-header">
+                              <span className="project-name">{p.projectName}</span>
+                              {isOwnProfile && (
+                                <button className="edit-btn"
+                                        onClick={() => openEditProj(p)}>
+                                  <Edit size={16}/>
+                                </button>
+                              )}
+                            </div>
+                            <div className="project-dates">
+                              {new Date(p.startDate).toLocaleDateString()}{' '}
+                              -{' '}
+                              {p.endDate
+                                ? new Date(p.endDate).toLocaleDateString()
+                                : 'Devam Ediyor'}
+                            </div>
+                            <div className="project-description">
+                              {p.description}
+                            </div>
+                            {p.projectUrl && (
+                              <div className="project-link">
+                              <a href={p.projectUrl} target="_blank" rel="noreferrer" className="github-link">
+                                <Github size={20} />
+                                GitHub Repo
+                              </a>
+                            </div>
+                            )}
+                          </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
+                    
+                    {/* Show More/Less button only appears if there are more than 2 projects */}
+                    {projects.length > 2 && (
+                      <button 
+                        className="show-more-btn"
+                        onClick={() => toggleSection('projects')}
+                      >
+                        {expandedSections.projects ? 'Daha Az Göster' : 'Daha Fazla Göster'}
+                      </button>
+                    )}
+                  </>
+                )}
+              </section>
+            )}
         </div>
       </div>
 
