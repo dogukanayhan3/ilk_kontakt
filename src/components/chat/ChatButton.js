@@ -10,13 +10,12 @@ const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`;
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`;
 const EDUCATION_ROOT = `${API_BASE}/api/app/education`;
 const SKILL_ROOT = `${API_BASE}/api/app/skill`;
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 const WORK_TYPE_LABELS = {
   0: "Ofiste",
-  1: "Uzaktan",
+  1: "Uzaktan", 
   2: "Hibrit",
 };
 
@@ -29,10 +28,141 @@ const EXPERIENCE_LEVEL_LABELS = {
   5: "Yönetici",
 };
 
+// Utility Functions
 function getCookie(name) {
   const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
   return match ? match[2] : null;
 }
+
+// Enhanced intent detection
+const detectIntent = (message) => {
+  const lowerMessage = message.toLowerCase();
+  
+  // Job application intents - much more flexible
+  const applicationIntents = [
+    /başvur/i, /apply/i, /başvurmak\s+istiyorum/i, /bu\s+işe\s+başvur/i,
+    /bu\s+pozisyona\s+başvur/i, /başvuru\s+yap/i, /başvuru\s+göndermek/i,
+    /bu\s+iş\s+için\s+başvur/i, /ilgileniyorum/i, /bu\s+işi\s+istiyorum/i,
+    /başvurmak\s+isterim/i, /başvuru\s+yapmak/i, /bu\s+pozisyon\s+için/i,
+    /iş\s+başvurusu/i, /pozisyon\s+başvuru/i, /başvuru\s+formu/i,
+    /bu\s+işte\s+çalışmak/i, /bu\s+şirkette\s+çalışmak/i
+  ];
+  
+  // Job search intents
+  const searchIntents = [
+    /ara/i, /bul/i, /göster/i, /listele/i, /hangi\s+işler/i,
+    /iş\s+ara/i, /pozisyon\s+ara/i, /iş\s+bul/i, /ne\s+işler\s+var/i,
+    /iş\s+ilanları/i, /açık\s+pozisyonlar/i, /mevcut\s+işler/i,
+    /hangi\s+pozisyonlar/i, /iş\s+fırsatları/i, /kariyer\s+fırsatları/i
+  ];
+  
+  // Recommendation intents
+  const recommendIntents = [
+    /öner/i, /tavsiye/i, /uygun/i, /bana\s+göre/i, /benzer/i,
+    /hangi\s+işler\s+uygun/i, /ne\s+önerirsin/i, /benim\s+için/i,
+    /profilime\s+uygun/i, /becerilerime\s+uygun/i, /deneyimime\s+uygun/i,
+    /kişiselleştirilmiş/i, /özel\s+öneriler/i, /size\s+özel/i
+  ];
+
+  // Profile intents
+  const profileIntents = [
+    /profil/i, /hakkımda/i, /bilgilerim/i, /özgeçmiş/i, /cv/i,
+    /deneyimlerim/i, /becerilerim/i, /eğitimim/i, /yeteneklerim/i
+  ];
+
+  // Platform info intents
+  const platformIntents = [
+    /platform/i, /ilk\s+kontakt/i, /nasıl\s+çalışır/i, /özellikler/i,
+    /hakkında/i, /nedir/i, /ne\s+işe\s+yarar/i, /mentorluk/i, /ağ\s+kurma/i
+  ];
+  
+  if (applicationIntents.some(pattern => pattern.test(lowerMessage))) {
+    return 'apply';
+  }
+  if (searchIntents.some(pattern => pattern.test(lowerMessage))) {
+    return 'search';
+  }
+  if (recommendIntents.some(pattern => pattern.test(lowerMessage))) {
+    return 'recommend';
+  }
+  if (profileIntents.some(pattern => pattern.test(lowerMessage))) {
+    return 'profile';
+  }
+  if (platformIntents.some(pattern => pattern.test(lowerMessage))) {
+    return 'platform';
+  }
+  
+  return 'general';
+};
+
+// Enhanced job extraction from message
+const extractJobFromMessage = (message, jobListings) => {
+  // Remove common application words and clean the message
+  const cleanMessage = message
+    .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|pozisyon|iş|çalışmak)/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  if (!cleanMessage) return null;
+
+  // Try exact title match first
+  let job = jobListings.find(j => 
+    j.title.toLowerCase() === cleanMessage.toLowerCase()
+  );
+  
+  if (!job) {
+    // Try partial title match
+    job = jobListings.find(j => 
+      j.title.toLowerCase().includes(cleanMessage.toLowerCase()) ||
+      cleanMessage.toLowerCase().includes(j.title.toLowerCase())
+    );
+  }
+  
+  if (!job) {
+    // Try company name match
+    job = jobListings.find(j => 
+      j.company.toLowerCase().includes(cleanMessage.toLowerCase()) ||
+      cleanMessage.toLowerCase().includes(j.company.toLowerCase())
+    );
+  }
+  
+  if (!job) {
+    // Try fuzzy matching with keywords
+    const keywords = cleanMessage.split(' ').filter(word => word.length > 2);
+    if (keywords.length > 0) {
+      job = jobListings.find(j => {
+        const jobText = `${j.title} ${j.company} ${j.description || ''}`.toLowerCase();
+        return keywords.every(keyword => 
+          jobText.includes(keyword.toLowerCase())
+        ) || keywords.some(keyword => 
+          jobText.includes(keyword.toLowerCase()) && keyword.length > 4
+        );
+      });
+    }
+  }
+  
+  return job;
+};
+
+// Enhanced search function
+const searchJobs = (searchTerms, jobListings) => {
+  if (!searchTerms.trim()) return [];
+  
+  const terms = searchTerms.toLowerCase().split(' ').filter(term => term.length > 1);
+  
+  return jobListings.filter(job => {
+    const jobText = `${job.title} ${job.company} ${job.description || ''} ${job.location || ''}`.toLowerCase();
+    
+    // Exact phrase match gets highest priority
+    if (jobText.includes(searchTerms.toLowerCase())) {
+      return true;
+    }
+    
+    // Multiple term match
+    const matchCount = terms.filter(term => jobText.includes(term)).length;
+    return matchCount >= Math.ceil(terms.length / 2); // At least half of the terms should match
+  });
+};
 
 const ChatButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,96 +203,29 @@ const ChatButton = () => {
   useEffect(() => {
     if ('speechSynthesis' in window) {
       speechSynthesisRef.current = window.speechSynthesis;
-      
-      // Get available voices
-      const voices = speechSynthesisRef.current.getVoices();
-      // Find Turkish voices
-      const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
-      
-      // If Turkish voices are available, set the default voice
-      if (turkishVoices.length > 0) {
-        // Prefer female Turkish voice if available
-        const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
-        speechSynthesisRef.current.defaultVoice = preferredVoice;
-      }
     }
   }, []);
 
-  // Function to speak text
-  const speakText = (text) => {
-    if (!speechSynthesisRef.current) return;
-
-    // Stop any ongoing speech
-    speechSynthesisRef.current.cancel();
-
-    // Create new utterance
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Force Turkish language
-    utterance.lang = 'tr-TR';
-    
-    // Get available voices
-    const voices = speechSynthesisRef.current.getVoices();
-    // Find Turkish voices
-    const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
-    
-    // Set Turkish voice if available
-    if (turkishVoices.length > 0) {
-      // Prefer female Turkish voice if available
-      const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
-      utterance.voice = preferredVoice;
-    }
-
-    // Adjust speech parameters for better Turkish pronunciation
-    utterance.rate = 0.9; // Slightly slower for better clarity
-    utterance.pitch = 1.0;
-    utterance.volume = 1.0;
-
-    // Set up event handlers
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    // Store reference to current utterance
-    speechUtteranceRef.current = utterance;
-
-    // Speak the text
-    speechSynthesisRef.current.speak(utterance);
-  };
-
-  // Stop speaking
-  const stopSpeaking = () => {
-    if (speechSynthesisRef.current) {
-      speechSynthesisRef.current.cancel();
-      setIsSpeaking(false);
-    }
-  };
-
-  // --- Speech Recognition Setup ---
+  // Speech Recognition Setup
   useEffect(() => {
-    // Only set up once
-    if (
-      !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
-    ) {
+    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
       recognitionRef.current = null;
       return;
     }
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = "tr-TR"; // Turkish
+    recognition.lang = "tr-TR";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
-    recognition.continuous = false; // Stop after user stops talking
+    recognition.continuous = false;
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
-
     recognition.onerror = (event) => {
       setIsListening(false);
-      // Optionally show error to user
       if (event.error !== "no-speech") {
-        alert("Mikrofon hatası: " + event.error);
+        console.error("Speech recognition error:", event.error);
       }
     };
 
@@ -177,55 +240,7 @@ const ChatButton = () => {
     recognitionRef.current = recognition;
   }, []);
 
-  // --- Handle Speech Result ---
-  const handleSpeechResult = async (transcript) => {
-    const userMessage = {
-      text: transcript,
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const reply = await processMessage(transcript);
-      const botMessage = {
-        text: reply,
-        sender: "bot",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, botMessage]);
-      // Speak the bot's response
-      speakText(reply);
-    } catch (error) {
-      console.error("Error processing speech result:", error);
-      const errorMessage = {
-        text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
-        sender: "bot",
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
-      speakText(errorMessage.text);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // --- Start/Stop Listening ---
-  const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      // Stop any ongoing speech
-      stopSpeaking();
-      recognitionRef.current.start();
-    }
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-    }
-  };
-
+  // API Functions
   const fetchJobListings = async () => {
     try {
       const response = await fetch(
@@ -255,7 +270,6 @@ const ChatButton = () => {
         const profile = await res.json();
         setUserProfile(profile);
 
-        // Fetch related data
         await Promise.all([
           fetchUserExperiences(profile.id),
           fetchUserEducations(profile.id),
@@ -309,69 +323,111 @@ const ChatButton = () => {
     }
   };
 
-  const findJobByTitle = (title) => {
-    const searchTitle = title.toLowerCase();
-    return jobListings.find(
-      (job) =>
-        job.title.toLowerCase().includes(searchTitle) ||
-        job.company.toLowerCase().includes(searchTitle) ||
-        job.description?.toLowerCase().includes(searchTitle)
-    );
-  };
-
-  const findJobsByKeywords = (keywords) => {
-    const searchTerms = keywords.toLowerCase().split(" ");
-    return jobListings.filter((job) =>
-      searchTerms.some(
-        (term) =>
-          job.title.toLowerCase().includes(term) ||
-          job.company.toLowerCase().includes(term) ||
-          job.description?.toLowerCase().includes(term) ||
-          job.location?.toLowerCase().includes(term)
-      )
-    );
-  };
-
-  const getRecommendedJobs = () => {
-    if (!userSkills.length && !userExperiences.length) {
+  // Enhanced recommendation algorithm
+  const getAdvancedRecommendations = () => {
+    console.log('🔍 Starting advanced job recommendations...');
+    
+    if (!userSkills.length && !userExperiences.length && !userEducations.length) {
+      console.log('⚠️ No user data found, returning first 5 jobs');
       return jobListings.slice(0, 5);
     }
 
-    const userSkillNames = userSkills.map((skill) =>
-      skill.skillName.toLowerCase()
+    const userSkillNames = userSkills.map(skill => skill.skillName.toLowerCase());
+    const userExperienceTitles = userExperiences.map(exp => exp.title.toLowerCase());
+    const userEducationFields = userEducations.map(edu => 
+      (edu.fieldOfStudy || edu.instutionName || '').toLowerCase()
     );
-    const userCompanies = userExperiences.map((exp) =>
-      exp.companyName.toLowerCase()
-    );
-    const userTitles = userExperiences.map((exp) => exp.title.toLowerCase());
+    const userCompanies = userExperiences.map(exp => exp.companyName.toLowerCase());
 
-    const scoredJobs = jobListings.map((job) => {
+    console.log('🎯 User Skills:', userSkillNames);
+    console.log('💼 User Experience Titles:', userExperienceTitles);
+    console.log('🎓 User Education Fields:', userEducationFields);
+
+    const scoredJobs = jobListings.map(job => {
       let score = 0;
-      const jobText = `${job.title} ${job.description || ""} ${
-        job.company
-      }`.toLowerCase();
-
-      // Score based on skills
-      userSkillNames.forEach((skill) => {
-        if (jobText.includes(skill)) score += 3;
+      const jobText = `${job.title} ${job.description || ""} ${job.company}`.toLowerCase();
+      
+      // Skill matching (highest weight - 5 points each)
+      userSkillNames.forEach(skill => {
+        if (jobText.includes(skill)) {
+          score += 5;
+          console.log(`✅ Exact skill match: "${skill}" in job "${job.title}"`);
+        } else {
+          // Partial skill matching (2 points each word)
+          const skillWords = skill.split(' ').filter(word => word.length > 3);
+          skillWords.forEach(word => {
+            if (jobText.includes(word)) {
+              score += 2;
+              console.log(`✅ Partial skill match: "${word}" in job "${job.title}"`);
+            }
+          });
+        }
+      });
+      
+      // Experience title matching (4 points exact, 1.5 partial)
+      userExperienceTitles.forEach(title => {
+        if (jobText.includes(title)) {
+          score += 4;
+          console.log(`✅ Exact title match: "${title}" in job "${job.title}"`);
+        } else {
+          const titleWords = title.split(' ').filter(word => word.length > 3);
+          titleWords.forEach(word => {
+            if (jobText.includes(word)) {
+              score += 1.5;
+              console.log(`✅ Partial title match: "${word}" in job "${job.title}"`);
+            }
+          });
+        }
+      });
+      
+      // Education field matching (3 points)
+      userEducationFields.forEach(field => {
+        if (field && jobText.includes(field)) {
+          score += 3;
+          console.log(`✅ Education match: "${field}" in job "${job.title}"`);
+        }
       });
 
-      // Score based on similar titles
-      userTitles.forEach((title) => {
-        if (jobText.includes(title)) score += 2;
+      // Company experience bonus (1 point)
+      userCompanies.forEach(company => {
+        if (jobText.includes(company)) {
+          score += 1;
+          console.log(`✅ Company experience match: "${company}" in job "${job.title}"`);
+        }
       });
-
-      // Score based on company experience
-      userCompanies.forEach((company) => {
-        if (jobText.includes(company)) score += 1;
-      });
-
+      
+      // Experience level matching (2 points)
+      if (userExperiences.length > 0) {
+        const userExpYears = userExperiences.length; // Simplified calculation
+        if (userExpYears <= 2 && job.experienceLevel <= 1) {
+          score += 2;
+          console.log(`✅ Experience level match for entry level in job "${job.title}"`);
+        } else if (userExpYears <= 5 && job.experienceLevel <= 2) {
+          score += 2;
+          console.log(`✅ Experience level match for mid level in job "${job.title}"`);
+        } else if (userExpYears > 5 && job.experienceLevel >= 3) {
+          score += 2;
+          console.log(`✅ Experience level match for senior level in job "${job.title}"`);
+        }
+      }
+      
+      console.log(`📊 Job "${job.title}" final score: ${score}`);
       return { ...job, score };
     });
 
-    return scoredJobs.sort((a, b) => b.score - a.score).slice(0, 5);
+    const recommendedJobs = scoredJobs
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+      
+    console.log('🎯 Final Recommended Jobs:', recommendedJobs.map(job => ({
+      title: job.title,
+      score: job.score
+    })));
+    
+    return recommendedJobs;
   };
 
+  // Formatting functions
   const formatJobDetails = (job) => {
     return `📋 Pozisyon: ${job.title}
 🏢 Şirket: ${job.company}
@@ -386,39 +442,38 @@ const ChatButton = () => {
     if (jobs.length === 0) return "Uygun iş ilanı bulunamadı.";
 
     const jobList = jobs
-      .map(
-        (job, index) =>
-          `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
-            job.location || "Belirtilmemiş"
-          }\n   💼 ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}`
+      .map((job, index) => 
+        `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
+          job.location || "Belirtilmemiş"
+        }\n   💼 ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}${
+          job.score ? `\n   🎯 Uygunluk: ${Math.round(job.score * 10)}%` : ""
+        }`
       )
       .join("\n\n");
 
-    return `${
-      title ? title + "\n\n" : ""
-    }${jobList}\n\nDetayları görmek için "X numaralı ilanı göster" yazabilirsiniz.`;
+    return `${title ? title + "\n\n" : ""}${jobList}\n\nDetayları görmek için "X numaralı ilanı göster" yazabilirsiniz.`;
   };
 
   const getUserProfileSummary = () => {
-    if (!userProfile) return "";
+    if (!userProfile) return "Profil bilgileriniz henüz yüklenmemiş.";
 
-    const skills = userSkills.map((s) => s.skillName).join(", ");
+    const skills = userSkills.map(s => s.skillName).join(", ");
     const latestExp = userExperiences.length > 0 ? userExperiences[0] : null;
     const latestEdu = userEducations.length > 0 ? userEducations[0] : null;
 
-    return `Kullanıcı Profili:
-Ad: ${userProfile.name || ""} ${userProfile.surname || ""}
-Hakkında: ${userProfile.about || "Belirtilmemiş"}
-Yetenekler: ${skills || "Belirtilmemiş"}
-Son Deneyim: ${
-      latestExp
-        ? `${latestExp.title} @ ${latestExp.companyName}`
-        : "Belirtilmemiş"
-    }
-Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
+    return `👤 Profil Bilgileriniz:
+
+📝 Ad: ${userProfile.name || ""} ${userProfile.surname || ""}
+💭 Hakkında: ${userProfile.about || "Belirtilmemiş"}
+🎯 Yetenekler: ${skills || "Belirtilmemiş"}
+💼 Son Deneyim: ${latestExp ? `${latestExp.title} @ ${latestExp.companyName}` : "Belirtilmemiş"}
+🎓 Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}
+📊 Toplam Deneyim: ${userExperiences.length} pozisyon
+🏫 Eğitim Sayısı: ${userEducations.length} kurum
+⚡ Yetenek Sayısı: ${userSkills.length} beceri`;
   };
 
-  // FIXED: Enhanced job application function with proper error handling
+  // Enhanced job application function
   const handleApplyToJob = async (jobId) => {
     console.log("🚀 Starting job application process for job ID:", jobId);
 
@@ -435,7 +490,6 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
     try {
       console.log("🔄 Step 1: Getting XSRF token...");
 
-      // 1) Get XSRF token by hitting the configuration endpoint
       const configResponse = await fetch(
         `${API_BASE}/api/abp/application-configuration`,
         {
@@ -452,9 +506,6 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
         throw new Error("Konfigürasyon alınamadı");
       }
 
-      console.log("✅ Configuration response received");
-
-      // 2) Extract XSRF token from cookie
       const xsrf = getCookie("XSRF-TOKEN");
       console.log("🔑 XSRF Token:", xsrf ? "Found" : "Not found");
 
@@ -464,14 +515,8 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
 
       console.log("🔄 Step 2: Submitting job application...");
 
-      // 3) Create the job application payload
-      const applicationPayload = {
-        jobListingId: jobId,
-      };
+      const applicationPayload = { jobListingId: jobId };
 
-      console.log("📦 Application payload:", applicationPayload);
-
-      // 4) Submit the job application
       const response = await fetch(JOB_APPLICATIONS_ROOT, {
         method: "POST",
         credentials: "include",
@@ -485,10 +530,6 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
       });
 
       console.log("📡 Application response status:", response.status);
-      console.log(
-        "📡 Application response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
 
       if (!response.ok) {
         console.error("❌ Application failed with status:", response.status);
@@ -506,24 +547,19 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
           }
         } catch (parseError) {
           console.error("❌ Could not parse error response:", parseError);
-          const errorText = await response.text();
-          console.error("❌ Raw error response:", errorText);
         }
 
         throw new Error(errorMessage);
       }
 
       console.log("✅ Application submitted successfully");
-
-      // 5) Parse the successful response
       const responseData = await response.json();
       console.log("✅ Application response data:", responseData);
 
-      return "✅ Başvurunuz başarıyla alındı! İyi şanslar!";
+      return "✅ Başvurunuz başarıyla alındı! İyi şanslar! Başvuru durumunuzu profil sayfanızdan takip edebilirsiniz.";
     } catch (error) {
       console.error("❌ Application error:", error);
 
-      // Provide more specific error messages
       if (error.message.includes("XSRF")) {
         return "❌ Güvenlik token hatası. Lütfen sayfayı yenileyin ve tekrar deneyin.";
       } else if (error.message.includes("Network")) {
@@ -536,150 +572,145 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
     }
   };
 
-  const processMessage = async (userMessage) => {
-    // Gelen mesajı küçük harfe çevir
-    const lowerMessage = userMessage.toLowerCase();
+  // Enhanced Gemini prompt creation
+  const createEnhancedPrompt = (userMessage, userContext, jobContext, chatHistory) => {
+    return `Sen "İlk Kontakt" platformunun uzman kariyer asistanısın. Bu platform profesyonel ağ kurma ve kariyer gelişiminin yeni adresidir.
 
-    // Handle job application confirmation
-    if (pendingApplication) {
-      if (
-        lowerMessage.includes("evet") ||
-        lowerMessage.includes("onaylıyorum") ||
-        lowerMessage.includes("başvur")
-      ) {
-        console.log(
-          "🎯 User confirmed application for job:",
-          pendingApplication.id
-        );
-        const result = await handleApplyToJob(pendingApplication.id);
-        setPendingApplication(null);
-        return result;
-      } else if (
-        lowerMessage.includes("hayır") ||
-        lowerMessage.includes("iptal")
-      ) {
-        console.log("❌ User cancelled application");
-        setPendingApplication(null);
-        return "Başvuru işlemi iptal edildi.";
+PLATFORM HAKKINDA:
+İlk Kontakt, profesyonel ağ kurmak, kariyerini geliştirmek ve yeni iş fırsatları bulmak isteyen herkes için tasarlanmış kapsamlı bir dijital platformdur. 
+
+TEMEL ÖZELLİKLER:
+• Kariyer Gelişimi: Kişiselleştirilmiş kariyer tavsiyeleri, beceri geliştirme imkanları ve sektör bilgileri
+• Etkili Ağ Oluşturma: Meslektaşlar, sektör liderleri ve potansiyel iş birlikçileriyle bağlantı kurma
+• Akıllı İş Arama: Yeteneklere ve hedeflere uygun iş ilanları ve hızlı başvuru sistemi
+• Bilgi Paylaşımı: Makaleler, içgörüler ve sektör haberleri paylaşım platformu
+• Mentorluk: Deneyimli profesyonellerle eşleştirme ve kariyer rehberliği
+• Şirket Markalaşması: Kurumsal kültür sergileme ve yetenek çekme fırsatları
+• Veri Analitiği: Profil görüntülemeleri, bağlantı büyümesi ve etkileşim takibi
+
+KULLANICI PROFİLİ:
+${userContext}
+
+MEVCUT İŞ İLANLARI (İlk 10):
+${jobContext}
+
+ÖNCEKİ KONUŞMA:
+${chatHistory}
+
+KULLANICI MESAJI: "${userMessage}"
+
+GÖREVİN:
+1. Kullanıcının mesajındaki niyeti doğru anlayarak uygun yanıt ver
+2. İş başvurusu istiyorsa: Spesifik pozisyon adıyla "X pozisyonuna başvur" formatını öner
+3. İş arama istiyorsa: Kullanıcının profiline uygun önerilerde bulun
+4. Genel sorularda: İlk Kontakt'ın özelliklerini doğal şekilde entegre et
+5. Kullanıcının deneyim, beceri ve eğitimine göre kişiselleştirilmiş tavsiyeler ver
+6. Platform özelliklerini (mentorluk, ağ kurma, veri analitiği) vurgula
+
+YANIT KURALLARI:
+- Türkçe ve samimi bir dil kullan
+- Maksimum 4-5 cümle ile öz yanıt ver
+- Kullanıcının deneyim/becerilerine göre özelleştir
+- Platform özelliklerini doğal şekilde entegre et
+- Emoji kullanma, profesyonel kal
+- Somut öneriler ve eylem adımları ver
+
+YANIT:`;
+  };
+
+  // Message processing handlers
+  const handleJobApplication = async (userMessage) => {
+    console.log("🎯 Handling job application request");
+    
+    const job = extractJobFromMessage(userMessage, jobListings);
+    console.log("🔍 Extracted job:", job ? job.title : "Not found");
+
+    if (!job) {
+      // Try to find similar jobs
+      const searchTerms = userMessage
+        .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine)/gi, '')
+        .trim();
+      
+      const suggestions = searchJobs(searchTerms, jobListings).slice(0, 3);
+      
+      if (suggestions.length > 0) {
+        return `❌ Belirttiğiniz pozisyon bulunamadı. Benzer ilanlar:\n\n${formatJobList(suggestions)}\n\nBunlardan birine başvurmak için tam pozisyon adını yazın.`;
       }
-      return "Lütfen 'evet' veya 'hayır' diyerek başvurunuzu onaylayın veya iptal edin.";
+      return `❌ Belirttiğiniz pozisyona ait bir ilan bulamadım. "listele" yazarak tüm ilanları görebilir veya "öner" yazarak size uygun pozisyonları bulabilirsiniz.`;
     }
 
-    // Handle numbered job details
-    const numberMatch = lowerMessage.match(
-      /(\d+)\s*numaralı\s*ilanı?\s*göster/
-    );
-    if (numberMatch) {
-      const jobIndex = parseInt(numberMatch[1]) - 1;
-      if (jobIndex >= 0 && jobIndex < jobListings.length) {
-        const job = jobListings[jobIndex];
-        return `${formatJobDetails(job)}\n\nBu pozisyona başvurmak için "${
-          job.title
-        } pozisyonuna başvur" yazabilirsiniz.`;
-      }
-      return "❌ Geçersiz ilan numarası.";
+    if (job.externalUrl) {
+      return `Bu pozisyon için harici başvuru gerekiyor:\n\n${formatJobDetails(job)}\n\n🔗 Başvuru linki: ${job.externalUrl}`;
     }
 
-    // Handle job listing requests
-    if (
-      lowerMessage.includes("listele") ||
-      lowerMessage.includes("ilanları göster") ||
-      lowerMessage.includes("tüm ilanlar")
-    ) {
+    console.log("✅ Setting pending application for job:", job.id);
+    setPendingApplication(job);
+    return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(job)}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
+  };
+
+  const handleJobSearch = (userMessage) => {
+    console.log("🔍 Handling job search request");
+    
+    // Extract search terms
+    const searchTerms = userMessage
+      .replace(/(ara|bul|göster|listele|hangi işler|iş ara|pozisyon ara|iş bul|ne işler var)/gi, '')
+      .trim();
+
+    if (!searchTerms) {
       return formatJobList(jobListings, "Mevcut İş İlanları:");
     }
 
-    // Handle job search
-    if (lowerMessage.includes("ara") || lowerMessage.includes("bul")) {
-      const searchTerms = userMessage.replace(/(ara|bul)/gi, "").trim();
-      if (searchTerms) {
-        const foundJobs = findJobsByKeywords(searchTerms);
-        return formatJobList(
-          foundJobs,
-          `"${searchTerms}" için bulunan ilanlar:`
-        );
-      }
-      return "Arama yapmak için 'frontend ara' veya 'istanbul bul' gibi bir komut yazın.";
+    const foundJobs = searchJobs(searchTerms, jobListings);
+    return formatJobList(foundJobs, `"${searchTerms}" için bulunan ilanlar:`);
+  };
+
+  const handleJobRecommendations = () => {
+    console.log("💡 Handling job recommendations request");
+    
+    const recommendedJobs = getAdvancedRecommendations();
+    
+    if (recommendedJobs.every(job => job.score === 0)) {
+      return formatJobList(recommendedJobs, "Size önerilen iş ilanları (genel öneriler):");
     }
+    
+    return formatJobList(recommendedJobs, "Profilinize uygun önerilen iş ilanları:");
+  };
 
-    // Handle job applications - ENHANCED
-    if (lowerMessage.includes("başvur")) {
-      console.log("🎯 User wants to apply to a job");
-
-      const jobTitle = userMessage
-        .replace(/başvur/i, "")
-        .replace(/pozisyonuna|için/gi, "")
-        .trim();
-      console.log("🔍 Looking for job with title:", jobTitle);
-
-      const job = findJobByTitle(jobTitle);
-      console.log("🎯 Found job:", job ? job.title : "Not found");
-
-      if (!job) {
-        const suggestions = findJobsByKeywords(jobTitle).slice(0, 3);
-        if (suggestions.length > 0) {
-          return `❌ "${jobTitle}" pozisyonu bulunamadı. Benzer ilanlar:\n\n${formatJobList(
-            suggestions
-          )}\n\nBunlardan birine başvurmak için tam pozisyon adını yazın.`;
-        }
-        return `❌ "${jobTitle}" pozisyonuna ait bir ilan bulamadım. "listele" yazarak tüm ilanları görebilirsiniz.`;
-      }
-
-      if (job.externalUrl) {
-        return `Bu pozisyon için harici başvuru gerekiyor:\n\n${formatJobDetails(
-          job
-        )}\n\n🔗 Başvuru linki: ${job.externalUrl}`;
-      }
-
-      console.log("✅ Setting pending application for job:", job.id);
-      setPendingApplication(job);
-      return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(
-        job
-      )}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
+  const handleProfileQuery = () => {
+    console.log("👤 Handling profile query");
+    
+    if (!userProfile) {
+      return "Profilinizi görüntüleyebilmek için önce profil sayfanızı oluşturmanız gerekiyor. Profil sayfanızda eğitim geçmişinizi, iş deneyimlerinizi ve becerilerinizi ekleyerek size daha uygun iş önerileri alabilirsiniz.";
     }
+    
+    return getUserProfileSummary();
+  };
 
-    // Handle job recommendations
-    if (
-      lowerMessage.includes("öner") ||
-      lowerMessage.includes("benzer") ||
-      lowerMessage.includes("uygun")
-    ) {
-      const recommendedJobs = getRecommendedJobs();
-      return formatJobList(recommendedJobs, "Size önerilen iş ilanları:");
-    }
+  const handlePlatformQuery = async (userMessage) => {
+    console.log("🏢 Handling platform information query");
+    
+    // Use Gemini for platform-specific questions
+    return await handleGeneralQuery(userMessage);
+  };
 
-    // Handle profile-related queries
-    if (
-      lowerMessage.includes("profil") ||
-      lowerMessage.includes("hakkımda") ||
-      lowerMessage.includes("bilgilerim")
-    ) {
-      if (!userProfile) {
-        return "Profilinizi görüntüleyebilmek için önce profil sayfanızı oluşturmanız gerekiyor.";
-      }
-      return getUserProfileSummary();
-    }
-
-    // For other queries, use Gemini API with enhanced context
+  const handleGeneralQuery = async (userMessage) => {
+    console.log("💬 Handling general query with Gemini");
+    
     try {
       const recentMessages = messages.slice(-5);
       const chatHistoryContext = recentMessages
-        .map(
-          (msg) =>
-            `${msg.sender === "user" ? "Kullanıcı" : "Asistan"}: ${msg.text}`
-        )
+        .map(msg => `${msg.sender === "user" ? "Kullanıcı" : "Asistan"}: ${msg.text}`)
         .join("\n");
 
       const userContext = getUserProfileSummary();
       const jobContext = jobListings
         .slice(0, 10)
-        .map(
-          (job) =>
-            `${job.title} - ${job.company} (${job.location}) - ${
-              WORK_TYPE_LABELS[job.workType]
-            }`
+        .map(job => 
+          `${job.title} - ${job.company} (${job.location}) - ${WORK_TYPE_LABELS[job.workType]}`
         )
         .join("\n");
+
+      const prompt = createEnhancedPrompt(userMessage, userContext, jobContext, chatHistoryContext);
 
       const response = await fetch(`${GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`, {
         method: "POST",
@@ -687,49 +718,7 @@ Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `Sen "İlk Kontakt" platformunun uzman asistanısın. Platform, profesyonel ağ kurma, kariyer geliştirme ve iş fırsatları bulma konusunda kullanıcılara yardımcı olan kapsamlı bir sistemdir.
-
-PLATFORM ÖZELLİKLERİ:
-- Profesyonel Profil Yönetimi: Kullanıcılar eğitim geçmişi, iş deneyimi, beceriler ve başarılarını içeren kapsamlı profiller oluşturabilir
-- Ağ Oluşturma: Meslektaşlar, akranlar ve sektör profesyonelleriyle bağlantı kurma imkanı
-- İş Fırsatları: Kişiselleştirilmiş iş ilanları ve başvuru sistemi
-- Bilgi Paylaşımı: Makaleler, içgörüler ve sektör haberleri paylaşımı
-- Şirket Profilleri: Şirketlerin kurumsal kültürlerini tanıtma ve iş ilanları yayınlama
-- Mentorluk: Deneyimli profesyonellerle eşleştirme ve kariyer rehberliği
-- Veri Analitiği: Profil görüntülemeleri, bağlantı büyümesi ve etkileşim oranları takibi
-
-KULLANICI BİLGİLERİ:
-${userContext}
-
-MEVCUT İŞ İLANLARI:
-${jobContext}
-
-ÖNCEKİ KONUŞMA:
-${chatHistoryContext}
-
-KULLANICI SORUSU: ${userMessage}
-
-KURALLAR:
-- Kısa ve öz cevaplar ver (maksimum 3-4 cümle)
-- Türkçe cevap ver
-- Emoji kullanma
-- Kullanıcının profiline uygun öneriler yap
-- İş ilanları hakkında sorularda spesifik bilgi ver
-- Başvuru yapmak için "X pozisyonuna başvur" formatını öner
-- Profesyonel ve yardımsever ol
-- Platform özelliklerini vurgula
-- Mentorluk ve ağ oluşturma fırsatlarını öne çıkar
-- Kariyer gelişimi için önerilerde bulun
-
-CEVAP:`,
-                },
-              ],
-            },
-          ],
+          contents: [{ parts: [{ text: prompt }] }],
         }),
       });
 
@@ -737,13 +726,146 @@ CEVAP:`,
       if (data.candidates && data.candidates[0].content) {
         return data.candidates[0].content.parts[0].text;
       }
-      return "Üzgünüm, şu anda size yardımcı olamıyorum. Lütfen tekrar deneyin.";
+      return "Üzgünüm, şu anda size yardımcı olamıyorum. 'listele' yazarak iş ilanlarını görebilir, 'öner' yazarak size uygun pozisyonları bulabilirsiniz.";
     } catch (error) {
       console.error("Error sending message to Gemini:", error);
       return "Bir hata oluştu. 'listele' yazarak iş ilanlarını görebilir, 'öner' yazarak size uygun pozisyonları bulabilirsiniz.";
     }
   };
 
+  // Main message processing function
+  const processMessage = async (userMessage) => {
+    const intent = detectIntent(userMessage);
+    const lowerMessage = userMessage.toLowerCase();
+    
+    console.log("🎯 Detected intent:", intent);
+    console.log("📝 User message:", userMessage);
+
+    // Handle pending applications with flexible confirmation
+    if (pendingApplication) {
+      const confirmationWords = ['evet', 'onaylıyorum', 'başvur', 'tamam', 'olur', 'kabul', 'onayla', 'yes'];
+      const cancelWords = ['hayır', 'iptal', 'vazgeç', 'olmaz', 'cancel', 'no'];
+      
+      if (confirmationWords.some(word => lowerMessage.includes(word))) {
+        const result = await handleApplyToJob(pendingApplication.id);
+        setPendingApplication(null);
+        return result;
+      } else if (cancelWords.some(word => lowerMessage.includes(word))) {
+        setPendingApplication(null);
+        return "Başvuru işlemi iptal edildi. Başka bir pozisyon için 'öner' yazarak size uygun ilanları görebilirsiniz.";
+      }
+      return "Lütfen başvurunuzu onaylamak için 'evet', iptal etmek için 'hayır' deyin.";
+    }
+
+    // Handle numbered job details
+    const numberMatch = lowerMessage.match(/(\d+)\s*numaralı\s*ilanı?\s*göster/);
+    if (numberMatch) {
+      const jobIndex = parseInt(numberMatch[1]) - 1;
+      if (jobIndex >= 0 && jobIndex < jobListings.length) {
+        const job = jobListings[jobIndex];
+        return `${formatJobDetails(job)}\n\nBu pozisyona başvurmak için "${job.title} pozisyonuna başvur" yazabilirsiniz.`;
+      }
+      return "❌ Geçersiz ilan numarası. 'listele' yazarak mevcut ilanları görebilirsiniz.";
+    }
+
+    // Route to appropriate handler based on intent
+    switch (intent) {
+      case 'apply':
+        return await handleJobApplication(userMessage);
+      case 'search':
+        return handleJobSearch(userMessage);
+      case 'recommend':
+        return handleJobRecommendations();
+      case 'profile':
+        return handleProfileQuery();
+      case 'platform':
+        return await handlePlatformQuery(userMessage);
+      default:
+        return await handleGeneralQuery(userMessage);
+    }
+  };
+
+  // Speech functions
+  const speakText = (text) => {
+    if (!speechSynthesisRef.current) return;
+
+    speechSynthesisRef.current.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    utterance.lang = 'tr-TR';
+    utterance.rate = 0.9;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    const voices = speechSynthesisRef.current.getVoices();
+    const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
+    
+    if (turkishVoices.length > 0) {
+      const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
+      utterance.voice = preferredVoice;
+    }
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    speechUtteranceRef.current = utterance;
+    speechSynthesisRef.current.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    if (speechSynthesisRef.current) {
+      speechSynthesisRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const handleSpeechResult = async (transcript) => {
+    const userMessage = {
+      text: transcript,
+      sender: "user",
+      timestamp: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const reply = await processMessage(transcript);
+      const botMessage = {
+        text: reply,
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, botMessage]);
+      speakText(reply);
+    } catch (error) {
+      console.error("Error processing speech result:", error);
+      const errorMessage = {
+        text: "❌ Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.",
+        sender: "bot",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      speakText(errorMessage.text);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      stopSpeaking();
+      recognitionRef.current.start();
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+    }
+  };
+
+  // Message sending
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
@@ -766,7 +888,6 @@ CEVAP:`,
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, botMessage]);
-      // Speak the bot's response
       speakText(reply);
     } catch (error) {
       console.error("Error processing message:", error);
@@ -786,46 +907,56 @@ CEVAP:`,
     setIsOpen(!isOpen);
   };
 
+  // Enhanced welcome message
   const getWelcomeMessage = () => {
     if (!currentUser) {
       return `Merhaba! Ben "İlk Kontakt" platformunun kariyer asistanıyım. Size profesyonel ağ kurma, kariyer geliştirme ve iş fırsatları bulma konusunda yardımcı olabilirim.
 
-Giriş yaparak şunları yapabilirsiniz:
-• İş ilanlarını görüntüleme ve başvuru yapma
-• Profesyonel ağınızı genişletme
+İlk Kontakt ile yapabilecekleriniz:
+• Profesyonel profil oluşturma ve yönetme
+• Sektör profesyonelleriyle ağ kurma
+• Kişiselleştirilmiş iş önerileri alma
 • Mentorluk fırsatları bulma
-• Kariyer tavsiyeleri alma
+• Kariyer gelişimi için içerik paylaşımı
 
-İş ilanlarını görmek için 'listele' yazabilirsiniz.`;
+Giriş yaparak tüm özelliklere erişebilir, "listele" yazarak iş ilanlarını görüntüleyebilirsiniz.`;
     }
 
     if (currentUser.isCompanyProfile) {
-      return `Merhaba ${currentUser.userName}! Şirket hesabınızla şunları yapabilirsiniz:
+      return `Merhaba ${currentUser.userName}! Şirket hesabınızla İlk Kontakt'ta şunları yapabilirsiniz:
+
 • İş ilanları yayınlama ve yönetme
-• Şirket profilinizi güncelleme
-• Başvuruları görüntüleme
-• Adaylarla iletişim kurma
+• Şirket profilinizi güncelleme ve markalaşma
+• Nitelikli adaylarla eşleşme
+• Başvuruları görüntüleme ve değerlendirme
+• Kurumsal ağınızı genişletme
 
 'listele' yazarak mevcut iş ilanlarını görüntüleyebilirsiniz.`;
     }
 
-    return `Merhaba ${currentUser.userName}! Ben "İlk Kontakt" platformunun kariyer asistanıyım. Size şu konularda yardımcı olabilirim:
+    const profileStatus = userProfile ? "✅ Profil tamamlanmış" : "⚠️ Profil eksik";
+    const skillCount = userSkills.length;
+    const expCount = userExperiences.length;
+
+    return `Merhaba ${currentUser.userName}! Ben İlk Kontakt kariyer asistanınızım.
+
+📊 Profil Durumunuz: ${profileStatus}
+🎯 Yetenekler: ${skillCount} beceri
+💼 Deneyimler: ${expCount} pozisyon
 
 Yapabilecekleriniz:
-• 'listele' - Tüm iş ilanlarını görüntüle
-• 'öner' - Size uygun pozisyonları bul
-• 'frontend ara' - Belirli pozisyonları ara
-• 'X pozisyonuna başvur' - Başvuru yap
-• 'profilim' - Profil bilgilerinizi görüntüle
-• 'mentorluk' - Mentorluk fırsatlarını keşfet
-• 'ağ' - Profesyonel ağınızı genişlet
+• "listele" - Tüm iş ilanlarını görüntüle
+• "öner" - Size özel iş önerileri al
+• "frontend ara" - Belirli pozisyonları ara  
+• "X pozisyonuna başvur" - Hızlı başvuru yap
+• "profilim" - Profil bilgilerinizi görüntüle
 
-Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsiyeler alabilirsiniz.`;
+Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımcı olabilirim!`;
   };
 
   const handleActionClick = async (action) => {
     const response = action === 'apply' ? 'evet' : 'hayır';
-    
+   
     const userMessage = {
       text: response,
       sender: "user",
@@ -842,7 +973,6 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, botMessage]);
-      // Speak the bot's response
       speakText(reply);
     } catch (error) {
       console.error("Error processing message:", error);
@@ -860,7 +990,7 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
 
   const renderMessageContent = (msg) => {
     const lines = msg.text.split('\n');
-    const hasActions = msg.sender === 'bot' && 
+    const hasActions = msg.sender === 'bot' &&
       (msg.text.includes('onaylıyor musunuz?') || msg.text.includes('onaylamak için'));
 
     return (
@@ -893,7 +1023,7 @@ Ayrıca kariyer gelişimi, profesyonel ağ kurma ve mentorluk konularında tavsi
       {isOpen && (
         <div className="chat-window">
           <div className="chat-header">
-            <h3>Kariyer Asistanı</h3>
+            <h3>İlk Kontakt Kariyer Asistanı</h3>
             <div className="header-controls">
               <button
                 className="speech-toggle-btn"
