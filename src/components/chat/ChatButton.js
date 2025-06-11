@@ -34,72 +34,96 @@ function getCookie(name) {
   return match ? match[2] : null;
 }
 
-// Enhanced intent detection
+// Türkçe karakter normalizasyonu
+const normalizeText = (text) => {
+  return text
+    .toLowerCase()
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c');
+};
+
+// Enhanced intent detection with better platform query handling
 const detectIntent = (message) => {
   const lowerMessage = message.toLowerCase();
+  const normalizedMessage = normalizeText(message);
   
-  // Job application intents - much more flexible
-  const applicationIntents = [
-    /başvur/i, /apply/i, /başvurmak\s+istiyorum/i, /bu\s+işe\s+başvur/i,
-    /bu\s+pozisyona\s+başvur/i, /başvuru\s+yap/i, /başvuru\s+göndermek/i,
-    /bu\s+iş\s+için\s+başvur/i, /ilgileniyorum/i, /bu\s+işi\s+istiyorum/i,
-    /başvurmak\s+isterim/i, /başvuru\s+yapmak/i, /bu\s+pozisyon\s+için/i,
-    /iş\s+başvurusu/i, /pozisyon\s+başvuru/i, /başvuru\s+formu/i,
-    /bu\s+işte\s+çalışmak/i, /bu\s+şirkette\s+çalışmak/i
+  // Platform/site related queries - HIGHEST PRIORITY
+  const platformIntents = [
+    /site.*ne.*yarar/i, /platform.*ne.*yarar/i, /ilk.*kontakt.*ne/i,
+    /sitenin.*amacı/i, /ne.*işe.*yarar/i, /nasıl.*çalışır/i,
+    /hakkında/i, /özellikler/i, /nedir/i, /amacı.*nedir/i,
+    /bu.*site/i, /bu.*platform/i, /site.*hakkında/i,
+    /site.*amacı/i, /platform.*hakkında/i, /ne.*amaçla/i
+  ];
+
+  // Job listing requests - SPECIFIC PATTERNS
+  const listingIntents = [
+    /^listele$/i, /tüm.*ilanlar/i, /mevcut.*ilanlar/i, /açık.*pozisyonlar/i,
+    /ilanları.*göster/i, /pozisyonları.*listele/i, /hangi.*işler.*var/i,
+    /iş.*ilanları.*nerede/i, /nerede.*görüntüle/i, /bana.*açık.*olan.*pozisyonları/i,
+    /diğer.*ilanlar/i, /başka.*ilanlar/i, /tüm.*pozisyonlar/i
   ];
   
-  // Job search intents
+  // Job application intents - MORE FLEXIBLE
+  const applicationIntents = [
+    /başvur/i, /basvur/i, /apply/i, /başvurmak\s+istiyorum/i,
+    /başvuru\s+yap/i, /bu\s+işe\s+başvur/i, /pozisyonuna\s+başvur/i,
+    /ilanına\s+başvur/i, /başvurmak\s+isterim/i, /başvurmak\s+istiyorum/i,
+    /bu\s+pozisyona\s+başvur/i, /işe\s+başvur/i
+  ];
+  
+  // Job search intents - REFINED
   const searchIntents = [
-    /ara/i, /bul/i, /göster/i, /listele/i, /hangi\s+işler/i,
-    /iş\s+ara/i, /pozisyon\s+ara/i, /iş\s+bul/i, /ne\s+işler\s+var/i,
-    /iş\s+ilanları/i, /açık\s+pozisyonlar/i, /mevcut\s+işler/i,
-    /hangi\s+pozisyonlar/i, /iş\s+fırsatları/i, /kariyer\s+fırsatları/i
+    /ara(?!k)/i, /bul/i, /göster/i, // "arak" kelimesini hariç tut
+    /hangi\s+işler/i, /iş\s+ara/i, /pozisyon\s+ara/i,
+    /iş\s+fırsatları/i, /kariyer\s+fırsatları/i,
+    /stajyer.*ilanları/i, /intern.*positions/i
   ];
   
   // Recommendation intents
   const recommendIntents = [
     /öner/i, /tavsiye/i, /uygun/i, /bana\s+göre/i, /benzer/i,
-    /hangi\s+işler\s+uygun/i, /ne\s+önerirsin/i, /benim\s+için/i,
-    /profilime\s+uygun/i, /becerilerime\s+uygun/i, /deneyimime\s+uygun/i,
-    /kişiselleştirilmiş/i, /özel\s+öneriler/i, /size\s+özel/i
+    /profilime\s+uygun/i, /özel\s+öneriler/i, /size\s+uygun/i,
+    /kişiselleştirilmiş/i, /deneyimime\s+uygun/i
   ];
 
   // Profile intents
   const profileIntents = [
-    /profil/i, /hakkımda/i, /bilgilerim/i, /özgeçmiş/i, /cv/i,
+    /^profilim$/i, /hakkımda/i, /bilgilerim/i, /özgeçmiş/i, /cv/i,
     /deneyimlerim/i, /becerilerim/i, /eğitimim/i, /yeteneklerim/i
   ];
 
-  // Platform info intents
-  const platformIntents = [
-    /platform/i, /ilk\s+kontakt/i, /nasıl\s+çalışır/i, /özellikler/i,
-    /hakkında/i, /nedir/i, /ne\s+işe\s+yarar/i, /mentorluk/i, /ağ\s+kurma/i
-  ];
-  
-  if (applicationIntents.some(pattern => pattern.test(lowerMessage))) {
+  // Check in priority order
+  if (platformIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
+    return 'platform';
+  }
+  if (listingIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
+    return 'listing';
+  }
+  if (applicationIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
     return 'apply';
   }
-  if (searchIntents.some(pattern => pattern.test(lowerMessage))) {
+  if (searchIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
     return 'search';
   }
-  if (recommendIntents.some(pattern => pattern.test(lowerMessage))) {
+  if (recommendIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
     return 'recommend';
   }
-  if (profileIntents.some(pattern => pattern.test(lowerMessage))) {
+  if (profileIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
     return 'profile';
-  }
-  if (platformIntents.some(pattern => pattern.test(lowerMessage))) {
-    return 'platform';
   }
   
   return 'general';
 };
 
-// Enhanced job extraction from message
+// Enhanced job extraction with better fuzzy matching
 const extractJobFromMessage = (message, jobListings) => {
-  // Remove common application words and clean the message
   const cleanMessage = message
-    .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|pozisyon|iş|çalışmak)/gi, '')
+    .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|pozisyon|iş|çalışmak|ilanına)/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
   
@@ -111,11 +135,18 @@ const extractJobFromMessage = (message, jobListings) => {
   );
   
   if (!job) {
-    // Try partial title match
-    job = jobListings.find(j => 
-      j.title.toLowerCase().includes(cleanMessage.toLowerCase()) ||
-      cleanMessage.toLowerCase().includes(j.title.toLowerCase())
-    );
+    // Try partial title match with higher threshold
+    job = jobListings.find(j => {
+      const titleWords = j.title.toLowerCase().split(' ');
+      const searchWords = cleanMessage.toLowerCase().split(' ');
+      
+      // At least 70% of search words should match
+      const matchCount = searchWords.filter(word => 
+        titleWords.some(titleWord => titleWord.includes(word) || word.includes(titleWord))
+      ).length;
+      
+      return matchCount >= Math.ceil(searchWords.length * 0.7);
+    });
   }
   
   if (!job) {
@@ -126,25 +157,10 @@ const extractJobFromMessage = (message, jobListings) => {
     );
   }
   
-  if (!job) {
-    // Try fuzzy matching with keywords
-    const keywords = cleanMessage.split(' ').filter(word => word.length > 2);
-    if (keywords.length > 0) {
-      job = jobListings.find(j => {
-        const jobText = `${j.title} ${j.company} ${j.description || ''}`.toLowerCase();
-        return keywords.every(keyword => 
-          jobText.includes(keyword.toLowerCase())
-        ) || keywords.some(keyword => 
-          jobText.includes(keyword.toLowerCase()) && keyword.length > 4
-        );
-      });
-    }
-  }
-  
   return job;
 };
 
-// Enhanced search function
+// Enhanced search function with better filtering
 const searchJobs = (searchTerms, jobListings) => {
   if (!searchTerms.trim()) return [];
   
@@ -619,48 +635,95 @@ YANIT:`;
   };
 
   // Message processing handlers
-  const handleJobApplication = async (userMessage) => {
-    console.log("🎯 Handling job application request");
-    
-    const job = extractJobFromMessage(userMessage, jobListings);
-    console.log("🔍 Extracted job:", job ? job.title : "Not found");
 
-    if (!job) {
-      // Try to find similar jobs
-      const searchTerms = userMessage
-        .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine)/gi, '')
-        .trim();
-      
-      const suggestions = searchJobs(searchTerms, jobListings).slice(0, 3);
-      
-      if (suggestions.length > 0) {
-        return `❌ Belirttiğiniz pozisyon bulunamadı. Benzer ilanlar:\n\n${formatJobList(suggestions)}\n\nBunlardan birine başvurmak için tam pozisyon adını yazın.`;
-      }
-      return `❌ Belirttiğiniz pozisyona ait bir ilan bulamadım. "listele" yazarak tüm ilanları görebilir veya "öner" yazarak size uygun pozisyonları bulabilirsiniz.`;
-    }
-
-    if (job.externalUrl) {
-      return `Bu pozisyon için harici başvuru gerekiyor:\n\n${formatJobDetails(job)}\n\n🔗 Başvuru linki: ${job.externalUrl}`;
-    }
-
-    console.log("✅ Setting pending application for job:", job.id);
-    setPendingApplication(job);
-    return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(job)}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
+  // New handler for listing requests
+  const handleJobListing = () => {
+    console.log("📋 Handling job listing request");
+    return formatJobList(jobListings, "Mevcut İş İlanları:");
   };
 
+  // Enhanced platform query handler
+  const handlePlatformQuery = (userMessage) => {
+    console.log("🏢 Handling platform information query");
+    
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('nerede') || lowerMessage.includes('görüntüle')) {
+      return `İş ilanlarını İlk Kontakt üzerinde görüntülemek için:
+
+📱 **Web Sitesinde:**
+• Ana sayfanın üst menüsünden "İş İlanları" sekmesine tıklayın
+• Arama filtrelerini kullanarak pozisyon, şehir veya şirket bazında filtreleme yapın
+• Profilinize uygun önerilen ilanları "Önerilen İşler" bölümünde görün
+
+💬 **Bu Asistan Üzerinden:**
+• "listele" - Tüm ilanları görüntüle
+• "öner" - Size özel öneriler al
+• "frontend ara" - Belirli pozisyonları ara
+• "X pozisyonuna başvur" - Direkt başvuru yap
+
+Hangi yöntemi tercih edersiniz?`;
+    }
+    
+    return `İlk Kontakt, kariyerinizi geliştirmek için ihtiyacınız olan her şeyi bir araya getiren kapsamlı bir platformdur.
+
+🎯 **Ana Özellikler:**
+• Profesyonel ağ kurma ve genişletme
+• Kişiselleştirilmiş iş önerileri ve hızlı başvuru
+• Mentorluk programları ve kariyer rehberliği
+• Beceri geliştirme ve eğitim fırsatları
+• Veri analitiği ile profil performans takibi
+• Sektör haberleri ve bilgi paylaşımı
+
+${userProfile ? `Yazılım geliştirme alanındaki deneyiminizle bu platform üzerinde yeni fırsatlar keşfedebilir, sektör liderleriyle bağlantı kurabilir ve kariyerinizi bir sonraki seviyeye taşıyabilirsiniz.` : 'Giriş yaparak tüm bu özelliklere erişebilir ve kariyerinizi ilerletebilirsiniz.'}`;
+  };
+
+  // Enhanced search handler with better filtering
   const handleJobSearch = (userMessage) => {
     console.log("🔍 Handling job search request");
     
-    // Extract search terms
+    // Extract search terms more carefully
     const searchTerms = userMessage
-      .replace(/(ara|bul|göster|listele|hangi işler|iş ara|pozisyon ara|iş bul|ne işler var)/gi, '')
+      .replace(/(ara(?!k)|bul|göster|hangi işler|iş ara|pozisyon ara|iş fırsatları|stajyer.*ilanları)/gi, '')
+      .replace(/\s+/g, ' ')
       .trim();
 
-    if (!searchTerms) {
-      return formatJobList(jobListings, "Mevcut İş İlanları:");
+    // Special handling for intern/stajyer requests
+    if (userMessage.toLowerCase().includes('stajyer') || userMessage.toLowerCase().includes('intern')) {
+      const internJobs = jobListings.filter(job => 
+        job.experienceLevel === 0 || 
+        job.title.toLowerCase().includes('staj') ||
+        job.title.toLowerCase().includes('intern')
+      );
+      
+      if (internJobs.length === 0) {
+        return `Şu anda stajyer pozisyonu bulunmuyor. 
+
+Alternatif öneriler:
+• "listele" yazarak tüm ilanları görün
+• "öner" yazarak profilinize uygun önerileri alın
+• Giriş seviyesi pozisyonları değerlendirin`;
+      }
+      
+      return formatJobList(internJobs, "Stajyer İlanları:");
+    }
+
+    // If no specific terms, don't search
+    if (!searchTerms || searchTerms.length < 2) {
+      return "Arama yapmak için daha spesifik terimler kullanın. Örneğin: 'frontend ara', 'ankara işleri', 'uzaktan çalışma' gibi.";
     }
 
     const foundJobs = searchJobs(searchTerms, jobListings);
+    
+    if (foundJobs.length === 0) {
+      return `"${searchTerms}" için uygun ilan bulunamadı. 
+    
+Alternatif öneriler:
+• "listele" yazarak tüm ilanları görün
+• "öner" yazarak profilinize uygun önerileri alın
+• Daha genel terimlerle arama yapın (örn: "developer", "analyst")`;
+    }
+    
     return formatJobList(foundJobs, `"${searchTerms}" için bulunan ilanlar:`);
   };
 
@@ -686,11 +749,54 @@ YANIT:`;
     return getUserProfileSummary();
   };
 
-  const handlePlatformQuery = async (userMessage) => {
-    console.log("🏢 Handling platform information query");
+  // Enhanced job application handler with better matching
+  const handleJobApplication = async (userMessage) => {
+    console.log("🎯 Handling job application request");
     
-    // Use Gemini for platform-specific questions
-    return await handleGeneralQuery(userMessage);
+    const job = extractJobFromMessage(userMessage, jobListings);
+    console.log("🔍 Extracted job:", job ? job.title : "Not found");
+
+    if (!job) {
+      // More intelligent suggestions
+      const searchTerms = userMessage
+        .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|ilanına)/gi, '')
+        .trim();
+      
+      if (searchTerms.length > 2) {
+        const suggestions = searchJobs(searchTerms, jobListings).slice(0, 3);
+        
+        if (suggestions.length > 0) {
+          return `Belirttiğiniz "${searchTerms}" pozisyonu tam olarak bulunamadı. Benzer ilanlar:
+
+${formatJobList(suggestions)}
+
+Bunlardan birine başvurmak için tam pozisyon adını kullanın. Örneğin: "${suggestions[0].title} pozisyonuna başvur"`;
+        }
+      }
+      
+      return `Belirttiğiniz pozisyon bulunamadı. 
+
+Yapabilecekleriniz:
+• "listele" - Tüm ilanları görün
+• "öner" - Size uygun önerileri alın
+• Tam pozisyon adını kullanın (örn: "Full Stack Developer pozisyonuna başvur")`;
+    }
+
+    if (job.externalUrl) {
+      return `Bu pozisyon için harici başvuru gerekiyor:
+
+${formatJobDetails(job)}
+
+🔗 Başvuru linki: ${job.externalUrl}`;
+    }
+
+    console.log("✅ Setting pending application for job:", job.id);
+    setPendingApplication(job);
+    return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?
+
+${formatJobDetails(job)}
+
+Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
   };
 
   const handleGeneralQuery = async (userMessage) => {
@@ -770,6 +876,10 @@ YANIT:`;
 
     // Route to appropriate handler based on intent
     switch (intent) {
+      case 'platform':
+        return handlePlatformQuery(userMessage);
+      case 'listing':
+        return handleJobListing();
       case 'apply':
         return await handleJobApplication(userMessage);
       case 'search':
@@ -778,8 +888,6 @@ YANIT:`;
         return handleJobRecommendations();
       case 'profile':
         return handleProfileQuery();
-      case 'platform':
-        return await handlePlatformQuery(userMessage);
       default:
         return await handleGeneralQuery(userMessage);
     }
