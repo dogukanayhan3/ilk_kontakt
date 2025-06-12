@@ -126,6 +126,14 @@ public class BackendDbContext :
             // Index for faster lookups by connection
             b.HasIndex(m => m.ConnectionId)
                 .HasDatabaseName("IX_Messages_ConnectionId");
+
+            b.HasOne<Connection>()
+                .WithMany()
+                .HasForeignKey(c => c.ConnectionId);
+            
+            b.HasOne<IdentityUser>()
+                .WithMany()
+                .HasForeignKey(c => c.SenderId);
         });
 
         
