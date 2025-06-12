@@ -1,6 +1,5 @@
 using AutoMapper;
 using IlkKontakt.Backend.Books;
-using IlkKontakt.Backend.Chat;
 using IlkKontakt.Backend.Courses;
 using IlkKontakt.Backend.Posts;
 using IlkKontakt.Backend.UserProfiles;
@@ -8,6 +7,7 @@ using IlkKontakt.Backend.Connections;
 using IlkKontakt.Backend.Contact;
 using IlkKontakt.Backend.JobApplications;
 using IlkKontakt.Backend.JobListings;
+using IlkKontakt.Backend.Messages;
 using IlkKontakt.Backend.Notifications;
 
 namespace IlkKontakt.Backend;
@@ -83,10 +83,7 @@ public class BackendApplicationAutoMapperProfile : Profile
         CreateMap<UpdateJobApplicationStatusDto, JobApplication>();
         CreateMap<JobApplication, JobApplicationWithProfileDto>();
         
-        CreateMap<ChatSession, ChatSessionDto>();
-        CreateMap<CreateUpdateChatSessionDto, ChatSession>();
-        
         CreateMap<Message, MessageDto>();
-        CreateMap<CreateUpdateMessageDto, Message>();
+        CreateMap<CreateMessageDto, Message>();
     }
 }
