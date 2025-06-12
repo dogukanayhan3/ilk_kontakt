@@ -35,6 +35,64 @@ function getCookie(name) {
   return match ? match[2] : null;
 }
 
+// Status Progress Component
+function StatusProgress({ status }) {
+  const getStatusStep = (status) => {
+    switch (status) {
+      case 0: return 1; // Pending
+      case 1: return 3; // Accepted
+      case 2: return 0; // Rejected
+      default: return 1;
+    }
+  };
+
+  const currentStep = getStatusStep(status);
+
+  return (
+    <div className="status-progress">
+      <div className="progress-line">
+        {/* Rejected dot */}
+        <div className={`progress-dot rejected ${currentStep === 0 ? 'active' : ''}`}>
+          <XCircle size={16} />
+        </div>
+        
+        {/* Pending dot */}
+        <div className={`progress-dot pending ${currentStep === 1 ? 'active' : ''}`}>
+          <Clock size={16} />
+        </div>
+        
+        {/* Accepted dot */}
+        <div className={`progress-dot accepted ${currentStep === 3 ? 'active' : ''}`}>
+          <CheckCircle2 size={16} />
+        </div>
+        
+        {/* Progress line background */}
+        <div className="progress-line-bg"></div>
+        
+        {/* Active progress line */}
+        <div 
+          className={`progress-line-active ${
+            currentStep === 0 ? 'rejected-line' : 
+            currentStep === 1 ? 'pending-line' : 
+            'accepted-line'
+          }`}
+          style={{
+            width: currentStep === 0 ? '0%' : 
+                   currentStep === 1 ? '50%' : 
+                   '100%'
+          }}
+        ></div>
+      </div>
+      
+      <div className="status-labels">
+        <span className={`status-label ${currentStep === 0 ? 'active' : ''}`}>Rejected</span>
+        <span className={`status-label ${currentStep === 1 ? 'active' : ''}`}>Pending</span>
+        <span className={`status-label ${currentStep === 3 ? 'active' : ''}`}>Accepted</span>
+      </div>
+    </div>
+  );
+}
+
 function JobListPage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -52,6 +110,8 @@ function JobListPage() {
   const [filterLocation, setFilterLocation] = useState('');
   const [myApplications, setMyApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
+
+  // ... (keep all existing functions unchanged until the render section)
 
   async function fetchJobListings() {
     setLoading(true);
@@ -359,129 +419,12 @@ function JobListPage() {
         <p>Yeni kariyer fırsatınızı bulun!</p>
       </section>
 
-      {currentUser && !currentUser.isCompanyProfile && (
-        <section className="my-applications-section">
-          <div className="section-header">
-            <h2>My Applications</h2>
-          </div>
-          {loadingApplications ? (
-            <div className="loading-message">Loading applications...</div>
-          ) : myApplications.length === 0 ? (
-            <div className="no-applications">
-              <p>You haven't applied to any jobs yet.</p>
-            </div>
-          ) : (
-            <div className="applications-grid">
-              {myApplications.map(application => (
-                <div key={application.id} className="application-card">
-                  <div className="application-header">
-                    <h3>{application.jobTitle}</h3>
-                    <span className={`status-badge ${getStatusClass(application.status)}`}>
-                      {getStatusIcon(getStatusClass(application.status))}
-                      {getStatusLabel(application.status)}
-                    </span>
-                  </div>
-                  <div className="application-details">
-                    <div className="detail-item">
-                      <span className="company">{application.companyName}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="date">Applied on: {new Date(application.creationTime).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
       <div className="job-listings-page-container">
-        {currentUser?.isCompanyProfile && (
-          <section className="company-listings-section">
-            <div className="section-header">
-              <h2>İlanlarım ({companyJobs.length})</h2>
-              <button
-                className="create-job-btn"
-                onClick={() => setShowJobForm(true)}
-              >
-                <Plus size={20} strokeWidth={2} /> Yeni İlan Ekle
-              </button>
-            </div>
-            {companyJobsLoading ? (
-              <div className="loading-message">
-                Şirket ilanları yükleniyor...
-              </div>
-            ) : companyJobs.length === 0 ? (
-              <div className="no-company-jobs">
-                <p>Henüz iş ilanınız bulunmuyor.</p>
-                <button
-                  className="create-first-job-btn"
-                  onClick={() => setShowJobForm(true)}
-                >
-                  İlk İlanınızı Oluşturun
-                </button>
-              </div>
-            ) : (
-              <div className="company-jobs-row">
-                {companyJobs.map((job) => (
-                  <div 
-                    key={job.id} 
-                    className="company-job-card"
-                    onClick={() => handleJobClick(job.id)}
-                  >
-                    <div className="company-job-content">
-                      <div className="company-job-info">
-                        <h3>{job.title}</h3>
-                        <div className="company-job-meta">
-                          <span className="work-type">
-                            {job.workType === 0
-                              ? 'Ofiste'
-                              : job.workType === 1
-                              ? 'Uzaktan'
-                              : 'Hibrit'}
-                          </span>
-                          <span>{job.location}</span>
-                        </div>
-                        <p className="company-job-description">
-                          {job.description
-                            ? job.description.length > 100
-                              ? job.description.substring(0, 100) + '...'
-                              : job.description
-                            : 'Açıklama bulunmuyor'}
-                        </p>
-                      </div>
-                      <div className="company-job-actions">
-                        <button
-                          className="edit-job-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditJob(job);
-                          }}
-                          title="Düzenle"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          className="delete-job-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteJobListing(job.id);
-                          }}
-                          title="Sil"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-        <div className="job-controls-section">
-          <div className="search-filter-container">
+        {/* Left Sidebar */}
+        <div className="job-listings-sidebar">
+          {/* Search and Filters Section */}
+          <section className="search-filter-section">
+            <h2>Arama ve Filtreler</h2>
             <div className="search-box">
               <Search size={20} strokeWidth={1.5} />
               <input
@@ -491,9 +434,10 @@ function JobListPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="filter-container">
+            
+            <div className="filter-groups">
               <div className="filter-group">
-                <Filter size={16} strokeWidth={1.5} />
+                <label>Çalışma Türü</label>
                 <select
                   value={filterWorkType}
                   onChange={(e) => setFilterWorkType(e.target.value)}
@@ -504,8 +448,9 @@ function JobListPage() {
                   <option value="2">Hibrit</option>
                 </select>
               </div>
+              
               <div className="filter-group">
-                <Filter size={16} strokeWidth={1.5} />
+                <label>Deneyim Seviyesi</label>
                 <select
                   value={filterExperienceLevel}
                   onChange={(e) => setFilterExperienceLevel(e.target.value)}
@@ -519,8 +464,9 @@ function JobListPage() {
                   <option value="5">Yönetici</option>
                 </select>
               </div>
+              
               <div className="filter-group">
-                <Filter size={16} strokeWidth={1.5} />
+                <label>Konum</label>
                 <input
                   type="text"
                   placeholder="Konum filtrele..."
@@ -529,47 +475,167 @@ function JobListPage() {
                 />
               </div>
             </div>
-          </div>
+          </section>
+
+          {/* My Applications Section */}
+          {currentUser && !currentUser.isCompanyProfile && (
+            <section className="my-applications-sidebar-section">
+              <h2>Başvurularım</h2>
+              {loadingApplications ? (
+                <div className="loading-message">Başvurular yükleniyor...</div>
+              ) : myApplications.length === 0 ? (
+                <div className="no-applications">
+                  <p>Henüz hiçbir işe başvurmadınız.</p>
+                </div>
+              ) : (
+                <div className="applications-list">
+                  {myApplications.map(application => (
+                    <div key={application.id} className="application-sidebar-card">
+                      <div className="application-sidebar-header">
+                        <h4>{application.jobTitle}</h4>
+                        <span className="company-name">{application.companyName}</span>
+                      </div>
+                      
+                      <StatusProgress status={application.status} />
+                      
+                      <div className="application-date">
+                        <span>Başvuru: {new Date(application.creationTime).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
         </div>
-        <section className="all-listings-section">
-          <h2>Tüm İlanlar</h2>
-          <div className="job-listings-grid">
-            {filteredJobs.length === 0 ? (
-              <div className="no-jobs-message">
-                <p>
-                  {searchTerm ||
-                  filterWorkType ||
-                  filterExperienceLevel ||
-                  filterLocation
-                    ? 'Arama kriterlerinize uygun iş ilanı bulunamadı.'
-                    : 'Henüz iş ilanı bulunmuyor.'}
-                </p>
+
+        {/* Main Content */}
+        <div className="job-listings-main-content">
+          {currentUser?.isCompanyProfile && (
+            <section className="company-listings-section">
+              <div className="section-header">
+                <h2>İlanlarım ({companyJobs.length})</h2>
+                <button
+                  className="create-job-btn"
+                  onClick={() => setShowJobForm(true)}
+                >
+                  <Plus size={20} strokeWidth={2} /> Yeni İlan Ekle
+                </button>
               </div>
-            ) : (
-              filteredJobs.map((job) => (
-                <Job
-                  key={job.id}
-                  job={job}
-                  onEdit={handleEditJob}
-                  onDelete={deleteJobListing}
-                  currentUser={currentUser}
-                />
-              ))
-            )}
-          </div>
-        </section>
-        {showJobForm && (
-          <JobForm
-            job={editingJob}
-            onSubmit={
-              editingJob
-                ? (data) => updateJobListing(editingJob.id, data)
-                : createJobListing
-            }
-            onClose={handleCloseForm}
-          />
-        )}
+              {companyJobsLoading ? (
+                <div className="loading-message">
+                  Şirket ilanları yükleniyor...
+                </div>
+              ) : companyJobs.length === 0 ? (
+                <div className="no-company-jobs">
+                  <p>Henüz iş ilanınız bulunmuyor.</p>
+                  <button
+                    className="create-first-job-btn"
+                    onClick={() => setShowJobForm(true)}
+                  >
+                    İlk İlanınızı Oluşturun
+                  </button>
+                </div>
+              ) : (
+                <div className="company-jobs-row">
+                  {companyJobs.map((job) => (
+                    <div 
+                      key={job.id} 
+                      className="company-job-card"
+                      onClick={() => handleJobClick(job.id)}
+                    >
+                      <div className="company-job-content">
+                        <div className="company-job-info">
+                          <h3>{job.title}</h3>
+                          <div className="company-job-meta">
+                            <span className="work-type">
+                              {job.workType === 0
+                                ? 'Ofiste'
+                                : job.workType === 1
+                                ? 'Uzaktan'
+                                : 'Hibrit'}
+                            </span>
+                            <span>{job.location}</span>
+                          </div>
+                          <p className="company-job-description">
+                            {job.description
+                              ? job.description.length > 100
+                                ? job.description.substring(0, 100) + '...'
+                                : job.description
+                              : 'Açıklama bulunmuyor'}
+                          </p>
+                        </div>
+                        <div className="company-job-actions">
+                          <button
+                            className="edit-job-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditJob(job);
+                            }}
+                            title="Düzenle"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            className="delete-job-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteJobListing(job.id);
+                            }}
+                            title="Sil"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          <section className="all-listings-section">
+            <h2>Tüm İlanlar</h2>
+            <div className="job-listings-grid">
+              {filteredJobs.length === 0 ? (
+                <div className="no-jobs-message">
+                  <p>
+                    {searchTerm ||
+                    filterWorkType ||
+                    filterExperienceLevel ||
+                    filterLocation
+                      ? 'Arama kriterlerinize uygun iş ilanı bulunamadı.'
+                      : 'Henüz iş ilanı bulunmuyor.'}
+                  </p>
+                </div>
+              ) : (
+                filteredJobs.map((job) => (
+                  <Job
+                    key={job.id}
+                    job={job}
+                    onEdit={handleEditJob}
+                    onDelete={deleteJobListing}
+                    currentUser={currentUser}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        </div>
       </div>
+
+      {showJobForm && (
+        <JobForm
+          job={editingJob}
+          onSubmit={
+            editingJob
+              ? (data) => updateJobListing(editingJob.id, data)
+              : createJobListing
+          }
+          onClose={handleCloseForm}
+        />
+      )}
     </Layout>
   );
 }

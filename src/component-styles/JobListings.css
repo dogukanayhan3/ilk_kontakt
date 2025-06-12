@@ -1015,3 +1015,648 @@
         align-self: flex-start;
     }
 }
+
+/* Updated layout styles */
+.job-listings-page-container {
+  display: flex;
+  gap: 24px;
+  margin: 20px auto;
+  max-width: 1400px;
+  width: 95%;
+}
+
+.job-listings-sidebar {
+  flex: 0 0 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.job-listings-main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Search and Filter Section */
+.search-filter-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.search-filter-section h2 {
+  margin: 0 0 16px;
+  font-size: 1.2em;
+  color: #2d3748;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.search-box svg {
+  color: #5fbcee;
+  margin-right: 8px;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 0;
+  font-size: 0.9em;
+  background: transparent;
+}
+
+.filter-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,0.2);
+  border-radius: 6px;
+  font-size: 0.9em;
+  background: #fff;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: #5fbcee;
+  box-shadow: 0 0 0 2px rgba(95, 188, 238, 0.1);
+}
+
+/* My Applications Sidebar Section */
+.my-applications-sidebar-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.my-applications-sidebar-section h2 {
+  margin: 0 0 16px;
+  font-size: 1.2em;
+  color: #2d3748;
+}
+
+.applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.application-sidebar-card {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.application-sidebar-card:hover {
+  background: #f1f5f9;
+  border-color: rgba(95, 188, 238, 0.3);
+}
+
+.application-sidebar-header {
+  margin-bottom: 12px;
+}
+
+.application-sidebar-header h4 {
+  margin: 0 0 4px;
+  font-size: 1em;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.company-name {
+  font-size: 0.85em;
+  color: #5fbcee;
+  font-weight: 500;
+}
+
+.application-date {
+  margin-top: 8px;
+  font-size: 0.8em;
+  color: #718096;
+}
+
+/* Status Progress Component */
+.status-progress {
+  margin: 12px 0;
+}
+
+.progress-line {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  height: 40px;
+}
+
+.progress-line-bg {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  right: 20px;
+  height: 3px;
+  background: #e2e8f0;
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+
+.progress-line-active {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  height: 3px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  transition: all 0.5s ease;
+}
+
+.progress-line-active.rejected-line {
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+}
+
+.progress-line-active.pending-line {
+  background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+}
+
+.progress-line-active.accepted-line {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+.progress-dot {
+  position: relative;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #94a3b8;
+  border: 3px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.progress-dot.rejected.active {
+  background: #ef4444;
+  color: white;
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.progress-dot.pending.active {
+  background: #f59e0b;
+  color: white;
+  border-color: #d97706;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.progress-dot.accepted.active {
+  background: #10b981;
+  color: white;
+  border-color: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.status-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.status-label {
+  font-size: 0.75em;
+  color: #94a3b8;
+  font-weight: 500;
+  text-align: center;
+  flex: 1;
+  transition: all 0.3s ease;
+}
+
+.status-label.active {
+  color: #2d3748;
+  font-weight: 600;
+}
+
+/* Remove old styles that are now in sidebar */
+.job-controls-section,
+.my-applications-section {
+  display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .job-listings-page-container {
+    flex-direction: column;
+  }
+  
+  .job-listings-sidebar {
+    flex: none;
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .search-filter-section,
+  .my-applications-sidebar-section {
+    flex: 0 0 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .job-listings-sidebar {
+    flex-direction: column;
+  }
+  
+  .search-filter-section,
+  .my-applications-sidebar-section {
+    flex: none;
+  }
+  
+  .filter-groups {
+    gap: 8px;
+  }
+  
+  .applications-list {
+    gap: 8px;
+  }
+  
+  .progress-dot {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .progress-dot svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .status-label {
+    font-size: 0.7em;
+  }
+}
+
+/* Cool Dropdown Styles */
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.filter-group label {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 4px;
+}
+
+/* Custom Select Wrapper */
+.custom-select-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.filter-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  padding: 12px 16px;
+  padding-right: 45px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9em;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #2d3748;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  position: relative;
+  z-index: 1;
+}
+
+/* Custom dropdown arrow */
+.filter-group select::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #64748b;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+/* Alternative approach using background image for arrow */
+.filter-group select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+}
+
+/* Hover Effects */
+.filter-group select:hover {
+  border-color: #5fbcee;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  box-shadow: 0 4px 12px rgba(95, 188, 238, 0.15);
+  transform: translateY(-1px);
+}
+
+/* Focus Effects */
+.filter-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Active/Selected State */
+.filter-group select:not([value=""]) {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+  color: #065f46;
+  font-weight: 600;
+}
+
+.filter-group select:not([value=""]):hover {
+  border-color: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+/* Cool Input Styles */
+.filter-group input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9em;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  color: #2d3748;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.filter-group input[type="text"]:hover {
+  border-color: #5fbcee;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  box-shadow: 0 4px 12px rgba(95, 188, 238, 0.15);
+  transform: translateY(-1px);
+}
+
+.filter-group input[type="text"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 12px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.filter-group input[type="text"]:not(:placeholder-shown) {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+  color: #065f46;
+  font-weight: 600;
+}
+
+/* Search Box Enhanced Styles */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 0 16px;
+  margin-bottom: 20px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.search-box:hover {
+  border-color: #5fbcee;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  box-shadow: 0 4px 16px rgba(95, 188, 238, 0.15);
+  transform: translateY(-1px);
+}
+
+.search-box:focus-within {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 4px 16px rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.search-box svg {
+  color: #5fbcee;
+  margin-right: 12px;
+  transition: all 0.3s ease;
+}
+
+.search-box:focus-within svg {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 14px 0;
+  font-size: 0.95em;
+  background: transparent;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.search-box input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Animated Labels */
+.filter-group {
+  position: relative;
+}
+
+.filter-group label {
+  position: relative;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.filter-group label::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #5fbcee, #3b82f6);
+  transition: width 0.3s ease;
+  border-radius: 1px;
+}
+
+.filter-group:focus-within label::before {
+  width: 100%;
+}
+
+.filter-group:focus-within label {
+  color: #3b82f6;
+  transform: translateY(-1px);
+}
+
+/* Cool Section Headers */
+.search-filter-section h2,
+.my-applications-sidebar-section h2 {
+  position: relative;
+  margin: 0 0 20px;
+  font-size: 1.3em;
+  color: #1e293b;
+  font-weight: 700;
+  padding-bottom: 8px;
+}
+
+.search-filter-section h2::after,
+.my-applications-sidebar-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, #5fbcee, #3b82f6);
+  border-radius: 2px;
+}
+
+/* Enhanced Section Backgrounds */
+.search-filter-section,
+.my-applications-sidebar-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.search-filter-section:hover,
+.my-applications-sidebar-section:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Filter Groups Enhanced */
+.filter-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Add subtle animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-group {
+  animation: slideInUp 0.3s ease forwards;
+}
+
+.filter-group:nth-child(1) { animation-delay: 0.1s; }
+.filter-group:nth-child(2) { animation-delay: 0.2s; }
+.filter-group:nth-child(3) { animation-delay: 0.3s; }
+
+/* Custom scrollbar for select options (webkit browsers) */
+.filter-group select option {
+  padding: 8px 12px;
+  background: #ffffff;
+  color: #2d3748;
+}
+
+/* Loading state for dropdowns */
+.filter-group.loading select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M21 12a9 9 0 11-6.219-8.56'/%3e%3c/svg%3e");
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-group select,
+  .filter-group input[type="text"] {
+    padding: 10px 14px;
+    font-size: 0.85em;
+  }
+  
+  .search-box {
+    padding: 0 12px;
+  }
+  
+  .search-box input {
+    padding: 12px 0;
+    font-size: 0.9em;
+  }
+  
+  .search-filter-section,
+  .my-applications-sidebar-section {
+    padding: 16px;
+    border-radius: 12px;
+  }
+}
