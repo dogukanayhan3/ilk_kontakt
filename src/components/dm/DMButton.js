@@ -244,8 +244,10 @@ const DMButton = () => {
       fetch(`${API_BASE}/api/app/message`, {
         method: "POST",
         headers: {
+          "accept": "text/plain",
           "Content-Type": "application/json",
-          "X-XSRF-TOKEN": xsrfToken
+          "RequestVerificationToken": xsrfToken,
+          "X-Requested-With": "XMLHttpRequest"
         },
         credentials: "include", // Critical for authentication
         body: JSON.stringify(messagePayload)

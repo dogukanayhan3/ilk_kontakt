@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Volo.Abp;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Repositories;
@@ -11,7 +9,6 @@ using Volo.Abp.Users;
 
 namespace IlkKontakt.Backend.Messages
 {
-    [Authorize]
     public class MessageAppService : CrudAppService<Message, MessageDto, Guid, PagedAndSortedResultRequestDto, CreateMessageDto>, IMessageAppService
     {
         private readonly ICurrentUser _currentUser;
