@@ -146,7 +146,7 @@ function HomePage() {
       if (!currentUserProfile || !allUsers.length) return [];
       try {
         const response = await fetch(
-          `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
+          `${API_CONFIG.GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
           {
             method: "POST",
             headers: {
@@ -397,7 +397,7 @@ function HomePage() {
   const generatePost = async () => {
     try {
       const response = await fetch(
-        `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
+        `${API_CONFIG.GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
         {
           method: "POST",
           headers: {
@@ -466,6 +466,53 @@ Keep it concise and impactful.`,
                 <button onClick={() => navigate("/profilepage")}>
                   Profili Düzenle
                 </button>
+
+                {/* Connection Suggestions Section */}
+                <div className="profile-suggestions">
+                  <div className="suggestions-header">
+                    <h3>Bağlantı Önerileri</h3>
+                    <span className="suggestions-count">{suggestedConnections.length}</span>
+                  </div>
+                  {connectionsLoading ? (
+                    <div className="suggestions-loading">
+                      <div className="loading-spinner"></div>
+                      <p>Bağlantı önerileri yükleniyor...</p>
+                    </div>
+                  ) : suggestedConnections.length > 0 ? (
+                    <div className="suggestions-list">
+                      {suggestedConnections.map((suggestion, index) => (
+                        <div key={index} className="suggestion-item">
+                          <div className="suggestion-profile">
+                            <img
+                              src={suggestion.profilePictureUrl || "/default-avatar.png"}
+                              alt={suggestion.name}
+                              className="suggestion-avatar"
+                            />
+                            <div className="suggestion-info">
+                              <h4>{suggestion.name} {suggestion.surname}</h4>
+                              <p className="suggestion-reason">
+                                <span className="match-icon">✨</span>
+                                {suggestion.matchReason}
+                              </p>
+                            </div>
+                          </div>
+                          <button 
+                            className="view-profile-btn"
+                            onClick={() => navigate(`/profilepage/${suggestion.id}`)}
+                          >
+                            Profili Görüntüle
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-suggestions">
+                      <div className="no-suggestions-icon">🔍</div>
+                      <p>Henüz bağlantı önerisi bulunmuyor.</p>
+                      <p className="no-suggestions-subtext">Profilinizi güncelleyerek daha fazla öneri alabilirsiniz.</p>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <div className="no-profile">
@@ -551,43 +598,17 @@ Keep it concise and impactful.`,
           )}
         </div>
 
-        {/* Right Sidebar (Suggestions) */}
+        {/* Right Sidebar */}
         <div className="feed-right">
-          <div className="profile-card">
-            <h3>Bağlantı Önerileri</h3>
-            {connectionsLoading ? (
-              <p>Bağlantı önerileri yükleniyor...</p>
-            ) : suggestedConnections.length > 0 ? (
-              suggestedConnections.map((suggestion, index) => (
-                <div key={index} className="connection-suggestion">
-                  <img
-                    src={suggestion.profilePictureUrl || "/default-avatar.png"}
-                    alt={suggestion.name}
-                    className="suggestion-profile-image"
-                  />
-                  <div className="suggestion-details">
-                    <h4>
-                      {suggestion.name} {suggestion.surname}
-                    </h4>
-                    <p className="suggestion-reason">
-                      {suggestion.matchReason}
-                    </p>
-                    <button
-                      onClick={() => navigate(`/profilepage/${suggestion.id}`)}
-                    >
-                      Profili Görüntüle
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>Henüz bağlantı önerisi bulunmuyor.</p>
-            )}
-          </div>
-          <div className="profile-card">
-            <h3>Açık Pozisyonlar</h3>
+          <div className="job-opportunities-card">
+            <div className="opportunities-header">
+              <h3>Açık Pozisyonlar</h3>
+              <span className="opportunities-icon">💼</span>
+            </div>
             <p>İlgilendiğiniz alanda açık olan pozisyonları görüntüleyin!</p>
-            <button>Pozisyonlar</button>
+            <button className="view-positions-btn" onClick={() => navigate('/joblistings')}>
+              Pozisyonları Görüntüle
+            </button>
           </div>
         </div>
       </section>
