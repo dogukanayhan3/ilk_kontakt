@@ -97,7 +97,7 @@ function HomePage() {
           },
         }
       );
-      if (!profilesRes.ok) throw new Error("Failed to fetch profiles");
+      if (!profilesRes.ok) throw new Error("Profiller alınamadı.");
       const profilesData = await profilesRes.json();
       const profiles = profilesData.items || [];
 
@@ -218,7 +218,7 @@ function HomePage() {
         return;
       }
       if (!response.ok) {
-        throw new Error(`Failed to fetch posts (Status: ${response.status})`);
+        throw new Error(`Gönderiler alınamadı (Durum: ${response.status})`);
       }
       const data = await response.json();
       setPosts(Array.isArray(data.items) ? data.items : []);
@@ -273,7 +273,7 @@ function HomePage() {
           }
         }
       } catch (err) {
-        if (isMounted) setError("Failed to load connection suggestions");
+        if (isMounted) setError("Bağlantı önerileri yüklenemedi.");
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -300,11 +300,11 @@ function HomePage() {
     e.preventDefault();
     setError("");
     if (!newPostContent.trim()) {
-      setError("Post content cannot be empty.");
+      setError("Gönderi içeriği boş olamaz.");
       return;
     }
     if (!currentUser) {
-      setError("Please log in to create a post.");
+      setError("Gönderi oluşturmak için lütfen giriş yapın.");
       return;
     }
 
@@ -314,7 +314,7 @@ function HomePage() {
       });
       const xsrfToken = getCookie("XSRF-TOKEN");
       if (!xsrfToken) {
-        setError("Could not verify request (XSRF token missing).");
+        setError("İstek doğrulanamadı (XSRF token eksik).");
         return;
       }
 
@@ -338,7 +338,7 @@ function HomePage() {
       }
 
       if (!response.ok) {
-        let errorMsg = "Failed to create post.";
+        let errorMsg = "Gönderi oluşturulamadı.";
         try {
           const errorData = await response.json();
           errorMsg = errorData?.error?.message || errorMsg;
@@ -352,7 +352,7 @@ function HomePage() {
       setPosts((prevPosts) => [createdPost, ...prevPosts]);
       setNewPostContent("");
     } catch (err) {
-      console.error("Create post error:", err);
+      console.error("Gönderi oluşturma hatası:", err);
       setError(err.message);
     }
   };
@@ -471,7 +471,9 @@ Keep it concise and impactful.`,
                 <div className="profile-suggestions">
                   <div className="suggestions-header">
                     <h3>Bağlantı Önerileri</h3>
-                    <span className="suggestions-count">{suggestedConnections.length}</span>
+                    <span className="suggestions-count">
+                      {suggestedConnections.length}
+                    </span>
                   </div>
                   {connectionsLoading ? (
                     <div className="suggestions-loading">
@@ -484,21 +486,28 @@ Keep it concise and impactful.`,
                         <div key={index} className="suggestion-item">
                           <div className="suggestion-profile">
                             <img
-                              src={suggestion.profilePictureUrl || "/default-avatar.png"}
+                              src={
+                                suggestion.profilePictureUrl ||
+                                "/default-avatar.png"
+                              }
                               alt={suggestion.name}
                               className="suggestion-avatar"
                             />
                             <div className="suggestion-info">
-                              <h4>{suggestion.name} {suggestion.surname}</h4>
+                              <h4>
+                                {suggestion.name} {suggestion.surname}
+                              </h4>
                               <p className="suggestion-reason">
                                 <span className="match-icon">✨</span>
                                 {suggestion.matchReason}
                               </p>
                             </div>
                           </div>
-                          <button 
+                          <button
                             className="view-profile-btn"
-                            onClick={() => navigate(`/profilepage/${suggestion.id}`)}
+                            onClick={() =>
+                              navigate(`/profilepage/${suggestion.id}`)
+                            }
                           >
                             Profili Görüntüle
                           </button>
@@ -509,7 +518,10 @@ Keep it concise and impactful.`,
                     <div className="no-suggestions">
                       <div className="no-suggestions-icon">🔍</div>
                       <p>Henüz bağlantı önerisi bulunmuyor.</p>
-                      <p className="no-suggestions-subtext">Profilinizi güncelleyerek daha fazla öneri alabilirsiniz.</p>
+                      <p className="no-suggestions-subtext">
+                        Profilinizi güncelleyerek daha fazla öneri
+                        alabilirsiniz.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -606,7 +618,10 @@ Keep it concise and impactful.`,
               <span className="opportunities-icon">💼</span>
             </div>
             <p>İlgilendiğiniz alanda açık olan pozisyonları görüntüleyin!</p>
-            <button className="view-positions-btn" onClick={() => navigate('/joblistings')}>
+            <button
+              className="view-positions-btn"
+              onClick={() => navigate("/joblistings")}
+            >
               Pozisyonları Görüntüle
             </button>
           </div>

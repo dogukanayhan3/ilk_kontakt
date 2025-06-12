@@ -1,33 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { ThumbsUp, MessageCircle, Send, Heart, MessageSquare } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import '../../component-styles/Post.css';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import {
+  ThumbsUp,
+  MessageCircle,
+  Send,
+  Heart,
+  MessageSquare,
+} from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import "../../component-styles/Post.css";
+import PropTypes from "prop-types";
 
 // Helper function to get cookies
 function getCookie(name) {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
   return match ? match[2] : null;
 }
 
 // Helper function to fetch profile image
 async function fetchProfileImage(userId) {
   try {
-    const response = await fetch(`https://localhost:44388/api/app/user-profile/by-user-id/${userId}`, {
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `https://localhost:44388/api/app/user-profile/by-user-id/${userId}`,
+      {
+        credentials: "include",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
     if (response.ok) {
       const data = await response.json();
-      return data.profilePictureUrl || '/default-avatar.png';
+      return data.profilePictureUrl || "/default-avatar.png";
     }
-    return '/default-avatar.png';
+    return "/default-avatar.png";
   } catch (err) {
-    console.error('Failed to fetch profile image:', err);
-    return '/default-avatar.png';
+    console.error("Failed to fetch profile image:", err);
+    return "/default-avatar.png";
   }
 }
 
@@ -44,8 +53,8 @@ function Post({
 }) {
   // --- Component State ---
   const [isCommenting, setIsCommenting] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [error, setError] = useState('');
+  const [commentText, setCommentText] = useState("");
+  const [error, setError] = useState("");
   const { currentUser } = useAuth();
 
   // --- Local State for Optimistic UI ---
@@ -55,13 +64,17 @@ function Post({
   const [localLikeCount, setLocalLikeCount] = useState(numberOfLikes || 0);
 
   // --- State for Profile Images ---
-  const [creatorProfileImage, setCreatorProfileImage] = useState('/default-avatar.png');
+  const [creatorProfileImage, setCreatorProfileImage] = useState(
+    "/default-avatar.png"
+  );
   const [commenterProfileImages, setCommenterProfileImages] = useState({}); // Map of commenter userId to profileImageUrl
 
   // Fetch creator profile image
   useEffect(() => {
     if (creatorUserId) {
-      fetchProfileImage(creatorUserId).then((imageUrl) => setCreatorProfileImage(imageUrl));
+      fetchProfileImage(creatorUserId).then((imageUrl) =>
+        setCreatorProfileImage(imageUrl)
+      );
     }
   }, [creatorUserId]);
 
@@ -83,7 +96,8 @@ function Post({
 
   // Effect to sync local state if props change from outside
   useEffect(() => {
-    const currentPropHasLiked = currentUser?.id && userLikes ? userLikes.includes(currentUser.id) : false;
+    const currentPropHasLiked =
+      currentUser?.id && userLikes ? userLikes.includes(currentUser.id) : false;
     setLocalHasLiked(currentPropHasLiked);
     setLocalLikeCount(numberOfLikes || 0);
   }, [userLikes, numberOfLikes, currentUser?.id]);
@@ -92,34 +106,44 @@ function Post({
   const handleLike = async (e) => {
     e.preventDefault();
     if (!currentUser) {
-      setError('Please log in to like posts.');
+      setError("Gönderileri beğenmek için lütfen giriş yapın.");
       return;
     }
-    setError('');
+    setError("");
 
     const originalHasLiked = localHasLiked;
     const originalLikeCount = localLikeCount;
 
     setLocalHasLiked(!originalHasLiked);
-    setLocalLikeCount(originalHasLiked ? originalLikeCount - 1 : originalLikeCount + 1);
+    setLocalLikeCount(
+      originalHasLiked ? originalLikeCount - 1 : originalLikeCount + 1
+    );
 
     try {
-      await fetch('https://localhost:44388/api/abp/application-configuration', { credentials: 'include' });
-      const xsrfToken = getCookie('XSRF-TOKEN');
+      await fetch("https://localhost:44388/api/abp/application-configuration", {
+        credentials: "include",
+      });
+      const xsrfToken = getCookie("XSRF-TOKEN");
       if (!xsrfToken) {
-        throw new Error('Could not verify request (XSRF token missing).');
+        throw new Error("İstek doğrulanamadı (XSRF token eksik).");
       }
 
-      const endpoint = `https://localhost:44388/api/app/post/${originalHasLiked ? 'unlike' : 'like'}/${id}`;
+      const endpoint = `https://localhost:44388/api/app/post/${
+        originalHasLiked ? "unlike" : "like"
+      }/${id}`;
       const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', RequestVerificationToken: xsrfToken, 'X-Requested-With': 'XMLHttpRequest' },
-        credentials: 'include',
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          RequestVerificationToken: xsrfToken,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "include",
         body: JSON.stringify({}),
       });
 
       if (!response.ok) {
-        let errorMsg = 'Like/Unlike operation failed.';
+        let errorMsg = "Like/Unlike operation failed.";
         try {
           if (response.status !== 204) {
             const errorData = await response.json();
@@ -132,7 +156,10 @@ function Post({
       }
     } catch (err) {
       setError(err.message);
-      console.error('Like/Unlike error, reverting UI:', err);
+      console.error(
+        "Beğenme/Beğenme kaldırma hatası, arayüz geri alınıyor:",
+        err
+      );
       setLocalHasLiked(originalHasLiked);
       setLocalLikeCount(originalLikeCount);
     }
@@ -141,37 +168,39 @@ function Post({
   const handleComment = async (e) => {
     e.preventDefault();
     if (!currentUser) {
-      setError('Please log in to comment.');
+      setError("Yorum yapmak için lütfen giriş yapın.");
       return;
     }
     if (!commentText.trim()) {
-      setError('Comment cannot be empty.');
+      setError("Yorum boş olamaz.");
       return;
     }
-    setError('');
+    setError("");
 
     try {
-      await fetch('https://localhost:44388/api/abp/application-configuration', { credentials: 'include' });
-      const xsrfToken = getCookie('XSRF-TOKEN');
+      await fetch("https://localhost:44388/api/abp/application-configuration", {
+        credentials: "include",
+      });
+      const xsrfToken = getCookie("XSRF-TOKEN");
       if (!xsrfToken) {
-        setError('Could not verify request (XSRF token missing).');
+        setError("İstek doğrulanamadı (XSRF token eksik).");
         return;
       }
 
       const endpoint = `https://localhost:44388/api/app/post/comment/${id}`;
       const response = await fetch(endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           RequestVerificationToken: xsrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
+          "X-Requested-With": "XMLHttpRequest",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ content: commentText }),
       });
 
       if (!response.ok) {
-        let errorMsg = 'Failed to post comment.';
+        let errorMsg = "Failed to post comment.";
         try {
           const errorData = await response.json();
           errorMsg = errorData?.error?.message || errorMsg;
@@ -181,12 +210,12 @@ function Post({
         throw new Error(errorMsg + ` (Status: ${response.status})`);
       }
 
-      setCommentText('');
+      setCommentText("");
       setIsCommenting(false);
       onPostUpdate();
     } catch (err) {
       setError(err.message);
-      console.error('Comment error:', err);
+      console.error("Comment error:", err);
     }
   };
 
@@ -196,8 +225,12 @@ function Post({
       <div className="post-header">
         <img src={creatorProfileImage} alt="Profile" className="post-avatar" />
         <div className="post-header-info">
-          <h4 className="post-username">{userName || '<Unknown User>'}</h4>
-          <span className="post-timestamp">{publishDate ? new Date(publishDate).toLocaleString() : 'Date unavailable'}</span>
+          <h4 className="post-username">{userName || "<Unknown User>"}</h4>
+          <span className="post-timestamp">
+            {publishDate
+              ? new Date(publishDate).toLocaleString()
+              : "Date unavailable"}
+          </span>
         </div>
       </div>
       {/* === Post Content === */}
@@ -209,7 +242,7 @@ function Post({
         {localLikeCount > 0 && (
           <span className="stat-item">
             <Heart size={14} className="stat-icon liked-icon" />
-            {localLikeCount} {localLikeCount === 1 ? 'like' : 'likes'}
+            {localLikeCount} {localLikeCount === 1 ? "like" : "likes"}
           </span>
         )}
         {userComments && userComments.length > 0 && (
@@ -219,7 +252,8 @@ function Post({
             title="View Comments"
           >
             <MessageSquare size={14} className="stat-icon" />
-            {userComments.length} {userComments.length === 1 ? 'comment' : 'comments'}
+            {userComments.length}{" "}
+            {userComments.length === 1 ? "comment" : "comments"}
           </span>
         )}
       </div>
@@ -227,34 +261,46 @@ function Post({
       <div className="post-actions">
         <button
           type="button"
-          className={`action-button like-button ${localHasLiked ? 'liked' : ''}`} // Add "liked" class if already liked
+          className={`action-button like-button ${
+            localHasLiked ? "liked" : ""
+          }`} // Add "liked" class if already liked
           onClick={handleLike}
           disabled={!currentUser}
-          title={!currentUser ? 'Log in to like' : localHasLiked ? 'Unlike' : 'Like'}
+          title={
+            !currentUser
+              ? "Beğenmek için giriş yapın."
+              : localHasLiked
+              ? "Unlike"
+              : "Like"
+          }
         >
-          <ThumbsUp size={18} className={localHasLiked ? 'liked-icon' : ''} />
-          <span>{localHasLiked ? 'Liked' : 'Like'}</span>
+          <ThumbsUp size={18} className={localHasLiked ? "liked-icon" : ""} />
+          <span>{localHasLiked ? "Liked" : "Like"}</span>
         </button>
         <button
           type="button"
           className="action-button comment-button"
           onClick={() => setIsCommenting(!isCommenting)}
           disabled={!currentUser}
-          title={!currentUser ? 'Log in to comment' : 'Comment'}
+          title={!currentUser ? "Log in to comment" : "Comment"}
         >
           <MessageCircle size={18} />
-          <span>Comment</span>
+          <span>Yorum</span>
         </button>
       </div>
       {/* === Comment Input & Section === */}
       {isCommenting && currentUser && (
         <div className="comment-input-section">
-          <img src={creatorProfileImage} alt="Your avatar" className="comment-input-avatar" />
+          <img
+            src={creatorProfileImage}
+            alt="Your avatar"
+            className="comment-input-avatar"
+          />
           <form onSubmit={handleComment} className="comment-form">
             <textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write your comment..."
+              placeholder="Yorumunuzu yazın..."
               rows={2}
               required
               className="comment-textarea"
@@ -262,7 +308,7 @@ function Post({
             <button
               type="submit"
               disabled={!commentText.trim()}
-              title="Send Comment"
+              title="Yorumu Gönder"
               className="comment-send-button"
             >
               <Send size={18} />
@@ -276,23 +322,30 @@ function Post({
             userComments.map((comment) => (
               <div key={comment.id} className="comment">
                 <img
-                  src={commenterProfileImages[comment.userId] || '/default-avatar.png'}
+                  src={
+                    commenterProfileImages[comment.userId] ||
+                    "/default-avatar.png"
+                  }
                   alt="Commenter avatar"
                   className="comment-avatar"
                 />
                 <div className="comment-body">
                   <div className="comment-header">
-                    <strong className="comment-username">{comment.userName || '<Unknown User>'}</strong>
+                    <strong className="comment-username">
+                      {comment.userName || "<Unknown User>"}
+                    </strong>
                   </div>
                   <p className="comment-text">{comment.content}</p>
                   <span className="comment-timestamp">
-                    {comment.creationTime ? new Date(comment.creationTime).toLocaleString() : ''}
+                    {comment.creationTime
+                      ? new Date(comment.creationTime).toLocaleString()
+                      : ""}
                   </span>
                 </div>
               </div>
             ))
           ) : (
-            <p className="no-comments-yet">No comments yet.</p>
+            <p className="no-comments-yet">Henüz yorum yok.</p>
           )}
         </div>
       )}
@@ -324,7 +377,7 @@ Post.propTypes = {
 };
 
 Post.defaultProps = {
-  userName: '<Unknown User>',
+  userName: "<Unknown User>",
   userLikes: [],
   numberOfLikes: 0,
   userComments: [],

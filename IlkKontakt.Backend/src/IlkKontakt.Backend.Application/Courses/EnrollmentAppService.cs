@@ -40,7 +40,7 @@ namespace IlkKontakt.Backend.Courses
       if (enrollment.UserId != CurrentUser.GetId())
       {
         throw new AbpAuthorizationException(
-          "You are not allowed to view this enrollment."
+          "Bu kaydı görüntüleme izniniz yok."
         );
       }
 
@@ -118,7 +118,7 @@ namespace IlkKontakt.Backend.Courses
         await _notificationAppService.CreateAsync(new CreateNotificationDto
         {
           UserId = instructor.UserId,
-          Message = "A new student has enrolled in your course.",
+          Message = "Kursunuza yeni bir öğrenci kaydoldu.",
           Type = NotificationType.NewEnrollment
         });
       }
@@ -138,7 +138,7 @@ namespace IlkKontakt.Backend.Courses
       if (enrollment.UserId != userId)
       {
         throw new AbpAuthorizationException(
-          "You are not allowed to update this enrollment."
+          "Bu kaydı güncelleme izniniz yok."
         );
       }
 
