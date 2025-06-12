@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Filter, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import Layout from "../page_layout/Layout";
 import Job from "./Job";
 import JobForm from "./JobForm";
@@ -9,6 +9,24 @@ import { useNavigate } from 'react-router-dom';
 
 const API_BASE = 'https://localhost:44388';
 const JOB_LISTINGS_ROOT = `${API_BASE}/api/app/job-listing`;
+
+const APPLICATION_STATUS = {
+    PENDING: 'pending',
+    ACCEPTED: 'accepted',
+    REJECTED: 'rejected'
+};
+
+const APPLICATION_STATUS_LABELS = {
+    [APPLICATION_STATUS.PENDING]: 'Pending',
+    [APPLICATION_STATUS.ACCEPTED]: 'Accepted',
+    [APPLICATION_STATUS.REJECTED]: 'Rejected'
+};
+
+const APPLICATION_STATUS_ICONS = {
+    [APPLICATION_STATUS.PENDING]: Clock,
+    [APPLICATION_STATUS.ACCEPTED]: CheckCircle2,
+    [APPLICATION_STATUS.REJECTED]: XCircle
+};
 
 function getCookie(name) {
   const match = document.cookie.match(
@@ -32,6 +50,8 @@ function JobListPage() {
   const [filterWorkType, setFilterWorkType] = useState('');
   const [filterExperienceLevel, setFilterExperienceLevel] = useState('');
   const [filterLocation, setFilterLocation] = useState('');
+  const [myApplications, setMyApplications] = useState([]);
+  const [loadingApplications, setLoadingApplications] = useState(false);
 
   async function fetchJobListings() {
     setLoading(true);
@@ -211,8 +231,108 @@ function JobListPage() {
     return matchesSearch && matchesWorkType && matchesExp && matchesLoc;
   });
 
+  const fetchMyApplications = async () => {
+    if (!currentUser || currentUser.isCompanyProfile) return;
+    
+    setLoadingApplications(true);
+    try {
+      // Get XSRF token first
+      await fetch(`${API_BASE}/api/abp/application-configuration`, {
+        credentials: 'include'
+      });
+      const xsrf = getCookie('XSRF-TOKEN');
+      if (!xsrf) throw new Error('XSRF token bulunamadı');
+
+      const response = await fetch(
+        `${API_BASE}/api/app/job-application/my-applications`,
+        {
+          credentials: 'include',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': xsrf,
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        }
+      );
+      
+      if (!response.ok) throw new Error('Failed to fetch applications');
+      
+      const applications = await response.json();
+      
+      // Fetch job details for each application
+      const applicationsWithDetails = await Promise.all(
+        applications.map(async (application) => {
+          try {
+            const jobResponse = await fetch(
+              `${JOB_LISTINGS_ROOT}/${application.jobListingId}`,
+              {
+                credentials: 'include',
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json'
+                }
+              }
+            );
+            
+            if (!jobResponse.ok) throw new Error('Failed to fetch job details');
+            
+            const jobDetails = await jobResponse.json();
+            return {
+              ...application,
+              jobTitle: jobDetails.title,
+              companyName: jobDetails.company,
+              creationTime: application.creationTime
+            };
+          } catch (err) {
+            console.error('Error fetching job details:', err);
+            return application;
+          }
+        })
+      );
+      
+      setMyApplications(applicationsWithDetails);
+    } catch (err) {
+      console.error('Error fetching applications:', err);
+    } finally {
+      setLoadingApplications(false);
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    const Icon = APPLICATION_STATUS_ICONS[status?.toLowerCase()] || APPLICATION_STATUS_ICONS[APPLICATION_STATUS.PENDING];
+    return <Icon size={16} />;
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 0:
+        return APPLICATION_STATUS_LABELS[APPLICATION_STATUS.PENDING];
+      case 1:
+        return APPLICATION_STATUS_LABELS[APPLICATION_STATUS.ACCEPTED];
+      case 2:
+        return APPLICATION_STATUS_LABELS[APPLICATION_STATUS.REJECTED];
+      default:
+        return APPLICATION_STATUS_LABELS[APPLICATION_STATUS.PENDING];
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case 0:
+        return APPLICATION_STATUS.PENDING;
+      case 1:
+        return APPLICATION_STATUS.ACCEPTED;
+      case 2:
+        return APPLICATION_STATUS.REJECTED;
+      default:
+        return APPLICATION_STATUS.PENDING;
+    }
+  };
+
   useEffect(() => {
     fetchJobListings();
+    fetchMyApplications();
   }, [currentUser]);
 
   if (loading)
@@ -238,6 +358,44 @@ function JobListPage() {
         <h1>Açık Pozisyonlar</h1>
         <p>Yeni kariyer fırsatınızı bulun!</p>
       </section>
+
+      {currentUser && !currentUser.isCompanyProfile && (
+        <section className="my-applications-section">
+          <div className="section-header">
+            <h2>My Applications</h2>
+          </div>
+          {loadingApplications ? (
+            <div className="loading-message">Loading applications...</div>
+          ) : myApplications.length === 0 ? (
+            <div className="no-applications">
+              <p>You haven't applied to any jobs yet.</p>
+            </div>
+          ) : (
+            <div className="applications-grid">
+              {myApplications.map(application => (
+                <div key={application.id} className="application-card">
+                  <div className="application-header">
+                    <h3>{application.jobTitle}</h3>
+                    <span className={`status-badge ${getStatusClass(application.status)}`}>
+                      {getStatusIcon(getStatusClass(application.status))}
+                      {getStatusLabel(application.status)}
+                    </span>
+                  </div>
+                  <div className="application-details">
+                    <div className="detail-item">
+                      <span className="company">{application.companyName}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="date">Applied on: {new Date(application.creationTime).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       <div className="job-listings-page-container">
         {currentUser?.isCompanyProfile && (
           <section className="company-listings-section">
