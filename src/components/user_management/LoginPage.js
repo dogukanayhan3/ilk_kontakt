@@ -228,7 +228,7 @@ export default function LoginPage() {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    setResetStatus({ type: "loading", message: "Kullanıcı kontrol ediliyor..." });
+    setResetStatus({ type: "loading", message: "Şifre sıfırlama isteği gönderiliyor..." });
 
     try {
       // Get XSRF token
@@ -238,32 +238,7 @@ export default function LoginPage() {
       const xsrf = getCookie('XSRF-TOKEN');
       if (!xsrf) throw new Error('XSRF token not found');
 
-      // First check if username exists by attempting to login
-      const loginCheckRes = await fetch(`${API_BASE}/api/account/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          accept: "application/json",
-          "Content-Type": "application/json",
-          RequestVerificationToken: xsrf,
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: JSON.stringify({
-          userNameOrEmailAddress: resetUsername,
-          password: "dummy_password_for_check",
-          rememberMe: true,
-        }),
-      });
-
-      // If we get a 400 or 401, it means the username exists but password is wrong
-      // If we get a 404 or other error, the username doesn't exist
-      if (loginCheckRes.status !== 400 && loginCheckRes.status !== 401) {
-        throw new Error("Bu kullanıcı adı sistemde kayıtlı değil!");
-      }
-
-      setResetStatus({ type: "loading", message: "Şifre sıfırlama isteği gönderiliyor..." });
-
-      // Now send the reset request
+      // Send the reset request
       const response = await fetch(`${API_BASE}/api/app/contact-us`, {
         method: "POST",
         credentials: 'include',
