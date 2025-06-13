@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, Filter, ArrowLeft, User, Mail, Phone, Briefcase, GraduationCap, Star } from 'lucide-react';
+import { Search, Filter, ArrowLeft, User, Mail, Phone, Briefcase, GraduationCap, Star, Check, X } from 'lucide-react';
 import '../../component-styles/JobApplicantsPage.css';
 import Layout from "../page_layout/Layout";
 
@@ -8,6 +8,14 @@ const API_BASE = 'https://localhost:44388';
 const APPLICATION_ROOT = `${API_BASE}/api/app/job-application`;
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+
+// Add this helper function at the top
+function getCookie(name) {
+    const match = document.cookie.match(
+        new RegExp('(^| )' + name + '=([^;]+)')
+    );
+    return match ? match[2] : null;
+}
 
 function JobApplicantsPage() {
     const { jobId } = useParams();
@@ -22,11 +30,70 @@ function JobApplicantsPage() {
     const [isFiltering, setIsFiltering] = useState(false);
     const [jobTitle, setJobTitle] = useState('');
     const [hasSearched, setHasSearched] = useState(false);
+    const [updatingStatus, setUpdatingStatus] = useState({}); // Track which applications are being updated
 
     useEffect(() => {
         fetchJobAndApplicants();
     }, [jobId]);
 
+    // Add this function to update application status
+    const updateApplicationStatus = async (applicationId, newStatus) => {
+        setUpdatingStatus(prev => ({ ...prev, [applicationId]: true }));
+        
+        try {
+            // Get XSRF token
+            await fetch(`${API_BASE}/api/abp/application-configuration`, {
+                credentials: 'include'
+            });
+            const xsrf = getCookie('XSRF-TOKEN');
+            if (!xsrf) throw new Error('XSRF token not found');
+
+            const response = await fetch(`${APPLICATION_ROOT}/${applicationId}/set-status`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': xsrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update application status');
+            }
+
+            // Refresh the applicants list
+            await fetchJobAndApplicants();
+            
+        } catch (err) {
+            console.error('Error updating status:', err);
+            setError('Failed to update application status. Please try again.');
+        } finally {
+            setUpdatingStatus(prev => ({ ...prev, [applicationId]: false }));
+        }
+    };
+
+    const getStatusText = (status) => {
+        switch (status) {
+            case 0: return 'Pending';
+            case 1: return 'Accepted';
+            case 2: return 'Rejected';
+            default: return 'Unknown';
+        }
+    };
+
+    const getStatusClass = (status) => {
+        switch (status) {
+            case 0: return 'status-pending';
+            case 1: return 'status-accepted';
+            case 2: return 'status-rejected';
+            default: return 'status-unknown';
+        }
+    };
+
+    // Keep all your existing functions (fetchJobAndApplicants, handleSearch, clearSearch, etc.)
     const fetchJobAndApplicants = async () => {
         try {
             // Fetch job details
@@ -129,6 +196,9 @@ function JobApplicantsPage() {
                 {isBestMatch && <Star size={16} className="star-icon" />}
                 <User size={20} />
                 <h3>{applicant.userName}</h3>
+                <div className={`status-badge ${getStatusClass(applicant.status)}`}>
+                    {getStatusText(applicant.status)}
+                </div>
             </div>
             <div className="applicant-details">
                 <div className="detail-item">
@@ -158,6 +228,27 @@ function JobApplicantsPage() {
                     </div>
                 )}
             </div>
+            
+            {/* Action buttons */}
+            <div className="applicant-actions">
+                <button
+                    className="accept-btn"
+                    onClick={() => updateApplicationStatus(applicant.applicationId, 1)}
+                    disabled={applicant.status === 1 || updatingStatus[applicant.applicationId]}
+                >
+                    <Check size={16} />
+                    {updatingStatus[applicant.applicationId] ? 'Updating...' : 'Accept'}
+                </button>
+                <button
+                    className="reject-btn"
+                    onClick={() => updateApplicationStatus(applicant.applicationId, 2)}
+                    disabled={applicant.status === 2 || updatingStatus[applicant.applicationId]}
+                >
+                    <X size={16} />
+                    {updatingStatus[applicant.applicationId] ? 'Updating...' : 'Reject'}
+                </button>
+            </div>
+            
             <div className="application-date">
                 Applied on: {new Date(applicant.creationTime).toLocaleDateString()}
             </div>
