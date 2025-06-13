@@ -1,37 +1,44 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, Filter, Edit, Trash2, Clock, CheckCircle2, XCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import Layout from "../page_layout/Layout";
 import Job from "./Job";
 import JobForm from "./JobForm";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/JobListings.css";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-const API_BASE = 'https://localhost:44388';
+const API_BASE = "https://localhost:44388";
 const JOB_LISTINGS_ROOT = `${API_BASE}/api/app/job-listing`;
 
 const APPLICATION_STATUS = {
-    PENDING: 'pending',
-    ACCEPTED: 'accepted',
-    REJECTED: 'rejected'
+  PENDING: "pending",
+  ACCEPTED: "accepted",
+  REJECTED: "rejected",
 };
 
 const APPLICATION_STATUS_LABELS = {
-    [APPLICATION_STATUS.PENDING]: 'Pending',
-    [APPLICATION_STATUS.ACCEPTED]: 'Accepted',
-    [APPLICATION_STATUS.REJECTED]: 'Rejected'
+  [APPLICATION_STATUS.PENDING]: "Pending",
+  [APPLICATION_STATUS.ACCEPTED]: "Accepted",
+  [APPLICATION_STATUS.REJECTED]: "Rejected",
 };
 
 const APPLICATION_STATUS_ICONS = {
-    [APPLICATION_STATUS.PENDING]: Clock,
-    [APPLICATION_STATUS.ACCEPTED]: CheckCircle2,
-    [APPLICATION_STATUS.REJECTED]: XCircle
+  [APPLICATION_STATUS.PENDING]: Clock,
+  [APPLICATION_STATUS.ACCEPTED]: CheckCircle2,
+  [APPLICATION_STATUS.REJECTED]: XCircle,
 };
 
 function getCookie(name) {
-  const match = document.cookie.match(
-    new RegExp('(^| )' + name + '=([^;]+)')
-  );
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
   return match ? match[2] : null;
 }
 
@@ -39,10 +46,14 @@ function getCookie(name) {
 function StatusProgress({ status }) {
   const getStatusStep = (status) => {
     switch (status) {
-      case 0: return 1; // Pending
-      case 1: return 3; // Accepted
-      case 2: return 0; // Rejected
-      default: return 1;
+      case 0:
+        return 1; // Pending
+      case 1:
+        return 3; // Accepted
+      case 2:
+        return 0; // Rejected
+      default:
+        return 1;
     }
   };
 
@@ -52,42 +63,61 @@ function StatusProgress({ status }) {
     <div className="status-progress">
       <div className="progress-line">
         {/* Rejected dot */}
-        <div className={`progress-dot rejected ${currentStep === 0 ? 'active' : ''}`}>
+        <div
+          className={`progress-dot rejected ${
+            currentStep === 0 ? "active" : ""
+          }`}
+        >
           <XCircle size={16} />
         </div>
-        
+
         {/* Pending dot */}
-        <div className={`progress-dot pending ${currentStep === 1 ? 'active' : ''}`}>
+        <div
+          className={`progress-dot pending ${
+            currentStep === 1 ? "active" : ""
+          }`}
+        >
           <Clock size={16} />
         </div>
-        
+
         {/* Accepted dot */}
-        <div className={`progress-dot accepted ${currentStep === 3 ? 'active' : ''}`}>
+        <div
+          className={`progress-dot accepted ${
+            currentStep === 3 ? "active" : ""
+          }`}
+        >
           <CheckCircle2 size={16} />
         </div>
-        
+
         {/* Progress line background */}
         <div className="progress-line-bg"></div>
-        
+
         {/* Active progress line */}
-        <div 
+        <div
           className={`progress-line-active ${
-            currentStep === 0 ? 'rejected-line' : 
-            currentStep === 1 ? 'pending-line' : 
-            'accepted-line'
+            currentStep === 0
+              ? "rejected-line"
+              : currentStep === 1
+              ? "pending-line"
+              : "accepted-line"
           }`}
           style={{
-            width: currentStep === 0 ? '0%' : 
-                   currentStep === 1 ? '50%' : 
-                   '100%'
+            width:
+              currentStep === 0 ? "0%" : currentStep === 1 ? "50%" : "100%",
           }}
         ></div>
       </div>
-      
+
       <div className="status-labels">
-        <span className={`status-label ${currentStep === 0 ? 'active' : ''}`}>Rejected</span>
-        <span className={`status-label ${currentStep === 1 ? 'active' : ''}`}>Pending</span>
-        <span className={`status-label ${currentStep === 3 ? 'active' : ''}`}>Accepted</span>
+        <span className={`status-label ${currentStep === 0 ? "active" : ""}`}>
+          Rejected
+        </span>
+        <span className={`status-label ${currentStep === 1 ? "active" : ""}`}>
+          Pending
+        </span>
+        <span className={`status-label ${currentStep === 3 ? "active" : ""}`}>
+          Accepted
+        </span>
       </div>
     </div>
   );
@@ -101,13 +131,13 @@ function JobListPage() {
   const [companyJobs, setCompanyJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [companyJobsLoading, setCompanyJobsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showJobForm, setShowJobForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterWorkType, setFilterWorkType] = useState('');
-  const [filterExperienceLevel, setFilterExperienceLevel] = useState('');
-  const [filterLocation, setFilterLocation] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterWorkType, setFilterWorkType] = useState("");
+  const [filterExperienceLevel, setFilterExperienceLevel] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
   const [myApplications, setMyApplications] = useState([]);
   const [loadingApplications, setLoadingApplications] = useState(false);
 
@@ -115,20 +145,20 @@ function JobListPage() {
 
   async function fetchJobListings() {
     setLoading(true);
-    setError('');
+    setError("");
     try {
       // Fetch all job listings
       const res = await fetch(
         `${JOB_LISTINGS_ROOT}?SkipCount=0&MaxResultCount=100`,
         {
-          credentials: 'include',
+          credentials: "include",
           headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
         }
       );
-      if (!res.ok) throw new Error('İş ilanları yüklenemedi');
+      if (!res.ok) throw new Error("İş ilanları yüklenemedi");
       const data = await res.json();
       setJobListings(data.items || []);
 
@@ -138,29 +168,26 @@ function JobListPage() {
         try {
           // 1) hit config to set XSRF cookie
           await fetch(`${API_BASE}/api/abp/application-configuration`, {
-            credentials: 'include'
+            credentials: "include",
           });
           // 2) read token
-          const xsrf = getCookie('XSRF-TOKEN');
-          if (!xsrf) throw new Error('XSRF token bulunamadı');
+          const xsrf = getCookie("XSRF-TOKEN");
+          if (!xsrf) throw new Error("XSRF token bulunamadı");
           // 3) fetch company jobs
-          const companyRes = await fetch(
-            `${JOB_LISTINGS_ROOT}/by-creator`,
-            {
-              method: 'GET',
-              credentials: 'include',
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                RequestVerificationToken: xsrf,
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            }
-          );
+          const companyRes = await fetch(`${JOB_LISTINGS_ROOT}/by-creator`, {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              RequestVerificationToken: xsrf,
+              "X-Requested-With": "XMLHttpRequest",
+            },
+          });
           if (!companyRes.ok) {
             const text = await companyRes.text();
             console.error(text);
-            throw new Error('Şirket iş ilanları yüklenemedi');
+            throw new Error("Şirket iş ilanları yüklenemedi");
           }
           const companyData = await companyRes.json();
           setCompanyJobs(companyData.items || []);
@@ -181,22 +208,22 @@ function JobListPage() {
   async function createJobListing(jobData) {
     try {
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      const xsrf = getCookie('XSRF-TOKEN');
-      if (!xsrf) throw new Error('XSRF token bulunamadı');
+      const xsrf = getCookie("XSRF-TOKEN");
+      if (!xsrf) throw new Error("XSRF token bulunamadı");
       const res = await fetch(JOB_LISTINGS_ROOT, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
           RequestVerificationToken: xsrf,
-          'X-Requested-With': 'XMLHttpRequest'
+          "X-Requested-With": "XMLHttpRequest",
         },
-        body: JSON.stringify(jobData)
+        body: JSON.stringify(jobData),
       });
-      if (!res.ok) throw new Error('İş ilanı oluşturulamadı');
+      if (!res.ok) throw new Error("İş ilanı oluşturulamadı");
       await fetchJobListings();
       setShowJobForm(false);
     } catch (e) {
@@ -208,22 +235,22 @@ function JobListPage() {
   async function updateJobListing(id, jobData) {
     try {
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      const xsrf = getCookie('XSRF-TOKEN');
-      if (!xsrf) throw new Error('XSRF token bulunamadı');
+      const xsrf = getCookie("XSRF-TOKEN");
+      if (!xsrf) throw new Error("XSRF token bulunamadı");
       const res = await fetch(`${JOB_LISTINGS_ROOT}/${id}`, {
-        method: 'PUT',
-        credentials: 'include',
+        method: "PUT",
+        credentials: "include",
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
           RequestVerificationToken: xsrf,
-          'X-Requested-With': 'XMLHttpRequest'
+          "X-Requested-With": "XMLHttpRequest",
         },
-        body: JSON.stringify(jobData)
+        body: JSON.stringify(jobData),
       });
-      if (!res.ok) throw new Error('İş ilanı güncellenemedi');
+      if (!res.ok) throw new Error("İş ilanı güncellenemedi");
       await fetchJobListings();
       setEditingJob(null);
       setShowJobForm(false);
@@ -234,26 +261,26 @@ function JobListPage() {
   }
 
   async function deleteJobListing(id) {
-    if (!window.confirm('Bu iş ilanını silmek istediğinizden emin misiniz?')) {
+    if (!window.confirm("Bu iş ilanını silmek istediğinizden emin misiniz?")) {
       return;
     }
     try {
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      const xsrf = getCookie('XSRF-TOKEN');
-      if (!xsrf) throw new Error('XSRF token bulunamadı');
+      const xsrf = getCookie("XSRF-TOKEN");
+      if (!xsrf) throw new Error("XSRF token bulunamadı");
       const res = await fetch(`${JOB_LISTINGS_ROOT}/${id}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          Accept: "application/json",
+          "Content-Type": "application/json",
           RequestVerificationToken: xsrf,
-          'X-Requested-With': 'XMLHttpRequest'
-        }
+          "X-Requested-With": "XMLHttpRequest",
+        },
       });
-      if (!res.ok) throw new Error('İş ilanı silinemedi');
+      if (!res.ok) throw new Error("İş ilanı silinemedi");
       await fetchJobListings();
     } catch (e) {
       console.error(e);
@@ -275,7 +302,7 @@ function JobListPage() {
   };
 
   const filteredJobs = jobListings.filter((job) => {
-    const lower = (s = '') => s.toLowerCase();
+    const lower = (s = "") => s.toLowerCase();
     const matchesSearch =
       lower(job.title).includes(lower(searchTerm)) ||
       lower(job.company).includes(lower(searchTerm)) ||
@@ -293,33 +320,33 @@ function JobListPage() {
 
   const fetchMyApplications = async () => {
     if (!currentUser || currentUser.isCompanyProfile) return;
-    
+
     setLoadingApplications(true);
     try {
       // Get XSRF token first
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
-        credentials: 'include'
+        credentials: "include",
       });
-      const xsrf = getCookie('XSRF-TOKEN');
-      if (!xsrf) throw new Error('XSRF token bulunamadı');
+      const xsrf = getCookie("XSRF-TOKEN");
+      if (!xsrf) throw new Error("XSRF token bulunamadı");
 
       const response = await fetch(
         `${API_BASE}/api/app/job-application/my-applications`,
         {
-          credentials: 'include',
+          credentials: "include",
           headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': xsrf,
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            RequestVerificationToken: xsrf,
+            "X-Requested-With": "XMLHttpRequest",
+          },
         }
       );
-      
-      if (!response.ok) throw new Error('Failed to fetch applications');
-      
+
+      if (!response.ok) throw new Error("Başvurular alınamadı.");
+
       const applications = await response.json();
-      
+
       // Fetch job details for each application
       const applicationsWithDetails = await Promise.all(
         applications.map(async (application) => {
@@ -327,40 +354,42 @@ function JobListPage() {
             const jobResponse = await fetch(
               `${JOB_LISTINGS_ROOT}/${application.jobListingId}`,
               {
-                credentials: 'include',
+                credentials: "include",
                 headers: {
-                  'Accept': 'application/json',
-                  'Content-Type': 'application/json'
-                }
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
               }
             );
-            
-            if (!jobResponse.ok) throw new Error('Failed to fetch job details');
-            
+
+            if (!jobResponse.ok) throw new Error("İş detayları alınamadı.");
+
             const jobDetails = await jobResponse.json();
             return {
               ...application,
               jobTitle: jobDetails.title,
               companyName: jobDetails.company,
-              creationTime: application.creationTime
+              creationTime: application.creationTime,
             };
           } catch (err) {
-            console.error('Error fetching job details:', err);
+            console.error("Error fetching job details:", err);
             return application;
           }
         })
       );
-      
+
       setMyApplications(applicationsWithDetails);
     } catch (err) {
-      console.error('Error fetching applications:', err);
+      console.error("Error fetching applications:", err);
     } finally {
       setLoadingApplications(false);
     }
   };
 
   const getStatusIcon = (status) => {
-    const Icon = APPLICATION_STATUS_ICONS[status?.toLowerCase()] || APPLICATION_STATUS_ICONS[APPLICATION_STATUS.PENDING];
+    const Icon =
+      APPLICATION_STATUS_ICONS[status?.toLowerCase()] ||
+      APPLICATION_STATUS_ICONS[APPLICATION_STATUS.PENDING];
     return <Icon size={16} />;
   };
 
@@ -434,7 +463,7 @@ function JobListPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <div className="filter-groups">
               <div className="filter-group">
                 <label>Çalışma Türü</label>
@@ -448,7 +477,7 @@ function JobListPage() {
                   <option value="2">Hibrit</option>
                 </select>
               </div>
-              
+
               <div className="filter-group">
                 <label>Deneyim Seviyesi</label>
                 <select
@@ -464,7 +493,7 @@ function JobListPage() {
                   <option value="5">Yönetici</option>
                 </select>
               </div>
-              
+
               <div className="filter-group">
                 <label>Konum</label>
                 <input
@@ -489,17 +518,27 @@ function JobListPage() {
                 </div>
               ) : (
                 <div className="applications-list">
-                  {myApplications.map(application => (
-                    <div key={application.id} className="application-sidebar-card">
+                  {myApplications.map((application) => (
+                    <div
+                      key={application.id}
+                      className="application-sidebar-card"
+                    >
                       <div className="application-sidebar-header">
                         <h4>{application.jobTitle}</h4>
-                        <span className="company-name">{application.companyName}</span>
+                        <span className="company-name">
+                          {application.companyName}
+                        </span>
                       </div>
-                      
+
                       <StatusProgress status={application.status} />
-                      
+
                       <div className="application-date">
-                        <span>Başvuru: {new Date(application.creationTime).toLocaleDateString()}</span>
+                        <span>
+                          Başvuru:{" "}
+                          {new Date(
+                            application.creationTime
+                          ).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -539,8 +578,8 @@ function JobListPage() {
               ) : (
                 <div className="company-jobs-row">
                   {companyJobs.map((job) => (
-                    <div 
-                      key={job.id} 
+                    <div
+                      key={job.id}
                       className="company-job-card"
                       onClick={() => handleJobClick(job.id)}
                     >
@@ -550,19 +589,19 @@ function JobListPage() {
                           <div className="company-job-meta">
                             <span className="work-type">
                               {job.workType === 0
-                                ? 'Ofiste'
+                                ? "Ofiste"
                                 : job.workType === 1
-                                ? 'Uzaktan'
-                                : 'Hibrit'}
+                                ? "Uzaktan"
+                                : "Hibrit"}
                             </span>
                             <span>{job.location}</span>
                           </div>
                           <p className="company-job-description">
                             {job.description
                               ? job.description.length > 100
-                                ? job.description.substring(0, 100) + '...'
+                                ? job.description.substring(0, 100) + "..."
                                 : job.description
-                              : 'Açıklama bulunmuyor'}
+                              : "Açıklama bulunmuyor"}
                           </p>
                         </div>
                         <div className="company-job-actions">
@@ -605,8 +644,8 @@ function JobListPage() {
                     filterWorkType ||
                     filterExperienceLevel ||
                     filterLocation
-                      ? 'Arama kriterlerinize uygun iş ilanı bulunamadı.'
-                      : 'Henüz iş ilanı bulunmuyor.'}
+                      ? "Arama kriterlerinize uygun iş ilanı bulunamadı."
+                      : "Henüz iş ilanı bulunmuyor."}
                   </p>
                 </div>
               ) : (

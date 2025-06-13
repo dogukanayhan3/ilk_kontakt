@@ -61,7 +61,7 @@ export default function LoginPage() {
         credentials: "include",
       });
       const xsrf = getCookie("XSRF-TOKEN");
-      if (!xsrf) throw new Error("XSRF token not found");
+      if (!xsrf) throw new Error("XSRF belirteci bulunamadı.");
 
       // Login
       const loginRes = await fetch(`${API_BASE}/api/account/login`, {
@@ -81,14 +81,14 @@ export default function LoginPage() {
       });
       if (!loginRes.ok) {
         const err = await loginRes.json();
-        throw new Error(err.error?.message || "Login failed");
+        throw new Error(err.error?.message || "Giriş başarısız oldu.");
       }
 
       // Fetch my-profile
       const profRes = await fetch(`${API_BASE}/api/account/my-profile`, {
         credentials: "include",
       });
-      if (!profRes.ok) throw new Error("Cannot fetch profile");
+      if (!profRes.ok) throw new Error("Profil alınamıyor.");
       const userData = await profRes.json();
 
       const userInfo = {
@@ -138,7 +138,7 @@ export default function LoginPage() {
         credentials: "include",
       });
       const xsrf = getCookie("XSRF-TOKEN");
-      if (!xsrf) throw new Error("XSRF token not found");
+      if (!xsrf) throw new Error("XSRF token bulunamadı.");
 
       // 2) Prepare registration data
       const registrationData = {
@@ -186,7 +186,7 @@ export default function LoginPage() {
           rememberMe: true,
         }),
       });
-      if (!loginRes.ok) throw new Error("Auto-login failed");
+      if (!loginRes.ok) throw new Error("Otomatik giriş başarısız oldu.");
 
       // 5) Fetch my-profile
       const profRes = await fetch(`${API_BASE}/api/account/my-profile`, {

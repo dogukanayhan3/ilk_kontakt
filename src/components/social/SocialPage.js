@@ -486,7 +486,7 @@ function SocialPage() {
       );
 
       if (!profilesRes.ok) {
-        throw new Error("Failed to fetch profiles");
+        throw new Error("Profiller alınamadı.");
       }
 
       const profilesData = await profilesRes.json();
@@ -504,7 +504,7 @@ function SocialPage() {
       );
 
       if (!identityRes.ok) {
-        throw new Error("Failed to fetch identity users");
+        throw new Error("Kimlik kullanıcıları alınamadı.");
       }
 
       const identityData = await identityRes.json();
@@ -738,7 +738,7 @@ function SocialPage() {
       });
       const xsrfToken = getCookie("XSRF-TOKEN");
       if (!xsrfToken) {
-        setError("Could not verify request (XSRF token missing).");
+        setError("İstek doğrulanamadı (XSRF belirteci eksik).");
         return;
       }
 
