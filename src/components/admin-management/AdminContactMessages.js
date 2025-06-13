@@ -63,6 +63,8 @@ export default function AdminContactMessages() {
         method: "DELETE",
         credentials: "include",
         headers: {
+          "accept": "text/plain",
+          "Content-Type": "application/json",
           RequestVerificationToken: xsrf,
           "X-Requested-With": "XMLHttpRequest",
         },

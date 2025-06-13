@@ -49,6 +49,7 @@ export default function AdminUsers() {
         method: "PUT",
         credentials: "include",
         headers: {
+          "accept": "text/plain",
           "Content-Type": "application/json",
           RequestVerificationToken: xsrf,
           "X-Requested-With": "XMLHttpRequest",
@@ -98,7 +99,7 @@ export default function AdminUsers() {
               <th>Email</th>
               <th>Ad</th>
               <th>Soyad</th>
-              <th>Şirket?</th>
+              <th>Şirket</th>
               <th>İşlemler</th>
             </tr>
           </thead>
