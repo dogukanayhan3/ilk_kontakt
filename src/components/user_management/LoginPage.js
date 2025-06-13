@@ -104,7 +104,11 @@ export default function LoginPage() {
       setCurrentUser(userInfo);
       localStorage.setItem("currentUser", JSON.stringify(userInfo));
       localStorage.setItem("isAuthenticated", "true");
-      navigate("/homepage");
+      if (userInfo.userName === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/homepage");
+      }
     } catch (err) {
       console.error(err);
       setError("Giriş başarısız!");

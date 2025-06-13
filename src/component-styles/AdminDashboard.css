@@ -1,0 +1,323 @@
+.admin-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: "Galano Classic Alt", Arial, sans-serif;
+  }
+  
+  .admin-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .admin-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    color: white;
+  }
+  
+  .admin-header h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  .admin-header p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+  
+  /* Admin Grid */
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 0;
+  }
+  
+  /* Admin Cards */
+  .admin-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .admin-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--card-color);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+  }
+  
+  .admin-card:hover::before {
+    transform: scaleX(1);
+  }
+  
+  .admin-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 1);
+  }
+  
+  .admin-card-icon {
+    margin-bottom: 1.5rem;
+    color: var(--card-color);
+    transition: all 0.3s ease;
+  }
+  
+  .admin-card:hover .admin-card-icon {
+    transform: scale(1.1);
+  }
+  
+  .admin-card h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: #2d3748;
+  }
+  
+  .admin-card p {
+    font-size: 1rem;
+    color: #718096;
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+  }
+  
+  .modal-content {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 1200px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+  
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+  
+  .modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+  }
+  
+  .modal-body {
+    padding: 2rem;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+  }
+  
+  /* Admin Section Styles (for modal content) */
+  .admin-section {
+    margin: 0;
+  }
+  
+  .admin-section h2 {
+    display: none; /* Hide since we have modal header */
+  }
+  
+  /* Table Styles */
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-top: 1rem;
+  }
+  
+  .admin-table th,
+  .admin-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    font-size: 0.95rem;
+  }
+  
+  .admin-table th {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #2d3748;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+  
+  .admin-table tr:hover {
+    background: #f7fafc;
+  }
+  
+  .admin-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .admin-table input,
+  .admin-table textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s ease;
+  }
+  
+  .admin-table input:focus,
+  .admin-table textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .admin-table button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .admin-table button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  
+  .admin-table button:active {
+    transform: translateY(0);
+  }
+  
+  /* Loading indicator */
+  .admin-section > div:first-of-type {
+    text-align: center;
+    padding: 2rem;
+    color: #667eea;
+    font-weight: 500;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .admin-main {
+      padding: 1rem;
+    }
+  
+    .admin-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  
+    .admin-header h1 {
+      font-size: 2rem;
+    }
+  
+    .modal-content {
+      width: 95%;
+      margin: 1rem;
+    }
+  
+    .modal-header,
+    .modal-body {
+      padding: 1rem;
+    }
+  
+    .admin-table th,
+    .admin-table td {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+    }
+  
+    .admin-table button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      margin-bottom: 0.25rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .admin-card {
+      padding: 1.5rem;
+    }
+  
+    .admin-card h3 {
+      font-size: 1.2rem;
+    }
+  
+    .admin-card p {
+      font-size: 0.9rem;
+    }
+  }

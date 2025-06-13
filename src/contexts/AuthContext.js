@@ -4,39 +4,31 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(() => {
-        // Check if user data exists in localStorage
-        const savedUser = localStorage.getItem('userData');
+        const savedUser = localStorage.getItem('currentUser'); // <--- use 'currentUser'
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
     const logout = useCallback(async () => {
         try {
-            // Call your logout endpoint
             await fetch('https://localhost:44388/api/account/logout', {
                 method: 'GET',
                 credentials: 'include'
             });
-            
-            // Clear localStorage
-            localStorage.removeItem('userData');
+            localStorage.removeItem('currentUser');
             localStorage.removeItem('isAuthenticated');
             localStorage.removeItem('connectionSuggestions');
-
-            
-            // Clear current user from context
             setCurrentUser(null);
-            
         } catch (error) {
             console.error('Logout error:', error);
         }
     }, []);
 
-    return (
-        <AuthContext.Provider value={{ currentUser, setCurrentUser, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
+        return (
+            <AuthContext.Provider value={{ currentUser, setCurrentUser, logout }}>
+                {children}
+            </AuthContext.Provider>
+        );
+    };
 
 export const useAuth = () => {
     const context = useContext(AuthContext);
