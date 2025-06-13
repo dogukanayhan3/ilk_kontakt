@@ -1,18 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import AdminNavbar from "./AdminNavbar"; // Import the new navbar
+import AdminNavbar from "./AdminNavbar";
 import AdminUsers from "./AdminUsers";
 import AdminCompanyProfiles from "./AdminCompanyProfiles";
 import AdminPosts from "./AdminPosts";
 import AdminJobListings from "./AdminJobListings";
 import AdminUserProfiles from "./AdminUserProfiles";
+import AdminContactMessages from "./AdminContactMessages";
+import AdminPasswordResets from "./AdminPasswordResets";
 import {
   Users,
   Building2,
   FileText,
   Briefcase,
   UserCircle,
+  MessageSquare,
+  KeyRound,
   X,
 } from "lucide-react";
 import "../../component-styles/AdminDashboard.css";
@@ -53,18 +57,71 @@ const ADMIN_CARDS = [
     icon: UserCircle,
     color: "#9C27B0",
   },
+  {
+    key: "messages",
+    title: "İletişim Mesajları",
+    description: "Kullanıcılardan gelen mesajları görüntüleyin",
+    icon: MessageSquare,
+    color: "#00D4AA",
+  },
+  {
+    key: "password-resets",
+    title: "Şifre Sıfırlama Talepleri",
+    description: "Şifre sıfırlama taleplerini yönetin",
+    icon: KeyRound,
+    color: "#FF6B35",
+  },
 ];
 
 export default function AdminDashboard() {
   const [activeModal, setActiveModal] = useState(null);
+  const [isModalAnimating, setIsModalAnimating] = useState(false);
 
   const openModal = (modalKey) => {
+    if (isModalAnimating) return; // Prevent multiple clicks during animation
+    
+    setIsModalAnimating(true);
     setActiveModal(modalKey);
+    document.body.classList.add('modal-open');
+    
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setIsModalAnimating(false);
+    }, 400);
   };
 
   const closeModal = () => {
-    setActiveModal(null);
+    if (isModalAnimating) return;
+    
+    setIsModalAnimating(true);
+    document.body.classList.remove('modal-open');
+    
+    // Add closing animation
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.style.animation = 'modalSlideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    }
+    
+    setTimeout(() => {
+      setActiveModal(null);
+      setIsModalAnimating(false);
+    }, 300);
   };
+
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && activeModal) {
+        closeModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.classList.remove('modal-open');
+    };
+  }, [activeModal]);
 
   const renderModalContent = () => {
     switch (activeModal) {
@@ -78,6 +135,10 @@ export default function AdminDashboard() {
         return <AdminJobListings />;
       case "profiles":
         return <AdminUserProfiles />;
+      case "messages":
+        return <AdminContactMessages />;
+      case "password-resets":
+        return <AdminPasswordResets />;
       default:
         return null;
     }
@@ -85,7 +146,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      <AdminNavbar /> {/* Use the new admin navbar */}
+      <AdminNavbar />
       <main className="admin-main">
         <div className="admin-header">
           <h1>Yönetici Paneli</h1>
@@ -98,7 +159,7 @@ export default function AdminDashboard() {
             return (
               <div
                 key={card.key}
-                className="admin-card"
+                className={`admin-card ${isModalAnimating ? 'disabled' : ''}`}
                 onClick={() => openModal(card.key)}
                 style={{ "--card-color": card.color }}
               >
