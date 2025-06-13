@@ -1,7 +1,7 @@
 // src/components/profile/LoginPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Lock, Mail, CheckCircle, Building } from "lucide-react";
+import { User, Lock, Mail, CheckCircle, Building, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/LoginPage.css";
 
@@ -17,6 +17,9 @@ export default function LoginPage() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isCompanySignup, setIsCompanySignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetUsername, setResetUsername] = useState("");
+  const [resetStatus, setResetStatus] = useState({ type: "", message: "" });
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -219,6 +222,77 @@ export default function LoginPage() {
     }
   };
 
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setResetStatus({ type: "loading", message: "Kullanıcı kontrol ediliyor..." });
+
+    try {
+      // Get XSRF token
+      await fetch(`${API_BASE}/api/abp/application-configuration`, {
+        credentials: 'include'
+      });
+      const xsrf = getCookie('XSRF-TOKEN');
+      if (!xsrf) throw new Error('XSRF token not found');
+
+      // First check if username exists by attempting to login
+      const loginCheckRes = await fetch(`${API_BASE}/api/account/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          RequestVerificationToken: xsrf,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({
+          userNameOrEmailAddress: resetUsername,
+          password: "dummy_password_for_check",
+          rememberMe: true,
+        }),
+      });
+
+      // If we get a 400 or 401, it means the username exists but password is wrong
+      // If we get a 404 or other error, the username doesn't exist
+      if (loginCheckRes.status !== 400 && loginCheckRes.status !== 401) {
+        throw new Error("Bu kullanıcı adı sistemde kayıtlı değil!");
+      }
+
+      setResetStatus({ type: "loading", message: "Şifre sıfırlama isteği gönderiliyor..." });
+
+      // Now send the reset request
+      const response = await fetch(`${API_BASE}/api/app/contact-us`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'RequestVerificationToken': xsrf,
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          name: "Password Reset Request",
+          email: "password-reset@ilkkontakt.com",
+          message: "Password reset request for username: " + resetUsername
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData?.error?.message || "Şifre sıfırlama isteği başarısız oldu");
+      }
+
+      setResetStatus({ type: "success", message: "Şifre sıfırlama isteği gönderildi!" });
+      setResetUsername("");
+      setTimeout(() => {
+        setShowResetModal(false);
+        setResetStatus({ type: "", message: "" });
+      }, 2000);
+    } catch (error) {
+      console.error('Reset password error:', error);
+      setResetStatus({ type: "error", message: error.message || "Bir hata oluştu. Lütfen tekrar deneyin." });
+    }
+  };
+
   const renderSignupForm = () => (
     <form onSubmit={handleSignup} className="login-form">
       {/* Account Type Selector */}
@@ -377,6 +451,14 @@ export default function LoginPage() {
               {isLoading ? "" : "Giriş Yap"}
             </button>
             <p className="toggle-text">
+              <span
+                className="toggle-link"
+                onClick={() => setShowResetModal(true)}
+              >
+                Şifremi Unuttum
+              </span>
+            </p>
+            <p className="toggle-text">
               Henüz bizi tanımıyor musunuz?{" "}
               <span
                 className="toggle-link"
@@ -397,6 +479,57 @@ export default function LoginPage() {
           renderSignupForm()
         )}
       </div>
+
+      {/* Reset Password Modal */}
+      {showResetModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="modal-close" onClick={() => setShowResetModal(false)}>
+              <X size={24} />
+            </button>
+            <h3>Şifre Sıfırlama</h3>
+            <form onSubmit={handleResetPassword} className="reset-form">
+              <div className="form-group">
+                <label>
+                  <User size={18} /> Kullanıcı Adı
+                </label>
+                <input
+                  type="text"
+                  value={resetUsername}
+                  onChange={(e) => setResetUsername(e.target.value)}
+                  placeholder="Kullanıcı adınızı girin"
+                  required
+                />
+              </div>
+              {resetStatus.message && (
+                <div className={`status-message ${resetStatus.type}`}>
+                  {resetStatus.message}
+                </div>
+              )}
+              <div className="modal-buttons">
+                <button
+                  type="submit"
+                  className={`login-button ${resetStatus.type === "loading" ? "loading" : ""}`}
+                  disabled={resetStatus.type === "loading"}
+                >
+                  {resetStatus.type === "loading" ? "" : "Şifre Sıfırlama İsteği Gönder"}
+                </button>
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => {
+                    setShowResetModal(false);
+                    setResetUsername("");
+                    setResetStatus({ type: "", message: "" });
+                  }}
+                >
+                  İptal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
