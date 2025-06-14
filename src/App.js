@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import AdminDashboard from './components/admin-management/AdminDashboard';
 import HomePage from './components/home_page/HomePage';
 import LoginPage from './components/user_management/LoginPage';
 import JobListPage from './components/positions/JobListPage';
@@ -26,6 +27,14 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route 
             path="/homepage" 
             element={

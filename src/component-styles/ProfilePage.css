@@ -167,71 +167,148 @@
 
 /* NEW: Prominent About Section Styling */
 .profile-about-section {
-  text-align: left; /* Align text left */
-  max-width: 600px; /* Match info list width */
-  margin: 20px auto; /* Space above and below */
-  padding: 20px; /* Add padding */
-  background: #f0f3ff; /* Light background color */
-  border-radius: 12px; /* Rounded corners */
-  border: 1px solid #d0daff; /* Subtle border */
-  box-shadow: 0 4px 10px rgba(50, 69, 241, 0.08); /* Soft shadow */
+  text-align: left;
+  width: 100%;
+  margin: 20px 0;
+  padding: 25px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f3ff 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(95, 188, 238, 0.2);
+  box-shadow: 0 8px 24px rgba(50, 69, 241, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-about-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #5fbcee, #3245f1);
+}
+
+.profile-about-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(50, 69, 241, 0.12);
 }
 
 .profile-about-section h4 {
-  font-size: 1.2em;
+  font-size: 1.3em;
   color: #3245f1;
   margin-top: 0;
-  margin-bottom: 10px;
-  border-bottom: 2px solid #5fbcee;
-  display: inline-block;
-  padding-bottom: 4px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.profile-about-section h4::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, #5fbcee, transparent);
+  margin-left: 12px;
 }
 
 .profile-about-section p {
-  font-size: 1em;
+  font-size: 1.05em;
   color: #4a5568;
-  line-height: 1.6;
+  line-height: 1.7;
   margin: 0;
+  padding-left: 4px;
 }
 
 /* NEW: Prominent Contact Section Styling */
 .profile-contact-section {
-  text-align: left; /* Align text left */
-  max-width: 600px; /* Match other prominent sections */
-  margin: 20px auto; /* Space above and below */
-  padding: 20px; /* Add padding */
-  background: #e8f5e9; /* Different light background color (e.g., light green) */
-  border-radius: 12px; /* Rounded corners */
-  border: 1px solid #c8e6c9; /* Subtle border */
-  box-shadow: 0 4px 10px rgba(76, 175, 80, 0.08); /* Soft shadow */
+  text-align: left;
+  width: 100%;
+  margin: 20px 0;
+  padding: 25px;
+  background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-contact-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, #81c784, #4caf50);
+}
+
+.profile-contact-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(76, 175, 80, 0.12);
 }
 
 .profile-contact-section h4 {
-  font-size: 1.2em;
-  color: #4caf50;
+  font-size: 1.3em;
+  color: #2e7d32;
   margin-top: 0;
-  margin-bottom: 15px;
-  border-bottom: 2px solid #81c784;
-  display: inline-block;
-  padding-bottom: 4px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.profile-contact-section h4::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(to right, #81c784, transparent);
+  margin-left: 12px;
 }
 
 .profile-contact-section .contact-info-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
+  width: 100%;
 }
 
 .profile-contact-section .contact-info-list div {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1em;
-  color: #333;
+  gap: 12px;
+  font-size: 1.05em;
+  color: #2c3e50;
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.profile-contact-section .contact-info-list div:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .profile-contact-section .contact-info-list div svg {
   color: #4caf50;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 8px;
+  background: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.profile-contact-section .contact-info-list div:hover svg {
+  transform: scale(1.1);
 }
 
 /* ------------------------------ */
@@ -240,8 +317,8 @@
 .profile-actions {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 16px;
+  margin-top: 24px;
 }
 
 #edit-profile-btn,
@@ -249,22 +326,103 @@
 .show-connections-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
   color: #fff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
+  padding: 12px 24px;
+  border-radius: 16px;
   font-weight: 600;
+  font-size: 1.05em;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(50, 69, 241, 0.2);
+}
+
+#edit-profile-btn::before,
+.save-profile-btn::before,
+.show-connections-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 #edit-profile-btn:hover,
 .save-profile-btn:hover,
 .show-connections-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(50,69,241,0.3);
+  box-shadow: 0 8px 25px rgba(50, 69, 241, 0.3);
+}
+
+#edit-profile-btn:hover::before,
+.save-profile-btn:hover::before,
+.show-connections-btn:hover::before {
+  opacity: 1;
+}
+
+#edit-profile-btn:active,
+.save-profile-btn:active,
+.show-connections-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 15px rgba(50, 69, 241, 0.2);
+}
+
+#edit-profile-btn svg,
+.save-profile-btn svg,
+.show-connections-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+#edit-profile-btn:hover svg,
+.save-profile-btn:hover svg,
+.show-connections-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* Add a subtle animation for the buttons */
+@keyframes buttonPulse {
+  0% {
+    box-shadow: 0 4px 15px rgba(50, 69, 241, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(50, 69, 241, 0.3);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(50, 69, 241, 0.2);
+  }
+}
+
+#edit-profile-btn,
+.show-connections-btn {
+  animation: buttonPulse 2s infinite;
+}
+
+/* Disabled state styling */
+#edit-profile-btn:disabled,
+.save-profile-btn:disabled,
+.show-connections-btn:disabled {
+  background: linear-gradient(135deg, #ccc 0%, #999 100%);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  animation: none;
+}
+
+#edit-profile-btn:disabled:hover,
+.save-profile-btn:disabled:hover,
+.show-connections-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* ------------------------------ */
@@ -961,8 +1119,8 @@
   background: linear-gradient(135deg, #5fbcee 0%, #3245f1 100%);
   color: #fff;
   border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
+  padding: 12px 24px;
+  border-radius: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -975,21 +1133,22 @@
 
 /* Specific style for the Cancel button in the modal if needed */
 .modal-content .profile-actions .cancel-edit-btn {
-  background: #e0e0e0; /* Grey background for cancel */
-  color: #333; /* Darker text */
+  background: #e0e0e0;
+  color: #333;
+  border-radius: 16px;
 }
 
 .modal-content .profile-actions .cancel-edit-btn:hover {
-  background: #ccc; /* Darker grey on hover */
-  transform: translateY(-2px); /* Keep the hover effect */
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1); /* Softer shadow */
+  background: #ccc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
 }
 
 /* Ensure modal form elements stack nicely */
 .profile-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* Spacing between form elements */
+  gap: 15px;
 }
 
 /* (alt kisimlar divler arasi bosluk icin) Add this to your CSS file */
@@ -998,7 +1157,7 @@
 .skill-section,
 .language-section,
 .project-section {
-  margin-bottom: 2.5rem; /* Add consistent spacing between sections */
+  margin-bottom: 2.5rem;
 }
 
 /* Last element in each column doesn't need bottom margin */

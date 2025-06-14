@@ -850,38 +850,6 @@ namespace IlkKontakt.Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ChatSessions",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    User1Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    User2Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    StartedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
-                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
-                    CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
-                    LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    LastModifierId = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChatSessions", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChatSessions_AbpUsers_User1Id",
-                        column: x => x.User1Id,
-                        principalTable: "AbpUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ChatSessions_AbpUsers_User2Id",
-                        column: x => x.User2Id,
-                        principalTable: "AbpUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Connections",
                 columns: table => new
                 {
@@ -1023,9 +991,12 @@ namespace IlkKontakt.Backend.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ChatSessionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConnectionId = table.Column<Guid>(type: "uuid", nullable: false),
                     SenderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    Text = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    IsRead = table.Column<bool>(type: "boolean", nullable: false),
+                    ExtraProperties = table.Column<string>(type: "text", nullable: false),
+                    ConcurrencyStamp = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
                     CreationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     CreatorId = table.Column<Guid>(type: "uuid", nullable: true),
                     LastModificationTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
@@ -1041,9 +1012,9 @@ namespace IlkKontakt.Backend.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Messages_ChatSessions_ChatSessionId",
-                        column: x => x.ChatSessionId,
-                        principalTable: "ChatSessions",
+                        name: "FK_Messages_Connections_ConnectionId",
+                        column: x => x.ConnectionId,
+                        principalTable: "Connections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1536,16 +1507,6 @@ namespace IlkKontakt.Backend.Migrations
                 column: "UserName");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ChatSessions_User1Id",
-                table: "ChatSessions",
-                column: "User1Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ChatSessions_User2Id",
-                table: "ChatSessions",
-                column: "User2Id");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Connections_ReceiverId",
                 table: "Connections",
                 column: "ReceiverId");
@@ -1607,9 +1568,9 @@ namespace IlkKontakt.Backend.Migrations
                 column: "ProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_ChatSessionId",
+                name: "IX_Messages_ConnectionId",
                 table: "Messages",
-                column: "ChatSessionId");
+                column: "ConnectionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Messages_SenderId",
@@ -1750,9 +1711,6 @@ namespace IlkKontakt.Backend.Migrations
                 name: "Books");
 
             migrationBuilder.DropTable(
-                name: "Connections");
-
-            migrationBuilder.DropTable(
                 name: "ContactUs");
 
             migrationBuilder.DropTable(
@@ -1813,7 +1771,7 @@ namespace IlkKontakt.Backend.Migrations
                 name: "Courses");
 
             migrationBuilder.DropTable(
-                name: "ChatSessions");
+                name: "Connections");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictAuthorizations");

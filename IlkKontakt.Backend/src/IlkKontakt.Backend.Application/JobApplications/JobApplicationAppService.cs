@@ -99,7 +99,6 @@ public class JobApplicationAppService :
         return MapToGetOutputDto(entity);
     }
 
-    
     public async Task<PagedResultDto<JobApplicationWithProfileDto>> GetByJobIdAsync(Guid jobId, PagedAndSortedResultRequestDto input)
     {
         var me = _currentUser?.GetId() ?? throw new AbpAuthorizationException();
@@ -122,6 +121,9 @@ public class JobApplicationAppService :
         {
             // 1) Map the base JobApplication → JobApplicationWithProfileDto:
             var dto = ObjectMapper.Map<JobApplication, JobApplicationWithProfileDto>(a);
+            
+            // ✅ FIX: Explicitly set the ApplicationId from the JobApplication.Id
+            dto.ApplicationId = a.Id;
 
             // 2) Fill in the profile fields:
             var profile = await _profileRepo.FirstAsync(p => p.UserId == a.ApplicantId);

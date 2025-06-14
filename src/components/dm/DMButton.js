@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MessageSquare, X, Send } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/DMButton.css";
@@ -16,8 +16,14 @@ const getCookie = (name) => {
 const DMButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [userProfiles, setUserProfiles] = useState({});
+  const [selectedConnection, setSelectedConnection] = useState(null);
+  const [messagesByConnection, setMessagesByConnection] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isLoadingConnections, setIsLoadingConnections] = useState(false);
+  const [error, setError] = useState(null);
   const { currentUser } = useAuth();
   // Store current user's actual ID once we determine it
   const currentUserIdRef = useRef(null);
@@ -79,7 +85,7 @@ const DMButton = () => {
 
       if (!response.ok) {
         throw new Error(
-          `Bağlantılar alınamadı: ${response.status} ${response.statusText}`
+          `Failed to fetch connections: ${response.status} ${response.statusText}`
         );
       }
 
@@ -116,7 +122,7 @@ const DMButton = () => {
       identifyCurrentUserId(profiles);
     } catch (error) {
       console.error("Error fetching connections:", error);
-      setError(`Bağlantılar yüklenemedi: ${error.message}`);
+      setError(`Failed to load connections: ${error.message}`);
     } finally {
       setIsLoadingConnections(false);
     }
@@ -134,7 +140,7 @@ const DMButton = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`Kullanıcı profili alınamadı ${userId}`);
+        throw new Error(`Failed to fetch user profile for user ${userId}`);
       }
 
       const responseText = await response.text();
@@ -176,7 +182,7 @@ const DMButton = () => {
 
       if (!response.ok) {
         throw new Error(
-          `Konuşma alınamadı: ${response.status} ${responseText}`
+          `Failed to fetch conversation: ${response.status} ${responseText}`
         );
       }
 
@@ -203,11 +209,11 @@ const DMButton = () => {
         }));
       } catch (parseError) {
         console.error("Error parsing conversation JSON:", parseError);
-        setError("Sunucudan geçersiz yanıt formatı alındı.");
+        setError("Invalid response format from server");
       }
     } catch (error) {
       console.error("Error fetching conversation:", error);
-      setError(`Mesajlar yüklenemedi: ${error.message}`);
+      setError(`Failed to load messages: ${error.message}`);
     } finally {
       setIsLoadingMessages(false);
     }
@@ -219,21 +225,12 @@ const DMButton = () => {
     fetchConversation(connection);
   };
 
+  // Send a message - Updated implementation
+  // Send a message - Authentication-focused implementation
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !selectedConnection) return;
 
-    const userMessage = {
-      text: message,
-      sender: "user",
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessagesByConnection((prev) => {
-      const prevMsgs = prev[selectedConnection.id] || [];
-      return { ...prev, [selectedConnection.id]: [...prevMsgs, userMessage] };
-    });
-    setMessage("");
     setIsLoading(true);
     const messageText = message.trim();
     setMessage("");
@@ -379,15 +376,15 @@ const DMButton = () => {
       {isOpen && (
         <div className="dm-window">
           <div className="dm-left-panel">
-            <h4>Bağlantılar</h4>
+            <h4>Connections</h4>
             {isLoadingConnections ? (
-              <div className="loading-indicator">Bağlantılar yükleniyor...</div>
+              <div className="loading-indicator">Loading connections...</div>
             ) : error ? (
               <div className="error-message">{error}</div>
             ) : (
               <ul className="connections-list">
                 {connections.length === 0 ? (
-                  <li className="no-connections">Bağlantı bulunamadı</li>
+                  <li className="no-connections">No connections found</li>
                 ) : (
                   connections.map((conn) => {
                     const displayInfo = getConnectionDisplayInfo(conn);

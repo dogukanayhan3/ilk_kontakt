@@ -357,3 +357,126 @@
         justify-content: center;
     }
 }
+
+/* Add these new styles to your existing CSS */
+
+.applicant-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #f59e0b;
+}
+
+.status-accepted {
+    background: #d1fae5;
+    color: #059669;
+    border: 1px solid #10b981;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #ef4444;
+}
+
+.applicant-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.accept-btn,
+.reject-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.accept-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.accept-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.accept-btn:disabled {
+    background: #d1fae5;
+    color: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.reject-btn {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.reject-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.reject-btn:disabled {
+    background: #fee2e2;
+    color: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 480px) {
+    .applicant-actions {
+        flex-direction: column;
+    }
+    
+    .accept-btn,
+    .reject-btn {
+        width: 100%;
+    }
+    
+    .applicant-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .status-badge {
+        margin-left: 0;
+        align-self: flex-start;
+    }
+}
