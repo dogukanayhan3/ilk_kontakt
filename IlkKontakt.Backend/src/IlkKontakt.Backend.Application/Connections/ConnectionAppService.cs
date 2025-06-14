@@ -81,7 +81,7 @@ public class ConnectionAppService :
         await _notificationAppService.CreateAsync(new CreateNotificationDto
         {
             UserId = receiverId,
-            Message = "You have a new connection request.",
+            Message = "Yeni bir bağlantı isteğiniz var.",
             Type = NotificationType.ConnectionRequest // Define this in your enum
         });
         
@@ -100,7 +100,7 @@ public class ConnectionAppService :
             await _notificationAppService.CreateAsync(new CreateNotificationDto
             {
                 UserId = entity.SenderId,
-                Message = "Your connection request has been accepted.",
+                Message = "Bağlantı isteğiniz kabul edildi.",
                 Type = NotificationType.ConnectionAccepted // Add to enum
             });
         }

@@ -237,7 +237,7 @@ namespace IlkKontakt.Backend.Posts // Match your namespace
             // Send notification if the liker is not the owner
             if (postCreatorUserId != currentUserId)
             {
-                var message = $"{CurrentUser.UserName} liked your post.";
+                var message = $"{CurrentUser.UserName} gönderinizi beðendi.";
                 var notificationDto = new CreateNotificationDto
                 {
                     UserId = postCreatorUserId,
@@ -271,7 +271,7 @@ namespace IlkKontakt.Backend.Posts // Match your namespace
             
             if (postCreatorUserId != currentUserId)
             {
-                var message = $"{CurrentUser.UserName} commented on your post.";
+                var message = $"{CurrentUser.UserName} gönderinize yorum yaptý.";
                 var notificationDto = new CreateNotificationDto
                 {
                     UserId = postCreatorUserId,
