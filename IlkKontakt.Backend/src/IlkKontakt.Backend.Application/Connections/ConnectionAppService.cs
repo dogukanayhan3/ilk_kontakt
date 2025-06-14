@@ -45,7 +45,7 @@ public class ConnectionAppService :
 
         if (receiverId == senderId)
         {
-            throw new BusinessException("You cannot send a connection to yourself!");
+            throw new BusinessException("Kendinize bağlantı isteği gönderemezsiniz!");
         }
 
         // See if there's any pre‐existing row sender→receiver
@@ -59,10 +59,10 @@ public class ConnectionAppService :
             switch (existing.Status)
             {
                 case ConnectionStatus.Pending:
-                    throw new BusinessException("A connection request is already pending.");
+                    throw new BusinessException("Zaten beklemede olan bir bağlantı isteği var.");
 
                 case ConnectionStatus.Accepted:
-                    throw new BusinessException("You are already connected with this user.");
+                    throw new BusinessException("Bu kullanıcıyla zaten bağlantınız var.");
 
                 case ConnectionStatus.Rejected:
                     // Delete that old rejected row
@@ -81,7 +81,7 @@ public class ConnectionAppService :
         await _notificationAppService.CreateAsync(new CreateNotificationDto
         {
             UserId = receiverId,
-            Message = "You have a new connection request.",
+            Message = "Yeni bir bağlantı isteğiniz var.",
             Type = NotificationType.ConnectionRequest // Define this in your enum
         });
         
@@ -100,7 +100,7 @@ public class ConnectionAppService :
             await _notificationAppService.CreateAsync(new CreateNotificationDto
             {
                 UserId = entity.SenderId,
-                Message = "Your connection request has been accepted.",
+                Message = "Bağlantı isteğiniz kabul edildi.",
                 Type = NotificationType.ConnectionAccepted // Add to enum
             });
         }

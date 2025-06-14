@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Send, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import "../../component-styles/ChatButton.css";
 
@@ -10,12 +18,13 @@ const PROFILE_BY_USER = `${API_BASE}/api/app/user-profile/by-user`;
 const EXPERIENCE_ROOT = `${API_BASE}/api/app/experience`;
 const EDUCATION_ROOT = `${API_BASE}/api/app/education`;
 const SKILL_ROOT = `${API_BASE}/api/app/skill`;
-const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
 
 const WORK_TYPE_LABELS = {
   0: "Ofiste",
-  1: "Uzaktan", 
+  1: "Uzaktan",
   2: "Hibrit",
 };
 
@@ -38,144 +47,227 @@ function getCookie(name) {
 const normalizeText = (text) => {
   return text
     .toLowerCase()
-    .replace(/ğ/g, 'g')
-    .replace(/ü/g, 'u')
-    .replace(/ş/g, 's')
-    .replace(/ı/g, 'i')
-    .replace(/ö/g, 'o')
-    .replace(/ç/g, 'c');
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ı/g, "i")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c");
 };
 
 // Enhanced intent detection with better platform query handling
 const detectIntent = (message) => {
   const lowerMessage = message.toLowerCase();
   const normalizedMessage = normalizeText(message);
-  
+
   // Platform/site related queries - HIGHEST PRIORITY
   const platformIntents = [
-    /site.*ne.*yarar/i, /platform.*ne.*yarar/i, /ilk.*kontakt.*ne/i,
-    /sitenin.*amacı/i, /ne.*işe.*yarar/i, /nasıl.*çalışır/i,
-    /hakkında/i, /özellikler/i, /nedir/i, /amacı.*nedir/i,
-    /bu.*site/i, /bu.*platform/i, /site.*hakkında/i,
-    /site.*amacı/i, /platform.*hakkında/i, /ne.*amaçla/i
+    /site.*ne.*yarar/i,
+    /platform.*ne.*yarar/i,
+    /ilk.*kontakt.*ne/i,
+    /sitenin.*amacı/i,
+    /ne.*işe.*yarar/i,
+    /nasıl.*çalışır/i,
+    /hakkında/i,
+    /özellikler/i,
+    /nedir/i,
+    /amacı.*nedir/i,
+    /bu.*site/i,
+    /bu.*platform/i,
+    /site.*hakkında/i,
+    /site.*amacı/i,
+    /platform.*hakkında/i,
+    /ne.*amaçla/i,
   ];
 
   // Job listing requests - SPECIFIC PATTERNS
   const listingIntents = [
-    /^listele$/i, /tüm.*ilanlar/i, /mevcut.*ilanlar/i, /açık.*pozisyonlar/i,
-    /ilanları.*göster/i, /pozisyonları.*listele/i, /hangi.*işler.*var/i,
-    /iş.*ilanları.*nerede/i, /nerede.*görüntüle/i, /bana.*açık.*olan.*pozisyonları/i,
-    /diğer.*ilanlar/i, /başka.*ilanlar/i, /tüm.*pozisyonlar/i
+    /^listele$/i,
+    /tüm.*ilanlar/i,
+    /mevcut.*ilanlar/i,
+    /açık.*pozisyonlar/i,
+    /ilanları.*göster/i,
+    /pozisyonları.*listele/i,
+    /hangi.*işler.*var/i,
+    /iş.*ilanları.*nerede/i,
+    /nerede.*görüntüle/i,
+    /bana.*açık.*olan.*pozisyonları/i,
+    /diğer.*ilanlar/i,
+    /başka.*ilanlar/i,
+    /tüm.*pozisyonlar/i,
   ];
-  
+
   // Job application intents - MORE FLEXIBLE
   const applicationIntents = [
-    /başvur/i, /basvur/i, /apply/i, /başvurmak\s+istiyorum/i,
-    /başvuru\s+yap/i, /bu\s+işe\s+başvur/i, /pozisyonuna\s+başvur/i,
-    /ilanına\s+başvur/i, /başvurmak\s+isterim/i, /başvurmak\s+istiyorum/i,
-    /bu\s+pozisyona\s+başvur/i, /işe\s+başvur/i
+    /başvur/i,
+    /basvur/i,
+    /apply/i,
+    /başvurmak\s+istiyorum/i,
+    /başvuru\s+yap/i,
+    /bu\s+işe\s+başvur/i,
+    /pozisyonuna\s+başvur/i,
+    /ilanına\s+başvur/i,
+    /başvurmak\s+isterim/i,
+    /başvurmak\s+istiyorum/i,
+    /bu\s+pozisyona\s+başvur/i,
+    /işe\s+başvur/i,
   ];
-  
+
   // Job search intents - REFINED
   const searchIntents = [
-    /ara(?!k)/i, /bul/i, /göster/i, // "arak" kelimesini hariç tut
-    /hangi\s+işler/i, /iş\s+ara/i, /pozisyon\s+ara/i,
-    /iş\s+fırsatları/i, /kariyer\s+fırsatları/i,
-    /stajyer.*ilanları/i, /intern.*positions/i
+    /ara(?!k)/i,
+    /bul/i,
+    /göster/i, // "arak" kelimesini hariç tut
+    /hangi\s+işler/i,
+    /iş\s+ara/i,
+    /pozisyon\s+ara/i,
+    /iş\s+fırsatları/i,
+    /kariyer\s+fırsatları/i,
+    /stajyer.*ilanları/i,
+    /intern.*positions/i,
   ];
-  
+
   // Recommendation intents
   const recommendIntents = [
-    /öner/i, /tavsiye/i, /uygun/i, /bana\s+göre/i, /benzer/i,
-    /profilime\s+uygun/i, /özel\s+öneriler/i, /size\s+uygun/i,
-    /kişiselleştirilmiş/i, /deneyimime\s+uygun/i
+    /öner/i,
+    /tavsiye/i,
+    /uygun/i,
+    /bana\s+göre/i,
+    /benzer/i,
+    /profilime\s+uygun/i,
+    /özel\s+öneriler/i,
+    /size\s+uygun/i,
+    /kişiselleştirilmiş/i,
+    /deneyimime\s+uygun/i,
   ];
 
   // Profile intents
   const profileIntents = [
-    /^profilim$/i, /hakkımda/i, /bilgilerim/i, /özgeçmiş/i, /cv/i,
-    /deneyimlerim/i, /becerilerim/i, /eğitimim/i, /yeteneklerim/i
+    /^profilim$/i,
+    /hakkımda/i,
+    /bilgilerim/i,
+    /özgeçmiş/i,
+    /cv/i,
+    /deneyimlerim/i,
+    /becerilerim/i,
+    /eğitimim/i,
+    /yeteneklerim/i,
   ];
 
   // Check in priority order
-  if (platformIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
-    return 'platform';
+  if (
+    platformIntents.some(
+      (pattern) => pattern.test(lowerMessage) || pattern.test(normalizedMessage)
+    )
+  ) {
+    return "platform";
   }
-  if (listingIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
-    return 'listing';
+  if (
+    listingIntents.some(
+      (pattern) => pattern.test(lowerMessage) || pattern.test(normalizedMessage)
+    )
+  ) {
+    return "listing";
   }
-  if (applicationIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
-    return 'apply';
+  if (
+    applicationIntents.some(
+      (pattern) => pattern.test(lowerMessage) || pattern.test(normalizedMessage)
+    )
+  ) {
+    return "apply";
   }
-  if (searchIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
-    return 'search';
+  if (
+    searchIntents.some(
+      (pattern) => pattern.test(lowerMessage) || pattern.test(normalizedMessage)
+    )
+  ) {
+    return "search";
   }
-  if (recommendIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
-    return 'recommend';
+  if (
+    recommendIntents.some(
+      (pattern) => pattern.test(lowerMessage) || pattern.test(normalizedMessage)
+    )
+  ) {
+    return "recommend";
   }
-  if (profileIntents.some(pattern => pattern.test(lowerMessage) || pattern.test(normalizedMessage))) {
-    return 'profile';
+  if (
+    profileIntents.some(
+      (pattern) => pattern.test(lowerMessage) || pattern.test(normalizedMessage)
+    )
+  ) {
+    return "profile";
   }
-  
-  return 'general';
+
+  return "general";
 };
 
 // Enhanced job extraction with better fuzzy matching
 const extractJobFromMessage = (message, jobListings) => {
   const cleanMessage = message
-    .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|pozisyon|iş|çalışmak|ilanına)/gi, '')
-    .replace(/\s+/g, ' ')
+    .replace(
+      /(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|pozisyon|iş|çalışmak|ilanına)/gi,
+      ""
+    )
+    .replace(/\s+/g, " ")
     .trim();
-  
+
   if (!cleanMessage) return null;
 
   // Try exact title match first
-  let job = jobListings.find(j => 
-    j.title.toLowerCase() === cleanMessage.toLowerCase()
+  let job = jobListings.find(
+    (j) => j.title.toLowerCase() === cleanMessage.toLowerCase()
   );
-  
+
   if (!job) {
     // Try partial title match with higher threshold
-    job = jobListings.find(j => {
-      const titleWords = j.title.toLowerCase().split(' ');
-      const searchWords = cleanMessage.toLowerCase().split(' ');
-      
+    job = jobListings.find((j) => {
+      const titleWords = j.title.toLowerCase().split(" ");
+      const searchWords = cleanMessage.toLowerCase().split(" ");
+
       // At least 70% of search words should match
-      const matchCount = searchWords.filter(word => 
-        titleWords.some(titleWord => titleWord.includes(word) || word.includes(titleWord))
+      const matchCount = searchWords.filter((word) =>
+        titleWords.some(
+          (titleWord) => titleWord.includes(word) || word.includes(titleWord)
+        )
       ).length;
-      
+
       return matchCount >= Math.ceil(searchWords.length * 0.7);
     });
   }
-  
+
   if (!job) {
     // Try company name match
-    job = jobListings.find(j => 
-      j.company.toLowerCase().includes(cleanMessage.toLowerCase()) ||
-      cleanMessage.toLowerCase().includes(j.company.toLowerCase())
+    job = jobListings.find(
+      (j) =>
+        j.company.toLowerCase().includes(cleanMessage.toLowerCase()) ||
+        cleanMessage.toLowerCase().includes(j.company.toLowerCase())
     );
   }
-  
+
   return job;
 };
 
 // Enhanced search function with better filtering
 const searchJobs = (searchTerms, jobListings) => {
   if (!searchTerms.trim()) return [];
-  
-  const terms = searchTerms.toLowerCase().split(' ').filter(term => term.length > 1);
-  
-  return jobListings.filter(job => {
-    const jobText = `${job.title} ${job.company} ${job.description || ''} ${job.location || ''}`.toLowerCase();
-    
+
+  const terms = searchTerms
+    .toLowerCase()
+    .split(" ")
+    .filter((term) => term.length > 1);
+
+  return jobListings.filter((job) => {
+    const jobText = `${job.title} ${job.company} ${job.description || ""} ${
+      job.location || ""
+    }`.toLowerCase();
+
     // Exact phrase match gets highest priority
     if (jobText.includes(searchTerms.toLowerCase())) {
       return true;
     }
-    
+
     // Multiple term match
-    const matchCount = terms.filter(term => jobText.includes(term)).length;
+    const matchCount = terms.filter((term) => jobText.includes(term)).length;
     return matchCount >= Math.ceil(terms.length / 2); // At least half of the terms should match
   });
 };
@@ -217,19 +309,22 @@ const ChatButton = () => {
 
   // Initialize speech synthesis
   useEffect(() => {
-    if ('speechSynthesis' in window) {
+    if ("speechSynthesis" in window) {
       speechSynthesisRef.current = window.speechSynthesis;
     }
   }, []);
 
   // Speech Recognition Setup
   useEffect(() => {
-    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+    if (
+      !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
+    ) {
       recognitionRef.current = null;
       return;
     }
-    
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.lang = "tr-TR";
     recognition.interimResults = false;
@@ -341,63 +436,79 @@ const ChatButton = () => {
 
   // Enhanced recommendation algorithm
   const getAdvancedRecommendations = () => {
-    console.log('🔍 Starting advanced job recommendations...');
-    
-    if (!userSkills.length && !userExperiences.length && !userEducations.length) {
-      console.log('⚠️ No user data found, returning first 5 jobs');
+    console.log("🔍 Starting advanced job recommendations...");
+
+    if (
+      !userSkills.length &&
+      !userExperiences.length &&
+      !userEducations.length
+    ) {
+      console.log("⚠️ No user data found, returning first 5 jobs");
       return jobListings.slice(0, 5);
     }
 
-    const userSkillNames = userSkills.map(skill => skill.skillName.toLowerCase());
-    const userExperienceTitles = userExperiences.map(exp => exp.title.toLowerCase());
-    const userEducationFields = userEducations.map(edu => 
-      (edu.fieldOfStudy || edu.instutionName || '').toLowerCase()
+    const userSkillNames = userSkills.map((skill) =>
+      skill.skillName.toLowerCase()
     );
-    const userCompanies = userExperiences.map(exp => exp.companyName.toLowerCase());
+    const userExperienceTitles = userExperiences.map((exp) =>
+      exp.title.toLowerCase()
+    );
+    const userEducationFields = userEducations.map((edu) =>
+      (edu.fieldOfStudy || edu.instutionName || "").toLowerCase()
+    );
+    const userCompanies = userExperiences.map((exp) =>
+      exp.companyName.toLowerCase()
+    );
 
-    console.log('🎯 User Skills:', userSkillNames);
-    console.log('💼 User Experience Titles:', userExperienceTitles);
-    console.log('🎓 User Education Fields:', userEducationFields);
+    console.log("🎯 User Skills:", userSkillNames);
+    console.log("💼 User Experience Titles:", userExperienceTitles);
+    console.log("🎓 User Education Fields:", userEducationFields);
 
-    const scoredJobs = jobListings.map(job => {
+    const scoredJobs = jobListings.map((job) => {
       let score = 0;
-      const jobText = `${job.title} ${job.description || ""} ${job.company}`.toLowerCase();
-      
+      const jobText = `${job.title} ${job.description || ""} ${
+        job.company
+      }`.toLowerCase();
+
       // Skill matching (highest weight - 5 points each)
-      userSkillNames.forEach(skill => {
+      userSkillNames.forEach((skill) => {
         if (jobText.includes(skill)) {
           score += 5;
           console.log(`✅ Exact skill match: "${skill}" in job "${job.title}"`);
         } else {
           // Partial skill matching (2 points each word)
-          const skillWords = skill.split(' ').filter(word => word.length > 3);
-          skillWords.forEach(word => {
+          const skillWords = skill.split(" ").filter((word) => word.length > 3);
+          skillWords.forEach((word) => {
             if (jobText.includes(word)) {
               score += 2;
-              console.log(`✅ Partial skill match: "${word}" in job "${job.title}"`);
+              console.log(
+                `✅ Partial skill match: "${word}" in job "${job.title}"`
+              );
             }
           });
         }
       });
-      
+
       // Experience title matching (4 points exact, 1.5 partial)
-      userExperienceTitles.forEach(title => {
+      userExperienceTitles.forEach((title) => {
         if (jobText.includes(title)) {
           score += 4;
           console.log(`✅ Exact title match: "${title}" in job "${job.title}"`);
         } else {
-          const titleWords = title.split(' ').filter(word => word.length > 3);
-          titleWords.forEach(word => {
+          const titleWords = title.split(" ").filter((word) => word.length > 3);
+          titleWords.forEach((word) => {
             if (jobText.includes(word)) {
               score += 1.5;
-              console.log(`✅ Partial title match: "${word}" in job "${job.title}"`);
+              console.log(
+                `✅ Partial title match: "${word}" in job "${job.title}"`
+              );
             }
           });
         }
       });
-      
+
       // Education field matching (3 points)
-      userEducationFields.forEach(field => {
+      userEducationFields.forEach((field) => {
         if (field && jobText.includes(field)) {
           score += 3;
           console.log(`✅ Education match: "${field}" in job "${job.title}"`);
@@ -405,28 +516,36 @@ const ChatButton = () => {
       });
 
       // Company experience bonus (1 point)
-      userCompanies.forEach(company => {
+      userCompanies.forEach((company) => {
         if (jobText.includes(company)) {
           score += 1;
-          console.log(`✅ Company experience match: "${company}" in job "${job.title}"`);
+          console.log(
+            `✅ Company experience match: "${company}" in job "${job.title}"`
+          );
         }
       });
-      
+
       // Experience level matching (2 points)
       if (userExperiences.length > 0) {
         const userExpYears = userExperiences.length; // Simplified calculation
         if (userExpYears <= 2 && job.experienceLevel <= 1) {
           score += 2;
-          console.log(`✅ Experience level match for entry level in job "${job.title}"`);
+          console.log(
+            `✅ Experience level match for entry level in job "${job.title}"`
+          );
         } else if (userExpYears <= 5 && job.experienceLevel <= 2) {
           score += 2;
-          console.log(`✅ Experience level match for mid level in job "${job.title}"`);
+          console.log(
+            `✅ Experience level match for mid level in job "${job.title}"`
+          );
         } else if (userExpYears > 5 && job.experienceLevel >= 3) {
           score += 2;
-          console.log(`✅ Experience level match for senior level in job "${job.title}"`);
+          console.log(
+            `✅ Experience level match for senior level in job "${job.title}"`
+          );
         }
       }
-      
+
       console.log(`📊 Job "${job.title}" final score: ${score}`);
       return { ...job, score };
     });
@@ -434,12 +553,15 @@ const ChatButton = () => {
     const recommendedJobs = scoredJobs
       .sort((a, b) => b.score - a.score)
       .slice(0, 5);
-      
-    console.log('🎯 Final Recommended Jobs:', recommendedJobs.map(job => ({
-      title: job.title,
-      score: job.score
-    })));
-    
+
+    console.log(
+      "🎯 Final Recommended Jobs:",
+      recommendedJobs.map((job) => ({
+        title: job.title,
+        score: job.score,
+      }))
+    );
+
     return recommendedJobs;
   };
 
@@ -458,22 +580,25 @@ const ChatButton = () => {
     if (jobs.length === 0) return "Uygun iş ilanı bulunamadı.";
 
     const jobList = jobs
-      .map((job, index) => 
-        `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
-          job.location || "Belirtilmemiş"
-        }\n   💼 ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}${
-          job.score ? `\n   🎯 Uygunluk: ${Math.round(job.score * 10)}%` : ""
-        }`
+      .map(
+        (job, index) =>
+          `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
+            job.location || "Belirtilmemiş"
+          }\n   💼 ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}${
+            job.score ? `\n   🎯 Uygunluk: ${Math.round(job.score * 10)}%` : ""
+          }`
       )
       .join("\n\n");
 
-    return `${title ? title + "\n\n" : ""}${jobList}\n\nDetayları görmek için "X numaralı ilanı göster" yazabilirsiniz.`;
+    return `${
+      title ? title + "\n\n" : ""
+    }${jobList}\n\nDetayları görmek için "X numaralı ilanı göster" yazabilirsiniz.`;
   };
 
   const getUserProfileSummary = () => {
     if (!userProfile) return "Profil bilgileriniz henüz yüklenmemiş.";
 
-    const skills = userSkills.map(s => s.skillName).join(", ");
+    const skills = userSkills.map((s) => s.skillName).join(", ");
     const latestExp = userExperiences.length > 0 ? userExperiences[0] : null;
     const latestEdu = userEducations.length > 0 ? userEducations[0] : null;
 
@@ -482,7 +607,11 @@ const ChatButton = () => {
 📝 Ad: ${userProfile.name || ""} ${userProfile.surname || ""}
 💭 Hakkında: ${userProfile.about || "Belirtilmemiş"}
 🎯 Yetenekler: ${skills || "Belirtilmemiş"}
-💼 Son Deneyim: ${latestExp ? `${latestExp.title} @ ${latestExp.companyName}` : "Belirtilmemiş"}
+💼 Son Deneyim: ${
+      latestExp
+        ? `${latestExp.title} @ ${latestExp.companyName}`
+        : "Belirtilmemiş"
+    }
 🎓 Eğitim: ${latestEdu ? `${latestEdu.instutionName}` : "Belirtilmemiş"}
 📊 Toplam Deneyim: ${userExperiences.length} pozisyon
 🏫 Eğitim Sayısı: ${userEducations.length} kurum
@@ -589,7 +718,12 @@ const ChatButton = () => {
   };
 
   // Enhanced Gemini prompt creation
-  const createEnhancedPrompt = (userMessage, userContext, jobContext, chatHistory) => {
+  const createEnhancedPrompt = (
+    userMessage,
+    userContext,
+    jobContext,
+    chatHistory
+  ) => {
     return `Sen "İlk Kontakt" platformunun uzman kariyer asistanısın. Bu platform profesyonel ağ kurma ve kariyer gelişiminin yeni adresidir.
 
 PLATFORM HAKKINDA:
@@ -645,10 +779,10 @@ YANIT:`;
   // Enhanced platform query handler
   const handlePlatformQuery = (userMessage) => {
     console.log("🏢 Handling platform information query");
-    
+
     const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('nerede') || lowerMessage.includes('görüntüle')) {
+
+    if (lowerMessage.includes("nerede") || lowerMessage.includes("görüntüle")) {
       return `İş ilanlarını İlk Kontakt üzerinde görüntülemek için:
 
 📱 **Web Sitesinde:**
@@ -664,7 +798,7 @@ YANIT:`;
 
 Hangi yöntemi tercih edersiniz?`;
     }
-    
+
     return `İlk Kontakt, kariyerinizi geliştirmek için ihtiyacınız olan her şeyi bir araya getiren kapsamlı bir platformdur.
 
 🎯 **Ana Özellikler:**
@@ -675,27 +809,38 @@ Hangi yöntemi tercih edersiniz?`;
 • Veri analitiği ile profil performans takibi
 • Sektör haberleri ve bilgi paylaşımı
 
-${userProfile ? `Yazılım geliştirme alanındaki deneyiminizle bu platform üzerinde yeni fırsatlar keşfedebilir, sektör liderleriyle bağlantı kurabilir ve kariyerinizi bir sonraki seviyeye taşıyabilirsiniz.` : 'Giriş yaparak tüm bu özelliklere erişebilir ve kariyerinizi ilerletebilirsiniz.'}`;
+${
+  userProfile
+    ? `Yazılım geliştirme alanındaki deneyiminizle bu platform üzerinde yeni fırsatlar keşfedebilir, sektör liderleriyle bağlantı kurabilir ve kariyerinizi bir sonraki seviyeye taşıyabilirsiniz.`
+    : "Giriş yaparak tüm bu özelliklere erişebilir ve kariyerinizi ilerletebilirsiniz."
+}`;
   };
 
   // Enhanced search handler with better filtering
   const handleJobSearch = (userMessage) => {
     console.log("🔍 Handling job search request");
-    
+
     // Extract search terms more carefully
     const searchTerms = userMessage
-      .replace(/(ara(?!k)|bul|göster|hangi işler|iş ara|pozisyon ara|iş fırsatları|stajyer.*ilanları)/gi, '')
-      .replace(/\s+/g, ' ')
+      .replace(
+        /(ara(?!k)|bul|göster|hangi işler|iş ara|pozisyon ara|iş fırsatları|stajyer.*ilanları)/gi,
+        ""
+      )
+      .replace(/\s+/g, " ")
       .trim();
 
     // Special handling for intern/stajyer requests
-    if (userMessage.toLowerCase().includes('stajyer') || userMessage.toLowerCase().includes('intern')) {
-      const internJobs = jobListings.filter(job => 
-        job.experienceLevel === 0 || 
-        job.title.toLowerCase().includes('staj') ||
-        job.title.toLowerCase().includes('intern')
+    if (
+      userMessage.toLowerCase().includes("stajyer") ||
+      userMessage.toLowerCase().includes("intern")
+    ) {
+      const internJobs = jobListings.filter(
+        (job) =>
+          job.experienceLevel === 0 ||
+          job.title.toLowerCase().includes("staj") ||
+          job.title.toLowerCase().includes("intern")
       );
-      
+
       if (internJobs.length === 0) {
         return `Şu anda stajyer pozisyonu bulunmuyor. 
 
@@ -704,7 +849,7 @@ Alternatif öneriler:
 • "öner" yazarak profilinize uygun önerileri alın
 • Giriş seviyesi pozisyonları değerlendirin`;
       }
-      
+
       return formatJobList(internJobs, "Stajyer İlanları:");
     }
 
@@ -714,7 +859,7 @@ Alternatif öneriler:
     }
 
     const foundJobs = searchJobs(searchTerms, jobListings);
-    
+
     if (foundJobs.length === 0) {
       return `"${searchTerms}" için uygun ilan bulunamadı. 
     
@@ -723,57 +868,68 @@ Alternatif öneriler:
 • "öner" yazarak profilinize uygun önerileri alın
 • Daha genel terimlerle arama yapın (örn: "developer", "analyst")`;
     }
-    
+
     return formatJobList(foundJobs, `"${searchTerms}" için bulunan ilanlar:`);
   };
 
   const handleJobRecommendations = () => {
     console.log("💡 Handling job recommendations request");
-    
+
     const recommendedJobs = getAdvancedRecommendations();
-    
-    if (recommendedJobs.every(job => job.score === 0)) {
-      return formatJobList(recommendedJobs, "Size önerilen iş ilanları (genel öneriler):");
+
+    if (recommendedJobs.every((job) => job.score === 0)) {
+      return formatJobList(
+        recommendedJobs,
+        "Size önerilen iş ilanları (genel öneriler):"
+      );
     }
-    
-    return formatJobList(recommendedJobs, "Profilinize uygun önerilen iş ilanları:");
+
+    return formatJobList(
+      recommendedJobs,
+      "Profilinize uygun önerilen iş ilanları:"
+    );
   };
 
   const handleProfileQuery = () => {
     console.log("👤 Handling profile query");
-    
+
     if (!userProfile) {
       return "Profilinizi görüntüleyebilmek için önce profil sayfanızı oluşturmanız gerekiyor. Profil sayfanızda eğitim geçmişinizi, iş deneyimlerinizi ve becerilerinizi ekleyerek size daha uygun iş önerileri alabilirsiniz.";
     }
-    
+
     return getUserProfileSummary();
   };
 
   // Enhanced job application handler with better matching
   const handleJobApplication = async (userMessage) => {
     console.log("🎯 Handling job application request");
-    
+
     const job = extractJobFromMessage(userMessage, jobListings);
     console.log("🔍 Extracted job:", job ? job.title : "Not found");
 
     if (!job) {
       // More intelligent suggestions
       const searchTerms = userMessage
-        .replace(/(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|ilanına)/gi, '')
+        .replace(
+          /(başvur|başvurmak|başvuru|apply|için|pozisyonuna|işine|ilanına)/gi,
+          ""
+        )
         .trim();
-      
+
       if (searchTerms.length > 2) {
         const suggestions = searchJobs(searchTerms, jobListings).slice(0, 3);
-        
+
         if (suggestions.length > 0) {
           return `Belirttiğiniz "${searchTerms}" pozisyonu tam olarak bulunamadı. Benzer ilanlar:
 
 ${formatJobList(suggestions)}
 
-Bunlardan birine başvurmak için tam pozisyon adını kullanın. Örneğin: "${suggestions[0].title} pozisyonuna başvur"`;
+Bunlardan birine başvurmak için tam pozisyon adını kullanın. Örneğin: "${
+            suggestions[0].title
+          } pozisyonuna başvur"`;
         }
       }
-      
+
       return `Belirttiğiniz pozisyon bulunamadı. 
 
 Yapabilecekleriniz:
@@ -801,32 +957,46 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
 
   const handleGeneralQuery = async (userMessage) => {
     console.log("💬 Handling general query with Gemini");
-    
+
     try {
       const recentMessages = messages.slice(-5);
       const chatHistoryContext = recentMessages
-        .map(msg => `${msg.sender === "user" ? "Kullanıcı" : "Asistan"}: ${msg.text}`)
+        .map(
+          (msg) =>
+            `${msg.sender === "user" ? "Kullanıcı" : "Asistan"}: ${msg.text}`
+        )
         .join("\n");
 
       const userContext = getUserProfileSummary();
       const jobContext = jobListings
         .slice(0, 10)
-        .map(job => 
-          `${job.title} - ${job.company} (${job.location}) - ${WORK_TYPE_LABELS[job.workType]}`
+        .map(
+          (job) =>
+            `${job.title} - ${job.company} (${job.location}) - ${
+              WORK_TYPE_LABELS[job.workType]
+            }`
         )
         .join("\n");
 
-      const prompt = createEnhancedPrompt(userMessage, userContext, jobContext, chatHistoryContext);
+      const prompt = createEnhancedPrompt(
+        userMessage,
+        userContext,
+        jobContext,
+        chatHistoryContext
+      );
 
-      const response = await fetch(`${GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      });
+      const response = await fetch(
+        `${GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
 
       const data = await response.json();
       if (data.candidates && data.candidates[0].content) {
@@ -843,20 +1013,29 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
   const processMessage = async (userMessage) => {
     const intent = detectIntent(userMessage);
     const lowerMessage = userMessage.toLowerCase();
-    
+
     console.log("🎯 Detected intent:", intent);
     console.log("📝 User message:", userMessage);
 
     // Handle pending applications with flexible confirmation
     if (pendingApplication) {
-      const confirmationWords = ['evet', 'onaylıyorum', 'başvur', 'tamam', 'olur', 'kabul', 'onayla', 'yes'];
-      const cancelWords = ['hayır', 'iptal', 'vazgeç', 'olmaz', 'cancel', 'no'];
-      
-      if (confirmationWords.some(word => lowerMessage.includes(word))) {
+      const confirmationWords = [
+        "evet",
+        "onaylıyorum",
+        "başvur",
+        "tamam",
+        "olur",
+        "kabul",
+        "onayla",
+        "yes",
+      ];
+      const cancelWords = ["hayır", "iptal", "vazgeç", "olmaz", "cancel", "no"];
+
+      if (confirmationWords.some((word) => lowerMessage.includes(word))) {
         const result = await handleApplyToJob(pendingApplication.id);
         setPendingApplication(null);
         return result;
-      } else if (cancelWords.some(word => lowerMessage.includes(word))) {
+      } else if (cancelWords.some((word) => lowerMessage.includes(word))) {
         setPendingApplication(null);
         return "Başvuru işlemi iptal edildi. Başka bir pozisyon için 'öner' yazarak size uygun ilanları görebilirsiniz.";
       }
@@ -864,29 +1043,33 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
     }
 
     // Handle numbered job details
-    const numberMatch = lowerMessage.match(/(\d+)\s*numaralı\s*ilanı?\s*göster/);
+    const numberMatch = lowerMessage.match(
+      /(\d+)\s*numaralı\s*ilanı?\s*göster/
+    );
     if (numberMatch) {
       const jobIndex = parseInt(numberMatch[1]) - 1;
       if (jobIndex >= 0 && jobIndex < jobListings.length) {
         const job = jobListings[jobIndex];
-        return `${formatJobDetails(job)}\n\nBu pozisyona başvurmak için "${job.title} pozisyonuna başvur" yazabilirsiniz.`;
+        return `${formatJobDetails(job)}\n\nBu pozisyona başvurmak için "${
+          job.title
+        } pozisyonuna başvur" yazabilirsiniz.`;
       }
       return "❌ Geçersiz ilan numarası. 'listele' yazarak mevcut ilanları görebilirsiniz.";
     }
 
     // Route to appropriate handler based on intent
     switch (intent) {
-      case 'platform':
+      case "platform":
         return handlePlatformQuery(userMessage);
-      case 'listing':
+      case "listing":
         return handleJobListing();
-      case 'apply':
+      case "apply":
         return await handleJobApplication(userMessage);
-      case 'search':
+      case "search":
         return handleJobSearch(userMessage);
-      case 'recommend':
+      case "recommend":
         return handleJobRecommendations();
-      case 'profile':
+      case "profile":
         return handleProfileQuery();
       default:
         return await handleGeneralQuery(userMessage);
@@ -899,17 +1082,19 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
 
     speechSynthesisRef.current.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    
-    utterance.lang = 'tr-TR';
+
+    utterance.lang = "tr-TR";
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
     const voices = speechSynthesisRef.current.getVoices();
-    const turkishVoices = voices.filter(voice => voice.lang.includes('tr'));
-    
+    const turkishVoices = voices.filter((voice) => voice.lang.includes("tr"));
+
     if (turkishVoices.length > 0) {
-      const preferredVoice = turkishVoices.find(voice => voice.name.includes('female')) || turkishVoices[0];
+      const preferredVoice =
+        turkishVoices.find((voice) => voice.name.includes("female")) ||
+        turkishVoices[0];
       utterance.voice = preferredVoice;
     }
 
@@ -934,7 +1119,7 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
       sender: "user",
       timestamp: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
@@ -944,7 +1129,7 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
       speakText(reply);
     } catch (error) {
       console.error("Error processing speech result:", error);
@@ -953,7 +1138,7 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       speakText(errorMessage.text);
     } finally {
       setIsLoading(false);
@@ -983,7 +1168,7 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
       sender: "user",
       timestamp: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     const currentMessage = message;
     setMessage("");
     setIsLoading(true);
@@ -995,7 +1180,7 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
       speakText(reply);
     } catch (error) {
       console.error("Error processing message:", error);
@@ -1004,7 +1189,7 @@ Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       speakText(errorMessage.text);
     } finally {
       setIsLoading(false);
@@ -1042,7 +1227,9 @@ Giriş yaparak tüm özelliklere erişebilir, "listele" yazarak iş ilanlarını
 'listele' yazarak mevcut iş ilanlarını görüntüleyebilirsiniz.`;
     }
 
-    const profileStatus = userProfile ? "✅ Profil tamamlanmış" : "⚠️ Profil eksik";
+    const profileStatus = userProfile
+      ? "✅ Profil tamamlanmış"
+      : "⚠️ Profil eksik";
     const skillCount = userSkills.length;
     const expCount = userExperiences.length;
 
@@ -1063,14 +1250,14 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
   };
 
   const handleActionClick = async (action) => {
-    const response = action === 'apply' ? 'evet' : 'hayır';
-   
+    const response = action === "apply" ? "evet" : "hayır";
+
     const userMessage = {
       text: response,
       sender: "user",
       timestamp: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
@@ -1080,7 +1267,7 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
       speakText(reply);
     } catch (error) {
       console.error("Error processing message:", error);
@@ -1089,7 +1276,7 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
         sender: "bot",
         timestamp: new Date().toISOString(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       speakText(errorMessage.text);
     } finally {
       setIsLoading(false);
@@ -1097,9 +1284,11 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
   };
 
   const renderMessageContent = (msg) => {
-    const lines = msg.text.split('\n');
-    const hasActions = msg.sender === 'bot' &&
-      (msg.text.includes('onaylıyor musunuz?') || msg.text.includes('onaylamak için'));
+    const lines = msg.text.split("\n");
+    const hasActions =
+      msg.sender === "bot" &&
+      (msg.text.includes("onaylıyor musunuz?") ||
+        msg.text.includes("onaylamak için"));
 
     return (
       <>
@@ -1110,13 +1299,13 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
           <div className="message-actions">
             <button
               className="message-action-button apply"
-              onClick={() => handleActionClick('apply')}
+              onClick={() => handleActionClick("apply")}
             >
               Başvur
             </button>
             <button
               className="message-action-button cancel"
-              onClick={() => handleActionClick('cancel')}
+              onClick={() => handleActionClick("cancel")}
             >
               İptal
             </button>
@@ -1135,7 +1324,11 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
             <div className="header-controls">
               <button
                 className="speech-toggle-btn"
-                onClick={isSpeaking ? stopSpeaking : () => speakText(messages[messages.length - 1]?.text)}
+                onClick={
+                  isSpeaking
+                    ? stopSpeaking
+                    : () => speakText(messages[messages.length - 1]?.text)
+                }
                 title={isSpeaking ? "Konuşmayı Durdur" : "Son Mesajı Oku"}
                 disabled={!messages.length}
               >
@@ -1159,9 +1352,7 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
                   msg.sender === "bot" ? "bot-message" : "user-message"
                 }`}
               >
-                <div className="message-text">
-                  {renderMessageContent(msg)}
-                </div>
+                <div className="message-text">{renderMessageContent(msg)}</div>
               </div>
             ))}
             {isLoading && (

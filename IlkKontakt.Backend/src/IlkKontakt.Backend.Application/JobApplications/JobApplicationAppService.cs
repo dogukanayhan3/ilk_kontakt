@@ -57,7 +57,7 @@ public class JobApplicationAppService :
 
         if (applicantId == null)
         {
-            throw new UserFriendlyException("You must be logged in to apply for a job.");
+            throw new UserFriendlyException("Bir işe başvurmak için giriş yapmış olmanız gerekir.");
         }
         
         var query = await Repository.GetQueryableAsync();
@@ -68,7 +68,7 @@ public class JobApplicationAppService :
 
         if (exists)
         {
-            throw new UserFriendlyException("You have already applied for this job.");
+            throw new UserFriendlyException("Bu işe zaten başvurdunuz.");
         }
 
         // ✅ Create and save job application
@@ -83,13 +83,13 @@ public class JobApplicationAppService :
         {
             if (jobListing.CreatorId == null)
             {
-                throw new UserFriendlyException("Job listing has no creator associated.");
+                throw new UserFriendlyException("İş ilanının ilişkilendirilmiş bir oluşturucusu yok.");
             }
 
             var notificationDto = new CreateNotificationDto
             {
                 UserId = jobListing.CreatorId.Value, // ✅ now it's Guid, not Guid?
-                Message = $"You received a new application for your job listing: '{jobListing.Title}'.",
+                Message = $"İş ilanınıza yeni bir başvuru aldınız: '{jobListing.Title}'.",
                 Type = NotificationType.JobApplicationReceived
             };
 
@@ -105,7 +105,7 @@ public class JobApplicationAppService :
 
         var job = await _jobListingRepository.GetAsync(jobId);
         if (job.CreatorId != me)
-            throw new AbpAuthorizationException("Not allowed");
+            throw new AbpAuthorizationException("İzin verilmedi.");
 
         var q     = (await Repository.GetQueryableAsync())
                       .Where(x => x.JobListingId == jobId);
@@ -159,7 +159,7 @@ public class JobApplicationAppService :
 
         if (userId == null)
         {
-            throw new UserFriendlyException("You must be logged in to view your applications.");
+            throw new UserFriendlyException("Başvurularınızı görüntülemek için giriş yapmalısınız.");
         }
 
         var query = await Repository.GetQueryableAsync();
@@ -185,7 +185,7 @@ public class JobApplicationAppService :
             await _notificationAppService.CreateAsync(new CreateNotificationDto
             {
                 UserId = jobApplication.ApplicantId,
-                Message = $"Your application for job '{jobListing.Title}' has been accepted.",
+                Message = $"İş başvurunuz: '{jobListing.Title}' kabul edildi.",
                 Type = NotificationType.JobApplicationAccepted
             });
         }
@@ -194,7 +194,7 @@ public class JobApplicationAppService :
             await _notificationAppService.CreateAsync(new CreateNotificationDto
             {
                 UserId = jobApplication.ApplicantId,
-                Message = $"Your application for job '{jobListing.Title}' has been rejected.",
+                Message = $"İş başvurunuz: '{jobListing.Title}' reddedildi.",
                 Type = NotificationType.JobApplicationRejected
             });
         }

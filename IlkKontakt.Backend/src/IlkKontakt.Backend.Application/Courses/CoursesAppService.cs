@@ -37,7 +37,7 @@ namespace IlkKontakt.Backend.Courses
             if (course.InstructorId != userId)
             {
                 throw new AbpAuthorizationException(
-                    "You are not allowed to view this course."
+                    "Bu kursu görüntüleme izniniz yok."
                 );
             }
 
@@ -160,7 +160,7 @@ namespace IlkKontakt.Backend.Courses
             if (!course.IsPublished)
             {
                 throw new AbpAuthorizationException(
-                    "This course is not available for public viewing."
+                    "Bu kurs herkese açık görüntülemeye açık değildir."
                 );
             }
 
@@ -176,7 +176,7 @@ namespace IlkKontakt.Backend.Courses
             if (instr == null)
             {
                 throw new BusinessException(
-                    "You must be an instructor to create a course."
+                    "Bir kurs oluşturmak için eğitmen olmanız gerekir."
                 );
             }
 
@@ -200,7 +200,7 @@ namespace IlkKontakt.Backend.Courses
             if (instr == null)
             {
                 throw new BusinessException(
-                    "You must be an instructor to update a course."
+                    "Bir kursu güncellemek için eğitmen olmanız gerekir."
                 );
             }
 
@@ -208,7 +208,7 @@ namespace IlkKontakt.Backend.Courses
             if (course.InstructorId != instr.Id)
             {
                 throw new AbpAuthorizationException(
-                    "You are not allowed to update this course."
+                    "Bu kursu güncelleme izniniz yok."
                 );
             }
 
