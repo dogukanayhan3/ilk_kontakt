@@ -12,6 +12,7 @@ import {
   Star,
   Check,
   X,
+  CheckCircle,
 } from "lucide-react";
 import "../../component-styles/JobApplicantsPage.css";
 import Layout from "../page_layout/Layout";
@@ -42,10 +43,16 @@ function JobApplicantsPage() {
   const [jobTitle, setJobTitle] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState({});
+  const [celebratingApplicant, setCelebratingApplicant] = useState(null);
 
   useEffect(() => {
     fetchJobAndApplicants();
   }, [jobId]);
+
+  // Filter out accepted applicants
+  const availableApplicants = applicants.filter(
+    (applicant) => applicant.status !== 1
+  );
 
   const updateApplicationStatus = async (applicationId, newStatus) => {
     setUpdatingStatus((prev) => ({ ...prev, [applicationId]: true }));
@@ -76,6 +83,15 @@ function JobApplicantsPage() {
         throw new Error("Failed to update application status");
       }
 
+      // If accepting an applicant, trigger celebration animation
+      if (newStatus === 1) {
+        setCelebratingApplicant(applicationId);
+        // Remove celebration after animation completes
+        setTimeout(() => {
+          setCelebratingApplicant(null);
+        }, 2000);
+      }
+
       await fetchJobAndApplicants();
     } catch (err) {
       console.error("Error updating status:", err);
@@ -88,13 +104,13 @@ function JobApplicantsPage() {
   const getStatusText = (status) => {
     switch (status) {
       case 0:
-        return "Pending";
+        return "Beklemede";
       case 1:
-        return "Accepted";
+        return "Kabul Edildi";
       case 2:
-        return "Rejected";
+        return "Reddedildi";
       default:
-        return "Unknown";
+        return "Bilinmiyor";
     }
   };
 
@@ -181,7 +197,7 @@ Job Title: "${jobTitle}"
 Search Query: "${searchQuery}"
 
 Applicants Data:
-${JSON.stringify(applicants, null, 2)}
+${JSON.stringify(availableApplicants, null, 2)}
 
 Instructions:
 1. Analyze each applicant's profile (experience, education, skills)
@@ -241,8 +257,8 @@ Response:`,
         return;
       }
 
-      // Find matching applicants using applicantId
-      const matches = applicants.filter((applicant) =>
+      // Find matching applicants using applicantId from available applicants only
+      const matches = availableApplicants.filter((applicant) =>
         matchingIds.includes(applicant.applicantId)
       );
 
@@ -270,78 +286,117 @@ Response:`,
     setError("");
   };
 
-  const renderApplicantCard = (applicant, isBestMatch = false) => (
-    <div
-      key={applicant.applicationId}
-      className={`applicant-card ${isBestMatch ? "best-match" : ""}`}
-    >
-      <div className="applicant-header">
-        {isBestMatch && <Star size={16} className="star-icon" />}
-        <User size={20} />
-        <h3>{applicant.userName}</h3>
-        <div className={`status-badge ${getStatusClass(applicant.status)}`}>
-          {getStatusText(applicant.status)}
+  const renderApplicantCard = (applicant, isBestMatch = false) => {
+    const isCelebrating = celebratingApplicant === applicant.applicationId;
+    const isAccepted = applicant.status === 1;
+
+    return (
+      <div
+        key={applicant.applicationId}
+        className={`applicant-card ${isBestMatch ? "best-match" : ""} ${
+          isCelebrating ? "celebrating" : ""
+        } ${isAccepted ? "accepted-card" : ""}`}
+      >
+        {isCelebrating && (
+          <div className="celebration-overlay">
+            <div className="celebration-content">
+              <CheckCircle size={48} className="celebration-icon" />
+              <div className="celebration-text">Tebrikler!</div>
+              <div className="celebration-subtext">
+                {applicant.userName} kabul edildi!
+              </div>
+            </div>
+            <div className="confetti">
+              {[...Array(20)].map((_, i) => (
+                <div key={i} className={`confetti-piece confetti-${i}`}></div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="applicant-header">
+          {isBestMatch && <Star size={16} className="star-icon" />}
+          <User size={20} />
+          <h3>{applicant.userName}</h3>
+          <div className={`status-badge ${getStatusClass(applicant.status)}`}>
+            {getStatusText(applicant.status)}
+          </div>
+        </div>
+        <div className="applicant-details">
+          <div className="detail-item">
+            <Mail size={16} />
+            <span>{applicant.email}</span>
+          </div>
+          {applicant.phoneNumber && (
+            <div className="detail-item">
+              <Phone size={16} />
+              <span>{applicant.phoneNumber}</span>
+            </div>
+          )}
+          {applicant.latestExperience && (
+            <div className="detail-item">
+              <Briefcase size={16} />
+              <span>
+                {applicant.latestExperience.title} @{" "}
+                {applicant.latestExperience.companyName}
+              </span>
+            </div>
+          )}
+          {applicant.latestEducation && (
+            <div className="detail-item">
+              <GraduationCap size={16} />
+              <span>
+                {applicant.latestEducation.degree} @{" "}
+                {applicant.latestEducation.institution}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Only show action buttons for pending and rejected applicants */}
+        {(applicant.status === 0 || applicant.status === 2) && (
+          <div className="applicant-actions">
+            <button
+              className="accept-btn"
+              onClick={() =>
+                updateApplicationStatus(applicant.applicationId, 1)
+              }
+              disabled={updatingStatus[applicant.applicationId]}
+            >
+              <Check size={16} />
+              {updatingStatus[applicant.applicationId]
+                ? "Kabul Ediliyor..."
+                : "Kabul Et"}
+            </button>
+            <button
+              className="reject-btn"
+              onClick={() =>
+                updateApplicationStatus(applicant.applicationId, 2)
+              }
+              disabled={updatingStatus[applicant.applicationId]}
+            >
+              <X size={16} />
+              {updatingStatus[applicant.applicationId]
+                ? "Reddediliyor..."
+                : "Reddet"}
+            </button>
+          </div>
+        )}
+
+        {/* Show accepted message for accepted applicants */}
+        {applicant.status === 1 && (
+          <div className="accepted-message">
+            <CheckCircle size={20} className="accepted-icon" />
+            <span>Bu başvuru pozisyon için kabul edildi!</span>
+          </div>
+        )}
+
+        <div className="application-date">
+          Başvuru Tarihi: {new Date(applicant.creationTime).toLocaleDateString()}
         </div>
       </div>
-      <div className="applicant-details">
-        <div className="detail-item">
-          <Mail size={16} />
-          <span>{applicant.email}</span>
-        </div>
-        {applicant.phoneNumber && (
-          <div className="detail-item">
-            <Phone size={16} />
-            <span>{applicant.phoneNumber}</span>
-          </div>
-        )}
-        {applicant.latestExperience && (
-          <div className="detail-item">
-            <Briefcase size={16} />
-            <span>
-              {applicant.latestExperience.title} @{" "}
-              {applicant.latestExperience.companyName}
-            </span>
-          </div>
-        )}
-        {applicant.latestEducation && (
-          <div className="detail-item">
-            <GraduationCap size={16} />
-            <span>
-              {applicant.latestEducation.degree} @{" "}
-              {applicant.latestEducation.institution}
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="applicant-actions">
-        <button
-          className="accept-btn"
-          onClick={() => updateApplicationStatus(applicant.applicationId, 1)}
-          disabled={
-            applicant.status === 1 || updatingStatus[applicant.applicationId]
-          }
-        >
-          <Check size={16} />
-          {updatingStatus[applicant.applicationId] ? "Updating..." : "Accept"}
-        </button>
-        <button
-          className="reject-btn"
-          onClick={() => updateApplicationStatus(applicant.applicationId, 2)}
-          disabled={
-            applicant.status === 2 || updatingStatus[applicant.applicationId]
-          }
-        >
-          <X size={16} />
-          {updatingStatus[applicant.applicationId] ? "Updating..." : "Reject"}
-        </button>
-      </div>
-
-      <div className="application-date">
-        Applied on: {new Date(applicant.creationTime).toLocaleDateString()}
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -350,6 +405,10 @@ Response:`,
       </div>
     );
   }
+
+  const acceptedCount = applicants.filter(
+    (applicant) => applicant.status === 1
+  ).length;
 
   return (
     <Layout>
@@ -360,6 +419,12 @@ Response:`,
             İşlere Geri Dön
           </button>
           <h1>Başvuranlar: {job?.title}</h1>
+          {acceptedCount > 0 && (
+            <div className="accepted-count-badge">
+              <CheckCircle size={16} />
+              {acceptedCount} Kabul Edildi
+            </div>
+          )}
         </div>
 
         <div className="search-section">
@@ -368,7 +433,7 @@ Response:`,
               <Search size={20} />
               <input
                 type="text"
-                placeholder="Search applicants by skills, experience, education..."
+                placeholder="Adayları yeteneklerine, deneyimlerine ve eğitim geçmişlerine göre filtreleyin!"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -378,7 +443,7 @@ Response:`,
                 disabled={isFiltering}
               >
                 <Filter size={20} />
-                {isFiltering ? "Filtering..." : "Filter"}
+                {isFiltering ? "Filtreleniyor..." : "Filtrele"}
               </button>
               {hasSearched && (
                 <button
@@ -401,7 +466,7 @@ Response:`,
             <div className="section-header">
               <Star size={20} />
               <h2>En Uygun Eşleşmeler: "{searchQuery}"</h2>
-              <span className="match-count">({bestMatches.length} found)</span>
+              <span className="match-count">({bestMatches.length} bulundu)</span>
             </div>
             <div className="best-matches-grid">
               {bestMatches.length === 0 ? (
@@ -417,18 +482,26 @@ Response:`,
           </div>
         )}
 
-        {/* All Applicants Section */}
+        {/* All Available Applicants Section */}
         <div className="all-applicants-section">
           <div className="section-header">
             <User size={20} />
-            <h2>Tüm Başvuranlar</h2>
-            <span className="applicant-count">({applicants.length} total)</span>
+            <h2>Mevcut Başvuranlar</h2>
+            <span className="applicant-count">
+              ({availableApplicants.length} mevcut)
+            </span>
           </div>
           <div className="applicants-grid">
-            {applicants.length === 0 ? (
-              <div className="no-applicants">Henüz başvuran yok.</div>
+            {availableApplicants.length === 0 ? (
+              <div className="no-applicants">
+                {acceptedCount > 0
+                  ? "Tüm başvuranlar değerlendirildi."
+                  : "Henüz başvuran yok."}
+              </div>
             ) : (
-              applicants.map((applicant) => renderApplicantCard(applicant))
+              availableApplicants.map((applicant) =>
+                renderApplicantCard(applicant)
+              )
             )}
           </div>
         </div>
