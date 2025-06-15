@@ -576,17 +576,63 @@ const ChatButton = () => {
     }`;
   };
 
+  const getMatchReasons = (job, userProfile, userSkills, userExperiences) => {
+    const reasons = [];
+    
+    // Check skill matches
+    if (userSkills.length > 0) {
+      const matchingSkills = userSkills.filter(skill => 
+        job.description?.toLowerCase().includes(skill.skillName.toLowerCase())
+      );
+      if (matchingSkills.length > 0) {
+        reasons.push(`Yeteneklerinizle uyumlu: ${matchingSkills.slice(0, 2).map(s => s.skillName).join(', ')}`);
+      }
+    }
+
+    // Check experience matches
+    if (userExperiences.length > 0) {
+      const relevantExp = userExperiences.find(exp => 
+        job.title.toLowerCase().includes(exp.title.toLowerCase()) ||
+        job.description?.toLowerCase().includes(exp.title.toLowerCase())
+      );
+      if (relevantExp) {
+        reasons.push(`Deneyiminizle uyumlu: ${relevantExp.title}`);
+      }
+    }
+
+    // Check work type preference
+    if (userProfile?.preferredWorkType === job.workType) {
+      reasons.push(`Tercih ettiğiniz çalışma modeli: ${WORK_TYPE_LABELS[job.workType]}`);
+    }
+
+    // Check experience level
+    if (userExperiences.length > 0) {
+      const userExpLevel = Math.min(Math.floor(userExperiences.length / 2), 4);
+      if (userExpLevel === job.experienceLevel) {
+        reasons.push(`Deneyim seviyenize uygun: ${EXPERIENCE_LEVEL_LABELS[job.experienceLevel]}`);
+      }
+    }
+
+    return reasons.slice(0, 2); // Return top 2 reasons
+  };
+
   const formatJobList = (jobs, title = "") => {
     if (jobs.length === 0) return "Uygun iş ilanı bulunamadı.";
 
     const jobList = jobs
       .map(
-        (job, index) =>
-          `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
+        (job, index) => {
+          const matchRate = job.score ? Math.min(Math.round(job.score * 10), 100) : null;
+          const matchReasons = job.score ? getMatchReasons(job, userProfile, userSkills, userExperiences) : [];
+          
+          return `${index + 1}. 📋 ${job.title}\n   🏢 ${job.company}\n   📍 ${
             job.location || "Belirtilmemiş"
           }\n   💼 ${WORK_TYPE_LABELS[job.workType] || "Belirtilmemiş"}${
-            job.score ? `\n   🎯 Uygunluk: ${Math.round(job.score * 10)}%` : ""
-          }`
+            matchRate ? `\n   🎯 Uygunluk: ${matchRate}%` : ""
+          }${
+            matchReasons.length > 0 ? `\n  🤔 Neden Uygun: \n ✨${matchReasons.join("\n✨")}` : ""
+          }`;
+        }
       )
       .join("\n\n");
 
