@@ -158,31 +158,27 @@ function HomePage() {
                   parts: [
                     {
                       text: `
-                        Analyse these users and their companies & positions they worked at or still currently working at, the skills they have, and match 2 of them with ${
-                          currentUserProfile.name
-                        } ${
-                        currentUserProfile.surname
-                      }. Explain the reason why you matched, such as: 'similar skillset' or 'similar educational background'.
-
-                        Here are all the users data:
-                        ${JSON.stringify(allUsers, null, 2)}
-
-                        Current user to match with:
-                        ${JSON.stringify(currentUserProfile, null, 2)}
-
-                        Please return ONLY the following JSON object, without any code block or extra text. Give the match reason part in Turkish language!:
-
-                        {
-                          "matches": [
-                            {
-                              "id": "user_profile_id (not UserId)",
-                              "name": "user_name",
-                              "surname": "user_surname",
-                              "profilePictureUrl": "url",
-                              "matchReason": "5-6 words reason why they should connect"
-                            }
-                          ]
-                        }
+  Öncelikle benzer beceri setine göre en güçlü eşleşmeleri seçin. Eğitim geçmişi ve iş deneyimi
+  önemsiz değil ama ikincil öncelikte kalsın.
+  
+  Aşağıda tüm kullanıcıların profilleri, becerileri, eğitim ve deneyimleri bulunuyor:
+  ${JSON.stringify(allUsers, null, 2)}
+  
+  Mevcut kullanıcı:
+  ${JSON.stringify(currentUserProfile, null, 2)}
+  
+  Lütfen yalnızca şu formatta ve ek açıklama olmadan yanıt verin. "matchReason" kısmı Türkçe olacak:
+  {
+    "matches": [
+      {
+        "id": "user_profile_id (not UserId)",
+        "name": "user_name",
+        "surname": "user_surname",
+        "profilePictureUrl": "url",
+        "matchReason": "5–6 kelime, neden bağlanmalı, varsa ortak olan yeteneklerin isimleri"
+      }
+    ]
+  }
                       `,
                     },
                   ],
