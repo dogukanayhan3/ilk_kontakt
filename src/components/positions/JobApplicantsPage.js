@@ -41,18 +41,16 @@ function JobApplicantsPage() {
   const [isFiltering, setIsFiltering] = useState(false);
   const [jobTitle, setJobTitle] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
-  const [updatingStatus, setUpdatingStatus] = useState({}); // Track which applications are being updated
+  const [updatingStatus, setUpdatingStatus] = useState({});
 
   useEffect(() => {
     fetchJobAndApplicants();
   }, [jobId]);
 
-  // Add this function to update application status
   const updateApplicationStatus = async (applicationId, newStatus) => {
     setUpdatingStatus((prev) => ({ ...prev, [applicationId]: true }));
 
     try {
-      // Get XSRF token
       await fetch(`${API_BASE}/api/abp/application-configuration`, {
         credentials: "include",
       });
@@ -78,7 +76,6 @@ function JobApplicantsPage() {
         throw new Error("Failed to update application status");
       }
 
-      // Refresh the applicants list
       await fetchJobAndApplicants();
     } catch (err) {
       console.error("Error updating status:", err);
@@ -114,10 +111,8 @@ function JobApplicantsPage() {
     }
   };
 
-  // Keep all your existing functions (fetchJobAndApplicants, handleSearch, clearSearch, etc.)
   const fetchJobAndApplicants = async () => {
     try {
-      // Fetch job details
       const jobResponse = await fetch(
         `${API_BASE}/api/app/job-listing/${jobId}`,
         {
@@ -133,7 +128,6 @@ function JobApplicantsPage() {
       setJob(jobData);
       setJobTitle(jobData.title);
 
-      // Fetch applicants
       const applicantsResponse = await fetch(
         `${APPLICATION_ROOT}/by-job-id/${jobId}` +
           `?SkipCount=0&MaxResultCount=1000`,
@@ -181,13 +175,24 @@ function JobApplicantsPage() {
               {
                 parts: [
                   {
-                    text: `Given these job applicants' profiles: ${JSON.stringify(
-                      applicants
-                    )}, 
-                                   find the best matches for this search query: "${searchQuery}". 
-                                   Consider the job title: "${jobTitle}".
-                                   Return only the IDs of the top matching applicants (maximum 5) in a JSON array format.
-                                   Focus on relevance to the search criteria and job requirements.`,
+                    text: `You are an expert HR assistant. Analyze these job applicants and find the best matches for the search criteria.
+
+Job Title: "${jobTitle}"
+Search Query: "${searchQuery}"
+
+Applicants Data:
+${JSON.stringify(applicants, null, 2)}
+
+Instructions:
+1. Analyze each applicant's profile (experience, education, skills)
+2. Match them against the search query and job requirements
+3. Select the top 5 most relevant candidates
+4. Return ONLY a JSON array of applicant IDs, nothing else
+
+Example response format:
+["id1", "id2", "id3"]
+
+Response:`,
                   },
                 ],
               },
@@ -201,17 +206,54 @@ function JobApplicantsPage() {
       }
 
       const data = await response.json();
-      let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      raw = raw
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
+      let responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-      const matchingIds = JSON.parse(raw);
-      const matches = applicants.filter((a) =>
-        matchingIds.includes(a.applicantId)
+      console.log("Raw Gemini response:", responseText);
+
+      // Extract JSON array from the response
+      let matchingIds = [];
+      try {
+        // Try to find JSON array in the response
+        const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
+        if (jsonMatch) {
+          const jsonString = jsonMatch[0];
+          matchingIds = JSON.parse(jsonString);
+          console.log("Extracted IDs:", matchingIds);
+        } else {
+          throw new Error("No JSON array found in response");
+        }
+      } catch (parseError) {
+        console.error("JSON parsing error:", parseError);
+        // Fallback: try to extract IDs using regex
+        const idPattern = /"([a-f0-9-]{36})"/gi;
+        const matches = responseText.match(idPattern);
+        if (matches) {
+          matchingIds = matches
+            .map((match) => match.replace(/"/g, ""))
+            .slice(0, 5);
+          console.log("Fallback extracted IDs:", matchingIds);
+        }
+      }
+
+      if (matchingIds.length === 0) {
+        setBestMatches([]);
+        setError("No matching applicants found for your search criteria.");
+        return;
+      }
+
+      // Find matching applicants using applicantId
+      const matches = applicants.filter((applicant) =>
+        matchingIds.includes(applicant.applicantId)
       );
+
+      console.log("Matched applicants:", matches);
       setBestMatches(matches);
+
+      if (matches.length === 0) {
+        setError(
+          "Found matching IDs but couldn't locate corresponding applicants."
+        );
+      }
     } catch (err) {
       console.error("Error filtering applicants:", err);
       setError("Başvuranlar filtrelenemedi. Lütfen tekrar deneyin.");
@@ -272,7 +314,6 @@ function JobApplicantsPage() {
         )}
       </div>
 
-      {/* Action buttons */}
       <div className="applicant-actions">
         <button
           className="accept-btn"
