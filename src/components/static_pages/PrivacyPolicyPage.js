@@ -45,7 +45,7 @@ function PrivacyPolicyPage() {
                     <section className="policy-section">
                         <h2>5. Veri Güvenliği</h2>
                         <p>
-                            ? Bilgilerinizi korumak için teknik ve idari önlemler alıyoruz. ?
+                            Bilgilerinizi korumak için teknik ve idari önlemler alıyoruz.
                         </p>
                     </section>
                     
