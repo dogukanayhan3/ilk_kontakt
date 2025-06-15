@@ -54,7 +54,7 @@ function NavigationBar() {
 
     return (
         <header className="navbar">
-            <Link to="/" className="logo">İlk Kontakt</Link>
+            <Link to="/homepage" className="logo">İlk Kontakt</Link>
             <nav>
                 <ul>
                 {navItems.map((item) => {

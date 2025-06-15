@@ -51,7 +51,7 @@ export default function AdminUsers() {
         headers: {
           "accept": "text/plain",
           "Content-Type": "application/json",
-          RequestVerificationToken: xsrf,
+          RequestVerificationToken: xsrf, 
           "X-Requested-With": "XMLHttpRequest",
         },
         body: JSON.stringify({

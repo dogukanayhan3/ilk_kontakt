@@ -620,7 +620,7 @@ Keep it concise and impactful.`,
             <p>İlgilendiğiniz alanda açık olan pozisyonları görüntüleyin!</p>
             <button
               className="view-positions-btn"
-              onClick={() => navigate("/joblistings")}
+              onClick={() => navigate("/joblistpage")}
             >
               Pozisyonları Görüntüle
             </button>
