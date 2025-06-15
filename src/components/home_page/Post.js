@@ -49,6 +49,8 @@ function Post({
   userComments,
   publishDate,
   onPostUpdate,
+  profileImage,
+  userProfileImage,
   creatorUserId, // Add creatorUserId to props
 }) {
   // --- Component State ---
@@ -292,7 +294,7 @@ function Post({
       {isCommenting && currentUser && (
         <div className="comment-input-section">
           <img
-            src={creatorProfileImage}
+            src={userProfileImage}
             alt="Your avatar"
             className="comment-input-avatar"
           />
