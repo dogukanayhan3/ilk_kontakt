@@ -1520,9 +1520,7 @@ export default function ProfilePage() {
                           </div>
                           <div className="experience-dates">
                             {new Date(ed.startDate).toLocaleDateString()} -{" "}
-                            {ed.endDate
-                              ? new Date(ed.endDate).toLocaleDateString()
-                              : "Devam Ediyor"}
+                            {ed.isCurrentStudy ? "Devam Ediyor" : new Date(ed.endDate).toLocaleDateString()}
                           </div>
                           <div className="experience-description">
                             GPA: {ed.gpa?.toFixed(2) || "-"}
