@@ -1203,7 +1203,7 @@ ${formatJobDetails(job)}
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, botMessage]);
-      speakText(reply);
+      // speakText(reply); // Auto speaking disabled
     } catch (error) {
       console.error("Error processing speech result:", error);
       const errorMessage = {
@@ -1212,7 +1212,7 @@ ${formatJobDetails(job)}
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      speakText(errorMessage.text);
+      // speakText(errorMessage.text); // Auto speaking disabled
     } finally {
       setIsLoading(false);
     }
@@ -1254,7 +1254,7 @@ ${formatJobDetails(job)}
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, botMessage]);
-      speakText(reply);
+      // speakText(reply); // Auto speaking disabled
     } catch (error) {
       console.error("Error processing message:", error);
       const errorMessage = {
@@ -1263,7 +1263,7 @@ ${formatJobDetails(job)}
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      speakText(errorMessage.text);
+      // speakText(errorMessage.text); // Auto speaking disabled
     } finally {
       setIsLoading(false);
     }
@@ -1341,7 +1341,7 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, botMessage]);
-      speakText(reply);
+      // speakText(reply); // Auto speaking disabled
     } catch (error) {
       console.error("Error processing message:", error);
       const errorMessage = {
@@ -1350,7 +1350,7 @@ Ayrıca mentorluk, ağ kurma ve kariyer gelişimi konularında da size yardımc�
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-      speakText(errorMessage.text);
+      // speakText(errorMessage.text); // Auto speaking disabled
     } finally {
       setIsLoading(false);
     }
