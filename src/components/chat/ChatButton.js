@@ -28,6 +28,7 @@ const WORK_TYPE_LABELS = {
   2: "Hibrit",
 };
 
+
 const EXPERIENCE_LEVEL_LABELS = {
   0: "Staj",
   1: "Giriş Seviyesi",
@@ -984,6 +985,31 @@ Yapabilecekleriniz:
 • Tam pozisyon adını kullanın (örn: "Full Stack Developer pozisyonuna başvur")`;
     }
 
+    // --- EXPERIENCE FIT CHECKPOINT ---
+    let experienceWarning = null;
+    let userExpLevel = null;
+    if (userExperiences.length > 0) {
+      const latestExp = userExperiences[0];
+      const title = latestExp.title.toLowerCase();
+      if (title.includes("staj") || title.includes("intern")) userExpLevel = 0;
+      else if (title.includes("giriş") || title.includes("junior")) userExpLevel = 1;
+      else if (title.includes("orta") || title.includes("mid")) userExpLevel = 2;
+      else if (title.includes("üst") || title.includes("senior")) userExpLevel = 3;
+      else if (title.includes("direktör") || title.includes("director")) userExpLevel = 4;
+      else if (title.includes("yönetici") || title.includes("manager")) userExpLevel = 5;
+      else userExpLevel = 2;
+    }
+    if (userExpLevel === null) userExpLevel = 0;
+    // Underfit warning
+    if ((userExpLevel === 0 || userExpLevel === 1) && job.experienceLevel >= 3) {
+      experienceWarning = `⚠️ Uyarı: Bu pozisyon için deneyiminiz yetersiz görünüyor. Yine de başvurmak ister misiniz?\n\nProfiliniz: ${EXPERIENCE_LEVEL_LABELS[userExpLevel]}\nPozisyon: ${EXPERIENCE_LEVEL_LABELS[job.experienceLevel]}`;
+    }
+    // Overfit warning
+    if (userExpLevel >= 3 && (job.experienceLevel === 0 || job.experienceLevel === 1)) {
+      experienceWarning = `⚠️ Uyarı: Bu pozisyon, mevcut deneyim seviyenize göre çok daha düşük bir seviyede. Yine de başvurmak ister misiniz?\n\nProfiliniz: ${EXPERIENCE_LEVEL_LABELS[userExpLevel]}\nPozisyon: ${EXPERIENCE_LEVEL_LABELS[job.experienceLevel]}`;
+    }
+    // --- END EXPERIENCE FIT CHECKPOINT ---
+
     if (job.externalUrl) {
       return `Bu pozisyon için harici başvuru gerekiyor:
 
@@ -992,13 +1018,14 @@ ${formatJobDetails(job)}
 🔗 Başvuru linki: ${job.externalUrl}`;
     }
 
+    // If there is a warning, prepend it to the confirmation message
+    if (experienceWarning) {
+      return `${experienceWarning}\n\nAşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(job)}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
+    }
+
     console.log("✅ Setting pending application for job:", job.id);
     setPendingApplication(job);
-    return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?
-
-${formatJobDetails(job)}
-
-Onaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
+    return `Aşağıdaki pozisyona başvurmak istediğinizi onaylıyor musunuz?\n\n${formatJobDetails(job)}\n\nOnaylamak için 'evet', iptal etmek için 'hayır' yazın.`;
   };
 
   const handleGeneralQuery = async (userMessage) => {
