@@ -991,7 +991,7 @@ Yapabilecekleriniz:
     if (userExperiences.length > 0) {
       const latestExp = userExperiences[0];
       const title = latestExp.title.toLowerCase();
-      if (title.includes("staj") || title.includes("intern")) userExpLevel = 0;
+      if (title.includes("staj") || title.includes("intern") || title.includes("trainee")) userExpLevel = 0;
       else if (title.includes("giriş") || title.includes("junior")) userExpLevel = 1;
       else if (title.includes("orta") || title.includes("mid")) userExpLevel = 2;
       else if (title.includes("üst") || title.includes("senior")) userExpLevel = 3;
