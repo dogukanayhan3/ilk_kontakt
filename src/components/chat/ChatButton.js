@@ -1059,7 +1059,7 @@ ${formatJobDetails(job)}
       );
 
       const response = await fetch(
-        `${GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: {

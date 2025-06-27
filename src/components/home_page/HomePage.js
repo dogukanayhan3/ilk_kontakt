@@ -146,7 +146,7 @@ function HomePage() {
       if (!currentUserProfile || !allUsers.length) return [];
       try {
         const response = await fetch(
-          `${API_CONFIG.GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+          `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
           {
             method: "POST",
             headers: {
@@ -393,7 +393,7 @@ function HomePage() {
   const generatePost = async () => {
     try {
       const response = await fetch(
-        `${API_CONFIG.GEMINI_API_URL}?key=AIzaSyCgxFgzQQxZ4k1hMv8Qw0PYw7l6g-_zWKY`,
+        `${API_CONFIG.GEMINI_API_URL}?key=${API_CONFIG.GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: {
